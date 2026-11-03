@@ -32,7 +32,7 @@ All PRD requirements FR-01 to FR-32 are implemented. Open items that need people
 | Breach handling | Waiver/extension REQUESTED → APPROVED/REJECTED by another approver; switch in settings (default on); extension date ≥ today | Core tests |
 | Certificates, currency, staleness | Certificate requirements per period (PENDING/RECEIVED/OVERDUE); reporting currency and dated FX; `max_age_days` per measure | Core tests |
 | Reports | Period comparison with trend; Excel exports (comparison, library, open breaches); open-breach PDF; escalation flag; analytics by segment and sector; Ask AI over the caller's portfolio | Core, DPS and UI tests |
-| UI | Portfolio, CP workspace, onboarding, documents with page view, library, reports, jobs, settings | 34 tests, 90% lines |
+| UI | Portfolio, CP workspace, onboarding, documents with page view, library, reports, jobs, settings | 34 tests, 82% lines (vitest 4 coverage) |
 | Deployment | Images for Core, DPS (API, worker, heavy worker) and UI; compose stack with SQL Server; Core `prod` profile with Quartz clustering | Stack run end to end |
 
 ## Build and test
