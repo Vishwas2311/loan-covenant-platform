@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.service.AppliedCovenantService;
+import com.crisil.covenant.service.TransientRetry;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -35,10 +36,13 @@ public class AppliedCovenantController {
 
     private final AppliedCovenantService service;
 
+    private final TransientRetry retry;
+
     public AppliedCovenantController(AppliedCovenantService service,
-            CpAccessGuard guard) {
+            CpAccessGuard guard, TransientRetry retry) {
         this.guard = guard;
         this.service = service;
+        this.retry = retry;
     }
 
     @PostMapping("/credit-proposals/{cpId}/applied-covenants")
@@ -52,7 +56,8 @@ public class AppliedCovenantController {
             @Parameter(description = "Credit Proposal id (CP_ID)") @PathVariable String cpId,
             @Valid @RequestBody BulkApplyCovenantsRequest request) {
         guard.requireCp(cpId);
-        return ResponseEntity.status(201).body(service.applyBulk(cpId, request));
+        // Each attempt is its own transaction: parallel applies can deadlock on Quartz's lock rows.
+        return ResponseEntity.status(201).body(retry.run(() -> service.applyBulk(cpId, request)));
     }
 
     @GetMapping("/credit-proposals/{cpId}/applied-covenants")

@@ -15,6 +15,7 @@ import com.crisil.covenant.enums.AppliedCovenantStatus;
 import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.enums.ThresholdSource;
 import com.crisil.covenant.service.AppliedCovenantService;
+import com.crisil.covenant.service.TransientRetry;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -33,6 +35,7 @@ class AppliedCovenantControllerTest {
 
     @Mock private AppliedCovenantService service;
     @Mock private CpAccessGuard guard;
+    @Spy private TransientRetry retry = new TransientRetry();
     @InjectMocks private AppliedCovenantController controller;
 
     @Test
