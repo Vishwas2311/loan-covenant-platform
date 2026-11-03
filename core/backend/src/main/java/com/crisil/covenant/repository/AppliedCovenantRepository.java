@@ -17,7 +17,7 @@ import com.crisil.covenant.enums.AppliedCovenantStatus;
 @Repository
 public interface AppliedCovenantRepository extends JpaRepository<AppliedCovenant, String> {
 
-    @EntityGraph(attributePaths = {"covenantMaster"})
+    @EntityGraph(AppliedCovenant.WITH_MASTER)
     List<AppliedCovenant> findByCpIdOrderByIdAsc(String cpId);
 
     /**
@@ -25,18 +25,18 @@ public interface AppliedCovenantRepository extends JpaRepository<AppliedCovenant
      * set of CPs (the caller's owned portfolio), eager-loading the master. An empty collection yields an
      * empty list, so the monitoring reads can fail closed without a special case.
      */
-    @EntityGraph(attributePaths = {"covenantMaster"})
+    @EntityGraph(AppliedCovenant.WITH_MASTER)
     List<AppliedCovenant> findByCpIdInOrderByIdAsc(Collection<String> cpIds);
 
     /**
      * Page through covenants in one status, eager-loading the master so the daily breach sweep can
      * process a large book in bounded-memory batches instead of loading everything with {@code findAll}.
      */
-    @EntityGraph(attributePaths = {"covenantMaster"})
+    @EntityGraph(AppliedCovenant.WITH_MASTER)
     Page<AppliedCovenant> findByStatus(AppliedCovenantStatus status, Pageable pageable);
 
     @Override
-    @EntityGraph(attributePaths = {"covenantMaster"})
+    @EntityGraph(AppliedCovenant.WITH_MASTER)
     Optional<AppliedCovenant> findById(String id);
 
     boolean existsByCpIdAndCovenantMasterId(String cpId, String covenantMasterId);

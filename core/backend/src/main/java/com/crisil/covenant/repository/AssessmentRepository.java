@@ -38,14 +38,14 @@ public interface AssessmentRepository extends JpaRepository<Assessment, String> 
     @Query("delete from Assessment a where a.appliedCovenant.id in :appliedCovenantIds")
     int deleteByAppliedCovenantIdIn(@Param("appliedCovenantIds") Collection<String> appliedCovenantIds);
 
-    @EntityGraph(attributePaths = {"appliedCovenant", "appliedCovenant.covenantMaster"})
+    @EntityGraph(Assessment.WITH_COVENANT)
     Page<Assessment> findByAppliedCovenantIdOrderByScheduledAtDesc(String appliedCovenantId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"appliedCovenant", "appliedCovenant.covenantMaster", "comparisons"})
+    @EntityGraph(Assessment.WITH_COVENANT_AND_COMPARISONS)
     List<Assessment> findByAppliedCovenantCpIdOrderByScheduledAtDesc(String cpId);
 
     @Override
-    @EntityGraph(attributePaths = {"appliedCovenant", "appliedCovenant.covenantMaster", "comparisons"})
+    @EntityGraph(Assessment.WITH_COVENANT_AND_COMPARISONS)
     Optional<Assessment> findById(String id);
 
     /**

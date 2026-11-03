@@ -10,6 +10,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -20,8 +23,15 @@ import org.hibernate.annotations.UuidGenerator;
  * decoupled from the physical {@code sourceColumn}.
  */
 @Entity
+// Named so @EntityGraph finds it directly: with attributePaths alone, Spring Data first looks up a named
+// graph, gets an IllegalArgumentException on every call, then builds the graph (load test: ~10% of CPU).
+@NamedEntityGraph(name = Measure.WITH_TABLE_AND_SOURCE,
+        attributeNodes = @NamedAttributeNode(value = "dataSourceTable", subgraph = "table"),
+        subgraphs = @NamedSubgraph(name = "table", attributeNodes = @NamedAttributeNode("dataSource")))
 @Table(name = "cov_measure")
 public class Measure extends AuditableEntity {
+
+    public static final String WITH_TABLE_AND_SOURCE = "Measure.withTableAndSource";
 
     @Id
     @UuidGenerator

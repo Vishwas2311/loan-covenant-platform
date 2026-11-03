@@ -10,6 +10,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import org.hibernate.annotations.UuidGenerator;
@@ -18,8 +20,13 @@ import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.enums.ThresholdSource;
 
 @Entity
+// Named so @EntityGraph finds it directly: with attributePaths alone, Spring Data first looks up a named
+// graph, gets an IllegalArgumentException on every call, then builds the graph (load test: ~10% of CPU).
+@NamedEntityGraph(name = AppliedCovenant.WITH_MASTER, attributeNodes = @NamedAttributeNode("covenantMaster"))
 @Table(name = "cov_applied_covenant")
 public class AppliedCovenant extends AuditableEntity {
+
+    public static final String WITH_MASTER = "AppliedCovenant.withMaster";
 
     @Id
     @UuidGenerator

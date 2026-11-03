@@ -9,6 +9,11 @@ spring:
     password: ${COVENANT_DB_PASSWORD}
     hikari:
       maximum-pool-size: ${COVENANT_DB_POOL_SIZE:20}
+      # Every string column is VARCHAR. The driver's default sends strings as NVARCHAR, which makes
+      # SQL Server convert each row and scan indexes instead of seeking (load test: 5 ms of CPU per
+      # single-row lookup, the main database cost).
+      data-source-properties:
+        sendStringParametersAsUnicode: false
   h2:
     console:
       enabled: false

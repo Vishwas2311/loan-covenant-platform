@@ -8,6 +8,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -21,8 +24,20 @@ import com.crisil.covenant.enums.AssessmentStatus;
 import com.crisil.covenant.enums.AssessmentTrigger;
 
 @Entity
+// Named so @EntityGraph finds it directly: with attributePaths alone, Spring Data first looks up a named
+// graph, gets an IllegalArgumentException on every call, then builds the graph (load test: ~10% of CPU).
+@NamedEntityGraph(name = Assessment.WITH_COVENANT,
+        attributeNodes = @NamedAttributeNode(value = "appliedCovenant", subgraph = "covenant"),
+        subgraphs = @NamedSubgraph(name = "covenant", attributeNodes = @NamedAttributeNode("covenantMaster")))
+@NamedEntityGraph(name = Assessment.WITH_COVENANT_AND_COMPARISONS,
+        attributeNodes = {@NamedAttributeNode(value = "appliedCovenant", subgraph = "covenant"),
+                          @NamedAttributeNode("comparisons")},
+        subgraphs = @NamedSubgraph(name = "covenant", attributeNodes = @NamedAttributeNode("covenantMaster")))
 @Table(name = "cov_assessment")
 public class Assessment extends AuditableEntity {
+
+    public static final String WITH_COVENANT = "Assessment.withCovenant";
+    public static final String WITH_COVENANT_AND_COMPARISONS = "Assessment.withCovenantAndComparisons";
 
     @Id
     @UuidGenerator

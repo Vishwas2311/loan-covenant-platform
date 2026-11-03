@@ -10,10 +10,10 @@ import com.crisil.covenant.entity.DataSourceTable;
 @Repository
 public interface DataSourceTableRepository extends JpaRepository<DataSourceTable, String> {
 
-    @EntityGraph(attributePaths = {"dataSource"})
+    @EntityGraph(DataSourceTable.WITH_SOURCE)
     List<DataSourceTable> findByDataSourceIdOrderByNameAsc(String dataSourceId);
 
-    @EntityGraph(attributePaths = {"dataSource"})
+    @EntityGraph(DataSourceTable.WITH_SOURCE)
     Optional<DataSourceTable> findById(String id);
 
     boolean existsByDataSourceIdAndNameIgnoreCase(String dataSourceId, String name);

@@ -13,19 +13,19 @@ public interface MeasureRepository extends JpaRepository<Measure, String> {
 
     boolean existsByCodeIgnoreCase(String code);
 
-    @EntityGraph(attributePaths = {"dataSourceTable", "dataSourceTable.dataSource"})
+    @EntityGraph(Measure.WITH_TABLE_AND_SOURCE)
     Optional<Measure> findByCodeIgnoreCase(String code);
 
-    @EntityGraph(attributePaths = {"dataSourceTable", "dataSourceTable.dataSource"})
+    @EntityGraph(Measure.WITH_TABLE_AND_SOURCE)
     Optional<Measure> findById(String id);
 
-    @EntityGraph(attributePaths = {"dataSourceTable", "dataSourceTable.dataSource"})
+    @EntityGraph(Measure.WITH_TABLE_AND_SOURCE)
     List<Measure> findByActiveTrueOrderByCodeAsc();
 
-    @EntityGraph(attributePaths = {"dataSourceTable", "dataSourceTable.dataSource"})
+    @EntityGraph(Measure.WITH_TABLE_AND_SOURCE)
     List<Measure> findByCodeIn(Collection<String> codes);
 
-    @EntityGraph(attributePaths = {"dataSourceTable", "dataSourceTable.dataSource"})
+    @EntityGraph(Measure.WITH_TABLE_AND_SOURCE)
     List<Measure> findAllByOrderByCodeAsc();
 
     /** All measures backed by a table — the set of columns/codes to copy when staging that table. */

@@ -7,6 +7,12 @@ spring:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     username: ${COVENANT_DB_USER}
     password: ${COVENANT_DB_PASSWORD}
+    hikari:
+      # Every string column is VARCHAR. The driver's default sends strings as NVARCHAR, which makes
+      # SQL Server convert each row and scan indexes instead of seeking (load test: 5 ms of CPU per
+      # single-row lookup, the main database cost).
+      data-source-properties:
+        sendStringParametersAsUnicode: false
   h2:
     console:
       enabled: false

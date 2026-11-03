@@ -7,6 +7,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 import com.crisil.covenant.enums.TableEntityKeyLevel;
@@ -19,8 +21,13 @@ import com.crisil.covenant.enums.TableLayout;
  * Measures map to a {@code (table, column)} pair.
  */
 @Entity
+// Named so @EntityGraph finds it directly: with attributePaths alone, Spring Data first looks up a named
+// graph, gets an IllegalArgumentException on every call, then builds the graph (load test: ~10% of CPU).
+@NamedEntityGraph(name = DataSourceTable.WITH_SOURCE, attributeNodes = @NamedAttributeNode("dataSource"))
 @Table(name = "cov_data_source_table")
 public class DataSourceTable extends AuditableEntity {
+
+    public static final String WITH_SOURCE = "DataSourceTable.withSource";
 
     @Id
     @UuidGenerator
