@@ -91,6 +91,22 @@ services:
     volumes: [dpsdata:/data]
     restart: on-failure
 
+  # Takes documents the fast parser could not read well (scans, complex layouts) and parses them with
+  # Docling. Bigger image (CPU torch); the models download into doclingcache on the first heavy job.
+  dps-worker-heavy:
+    build:
+      context: ../dps
+      args: { INSTALL_HEAVY: "1" }
+    image: covenant-dps-heavy
+    command: ["python", "-m", "dps.worker"]
+    depends_on: [dps-api]
+    environment:
+      <<: *dps-env
+      DPS_WORKER_ID: dps-worker-heavy-1
+      DPS_WORKER_POOL: HEAVY
+    volumes: [dpsdata:/data, doclingcache:/home/dps/.cache]
+    restart: on-failure
+
   ui:
     build: ../ui
     depends_on: [core, dps-api]
@@ -99,3 +115,4 @@ services:
 volumes:
   sqldata:
   dpsdata:
+  doclingcache:
