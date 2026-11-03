@@ -1,0 +1,6 @@
+# Local Docker stack (deploy/docker-compose.yml). There is no ML threshold service locally, so the
+# ML client calls the in-app mock (MockMlThresholdController), as in the dev profile.
+covenant:
+  clients:
+    ml:
+      base-url: http://localhost:${server.port}/internal/mock-ml

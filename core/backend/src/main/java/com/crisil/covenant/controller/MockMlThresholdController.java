@@ -26,7 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Dev-only in-app stand-in for the external ML threshold service ({@code @Profile("dev")}). It
+ * Dev-only in-app stand-in for the external ML threshold service ({@code dev} profile, and the
+ * {@code local-stack} profile used by deploy/docker-compose.yml). It
  * produces deterministic, request-aware recommendations by reusing {@link FormulaEngine}: each
  * numeric threshold is nudged (tighten a {@code >}/{@code >=} floor by +5%, loosen a
  * {@code <}/{@code <=} bound by −5%), while BOOLEAN/DATE/STRING thresholds are left unchanged. Because
@@ -37,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/internal/mock-ml")
-@Profile("dev")
+@Profile({"dev", "local-stack"})
 @Tag(name = "Dev Mocks (internal)",
         description = "Dev-only in-app stand-in for the external ML threshold service. Active under the "
                 + "'dev' profile only; the mlWebClient base URL points here so the full resilient HTTP "

@@ -57,7 +57,7 @@ Whole stack:
 cp deploy/.env.example deploy/.env
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env up --build
 ```
-UI at http://localhost:8080. The stack runs SQL Server, WireMock stubs for the bank services (`bank-stubs`), Core with the demo portfolio, DPS (API and worker) and the UI. Pick a user in "Act as": `rm-anil` and `wrm-meera` (approver) own CP-1001…1007 and CP-2001…2005; `rm-priya` and `wrm-vikram` own the rest.
+UI at http://localhost:8080. The stack runs SQL Server, WireMock stubs for the bank services (`bank-stubs`), Core with the demo portfolio and its in-app ML threshold mock (`local-stack` profile), DPS (API, standard worker and the Docling heavy worker) and the UI. The heavy worker image is large; its models download into the `doclingcache` volume on the first heavy job. Pick a user in "Act as": `rm-anil` and `wrm-meera` (approver) own CP-1001…1007 and CP-2001…2005; `rm-priya` and `wrm-vikram` own the rest.
 
 ## Still needed before go-live (people, not code)
 

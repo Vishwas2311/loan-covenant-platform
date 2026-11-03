@@ -53,6 +53,8 @@ services:
       COVENANT_CLIENTS_NOTIFICATION_BASE_URL: http://bank-stubs:8080
       COVENANT_CLIENTS_FILE_UPLOAD_BASE_URL: http://bank-stubs:8080
       COVENANT_CLIENTS_AI_SUGGESTION_BASE_URL: http://bank-stubs:8080
+      # prod as in the image, plus the in-app ML threshold mock (application-local-stack.yml).
+      SPRING_PROFILES_ACTIVE: prod,local-stack
       # Local stack only: load the demo portfolio that matches the stubbed CPs.
       SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/integration,classpath:db/demo
       SPRING_FLYWAY_OUT_OF_ORDER: "true"
