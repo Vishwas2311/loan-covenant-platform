@@ -123,6 +123,8 @@ public class CovenantMasterService {
         entity.setAssessmentType(request.safeAssessmentType());
         entity.setDefaultFrequency(request.safeDefaultFrequency());
         entity.setDefaultCron(validatedDefaultCron(request));
+        entity.setPolicyReference(request.policyReference() == null || request.policyReference().isBlank()
+                ? null : request.policyReference().trim());
         entity.setBusinessSegments(Eligibility.normalize(request.safeBusinessSegments()));
         entity.setIndustries(Eligibility.normalize(request.safeIndustries()));
         entity.setCountriesOfRisk(Eligibility.normalize(request.safeCountriesOfRisk()));

@@ -33,7 +33,8 @@ public record CovenantResponse(
         String createdBy,
         Instant modifiedDate,
         String modifiedBy,
-        String version) {
+        String version,
+        String policyReference) {
 
     public static CovenantResponse from(CovenantMaster entity) {
         return new CovenantResponse(
@@ -62,6 +63,7 @@ public record CovenantResponse(
                 entity.getCreatedBy(),
                 entity.getModifiedDate(),
                 entity.getModifiedBy(),
-                entity.getVersion());
+                entity.getVersion(),
+                entity.getPolicyReference());
     }
 }

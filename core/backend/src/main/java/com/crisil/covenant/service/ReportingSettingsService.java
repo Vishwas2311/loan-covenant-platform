@@ -39,6 +39,13 @@ public class ReportingSettingsService {
                 .orElse(true);
     }
 
+    /** C3: the headroom share (% of the limit) under which a compliant covenant is "at risk"; 0 = off. */
+    public int atRiskHeadroomPercent() {
+        return repository.findAll().stream().findFirst()
+                .map(ReportingSetting::getAtRiskHeadroomPercent)
+                .orElse(10);
+    }
+
     /** The current organisation policy (defaults if no row has been persisted). */
     public ReportingSettingsResponse current() {
         return repository.findAll().stream().findFirst()
@@ -65,6 +72,9 @@ public class ReportingSettingsService {
         }
         if (request.reportingCurrency() != null) {
             setting.setReportingCurrency(request.reportingCurrency());
+        }
+        if (request.atRiskHeadroomPercent() != null) {
+            setting.setAtRiskHeadroomPercent(request.atRiskHeadroomPercent());
         }
         return ReportingSettingsResponse.from(repository.save(setting));
     }

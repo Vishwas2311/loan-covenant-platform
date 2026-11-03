@@ -43,7 +43,7 @@ export const core = {
       fiscalYearStartMonth: s.fiscalYearStartMonth, periodicIncludesCurrentPeriod: s.periodicIncludesCurrentPeriod,
       dueSoonDays: s.dueSoonDays, upcomingWindowDays: s.upcomingWindowDays,
       dispositionApprovalRequired: s.dispositionApprovalRequired,
-      reportingCurrency: s.reportingCurrency,
+      reportingCurrency: s.reportingCurrency, atRiskHeadroomPercent: s.atRiskHeadroomPercent,
     },
   }),
 };
@@ -53,13 +53,16 @@ export const core = {
 export const dps = {
   documents: (cpId: string) => api<DpsDocument[]>(`/dps/v1/documents?cpId=${enc(cpId)}`),
   document: (id: string) => api<DpsDocument>(`/dps/v1/documents/${enc(id)}`),
-  upload: (file: File, type: DocumentType, cpIds: string[], asOfDate?: string) => {
+  upload: (file: File, type: DocumentType, cpIds: string[], asOfDate?: string, amendsDocumentId?: string | null) => {
     const form = new FormData();
     form.append('file', file);
     form.append('type', type);
     cpIds.forEach((c) => form.append('cpIds', c));
     if (asOfDate) {
       form.append('asOfDate', asOfDate);
+    }
+    if (amendsDocumentId) {
+      form.append('amendsDocumentId', amendsDocumentId);
     }
     return api<{ documentId: string; jobId: string | null }>('/dps/v1/documents', { method: 'POST', body: form });
   },

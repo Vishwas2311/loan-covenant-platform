@@ -6,6 +6,7 @@ const RESULT_COLOR: Record<string, string> = {
   REQUESTED: 'yellow', APPROVED: 'green', REJECTED: 'gray', PUBLISHED: 'green', NEEDS_REVIEW: 'yellow',
   FAILED: 'red', QUEUED: 'gray', RUNNING: 'blue', DONE: 'green', PROPOSED: 'gray', PENDING_REVIEW: 'yellow',
   NA: 'gray', ACTIVE: 'green', SUSPENDED: 'gray', DUE_SOON: 'yellow', OVERDUE: 'red', UP_TO_DATE: 'green',
+  WITHDRAWN: 'gray', REMOVED: 'gray', AT_RISK: 'orange',
 };
 
 export function StatusBadge({ value }: { value: string | null | undefined }) {

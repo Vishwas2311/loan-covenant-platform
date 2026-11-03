@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { errorMessage } from '../api/client';
 import { r2 } from '../api/endpoints2';
 import type { AnalyticsGroup } from '../api/types2';
+import { Charts } from './Charts';
 import { AskAi } from './Ops';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 
@@ -40,6 +41,7 @@ export function Reports() {
   return (
     <Stack>
       <Title order={2}>Reports</Title>
+      <Charts />
       <AskAi />
       {analytics.isLoading && <Loading />}
       {analytics.error && <ErrorNote error={analytics.error} />}

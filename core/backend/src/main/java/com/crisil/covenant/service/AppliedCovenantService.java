@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.quartz.CronExpression;
 import org.springframework.http.HttpStatus;
@@ -230,6 +231,9 @@ public class AppliedCovenantService {
             entity.setCronExpression(newCron);
             scheduleService.findByApplied(id).ifPresent(s -> scheduleService.reschedule(s, newCron));
         }
+        if (request.conditionExpression() != null) {
+            amendCondition(entity, request.conditionExpression(), request.reason(), changedBy, now);
+        }
         if (request.status() != null && request.status() != entity.getStatus()) {
             auditRepo.save(new AppliedCovenantAudit(
                     id, AppliedCovenantAudit.ChangeType.STATUS,
@@ -243,6 +247,29 @@ public class AppliedCovenantService {
             }
         }
         return AppliedCovenantResponse.from(appliedRepo.saveAndFlush(entity));
+    }
+
+    /**
+     * Replace this CP's rule for the covenant, for example after a loan amendment, and log it to the
+     * definition history. A blank expression goes back to the library rule. Earlier results keep the
+     * rule they were checked against; the new one applies from the next check.
+     */
+    private void amendCondition(AppliedCovenant entity, String requested, String reason,
+                                String changedBy, Instant now) {
+        String override = validatedOverride(requested);
+        String master = entity.getCovenantMaster().getConditionExpression();
+        String before = entity.getConditionExpression() != null ? entity.getConditionExpression() : master;
+        String after = override != null ? override : master;
+        if (Objects.equals(before, after) && Objects.equals(override, entity.getConditionExpression())) {
+            return;
+        }
+        ThresholdSource source = override == null ? ThresholdSource.MASTER : ThresholdSource.USER;
+        entity.setConditionExpression(override);
+        entity.setThresholdSource(source);
+        thresholdAuditRepo.save(new ThresholdAudit(
+                entity.getCpId(), entity.getCovenantMaster().getId(), entity.getId(),
+                source, ThresholdAudit.Event.AMENDED, before, after, null,
+                reason == null || reason.isBlank() ? null : reason.trim(), changedBy, now));
     }
 
     @Transactional(readOnly = true)

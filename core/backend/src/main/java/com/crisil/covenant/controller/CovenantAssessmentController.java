@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -98,6 +99,21 @@ public class CovenantAssessmentController {
             @Valid @RequestBody DispositionDecisionRequest request) {
         guard.requireCp(cpId);
         return service.decideDisposition(cpId, appliedId, request);
+    }
+
+    /** The optional note recorded when a request is withdrawn. */
+    public record WithdrawRequest(@Size(max = 1000) String note) {}
+
+    @PostMapping("/cp/{cpId}/covenants/{appliedId}/status/withdraw")
+    @Operation(summary = "Withdraw a Waiver/Extension request before it is decided",
+            description = "The requester (or an ADMIN) takes back a REQUESTED disposition; the breach stands "
+                    + "and a new request can be raised.")
+    public CpReviewRow withdrawStatus(
+            @Parameter(description = "Credit Proposal id (CP_ID)") @PathVariable String cpId,
+            @Parameter(description = "Applied covenant id") @PathVariable String appliedId,
+            @Valid @RequestBody(required = false) WithdrawRequest request) {
+        guard.requireCp(cpId);
+        return service.withdrawDisposition(cpId, appliedId, request == null ? null : request.note());
     }
 
     @GetMapping("/cp/{cpId}/status-audit")

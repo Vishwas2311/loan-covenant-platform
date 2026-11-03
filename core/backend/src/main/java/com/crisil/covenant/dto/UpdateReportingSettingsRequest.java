@@ -20,7 +20,15 @@ public record UpdateReportingSettingsRequest(
         @NotNull @Min(1) @Max(365) Integer dueSoonDays,
         @NotNull @Min(1) @Max(365) Integer upcomingWindowDays,
         Boolean dispositionApprovalRequired,
-        @Pattern(regexp = "[A-Z]{3}") String reportingCurrency) {
+        @Pattern(regexp = "[A-Z]{3}") String reportingCurrency,
+        @Min(0) @Max(100) Integer atRiskHeadroomPercent) {
+
+    public UpdateReportingSettingsRequest(Integer fiscalYearStartMonth, Boolean periodicIncludesCurrentPeriod,
+                                          Integer dueSoonDays, Integer upcomingWindowDays,
+                                          Boolean dispositionApprovalRequired, String reportingCurrency) {
+        this(fiscalYearStartMonth, periodicIncludesCurrentPeriod, dueSoonDays, upcomingWindowDays,
+                dispositionApprovalRequired, reportingCurrency, null);
+    }
 
     public UpdateReportingSettingsRequest(Integer fiscalYearStartMonth, Boolean periodicIncludesCurrentPeriod,
                                           Integer dueSoonDays, Integer upcomingWindowDays,

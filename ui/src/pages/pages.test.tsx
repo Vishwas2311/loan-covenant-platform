@@ -215,7 +215,7 @@ describe('Documents', () => {
       return undefined;
     });
     renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
-    fireEvent.click(await screen.findByText('agreement.pdf'));
+    fireEvent.click(await screen.findByRole('cell', { name: 'agreement.pdf' }));
     expect(await screen.findByText('LOW_CONFIDENCE')).toBeInTheDocument();
     fireEvent.click(screen.getAllByText('Approve')[0]);
     await waitFor(() => expect(calls.some((c) => c.init.method === 'PATCH')).toBe(true));
@@ -282,7 +282,7 @@ describe('Library and settings', () => {
     expect(JSON.parse(calls.find((c) => c.init.method === 'POST')!.init.body as string)).toEqual({
       name: 'Minimum Current Ratio', category: 'FINANCIAL', description: 'Stay liquid',
       conditionExpression: 'CURRENT_RATIO >= 1.2', assessmentType: 'AUTO', defaultFrequency: 'QUARTERLY',
-      businessSegments: [], defaultCron: null,
+      businessSegments: [], defaultCron: null, policyReference: null,
     });
     expect(await screen.findByText('Minimum Current Ratio added to the library.')).toBeInTheDocument();
   });

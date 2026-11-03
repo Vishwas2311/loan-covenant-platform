@@ -570,6 +570,57 @@ class ReviewServiceTest {
         verify(auditRepo, never()).save(any());
     }
 
+    @Test
+    void requesterWithdrawsAPendingRequest() {
+        CovenantDisposition pending = requested("100");
+        when(dispositionRepo.findByCpIdAndAppliedCovenantId("CP-1", "1")).thenReturn(Optional.of(pending));
+        when(monitoringService.covenantsForCp("CP-1"))
+                .thenReturn(List.of(covenant("1", "50", "DSCR > 1.2", AssessmentResult.BREACHED, "100")));
+        as("rm-anil", "RM");
+
+        service().withdrawDisposition("CP-1", "1", null);
+
+        assertThat(pending.getApprovalStatus()).isEqualTo(DispositionApproval.WITHDRAWN);
+        assertThat(pending.getDecidedBy()).isEqualTo("rm-anil");
+        assertThat(pending.getDecisionNote()).isEqualTo("Withdrawn by the requester");
+        verify(auditRepo, never()).save(any());
+    }
+
+    @Test
+    void withdrawRules() {
+        when(dispositionRepo.findByCpIdAndAppliedCovenantId("CP-1", "1")).thenReturn(Optional.of(requested("100")));
+        as("rm-priya", "RM");
+        assertThatThrownBy(() -> service().withdrawDisposition("CP-1", "1", null))
+                .satisfies(t -> assertStatus(t, 403));
+
+        CovenantDisposition pending = requested("100");
+        when(dispositionRepo.findByCpIdAndAppliedCovenantId("CP-1", "1")).thenReturn(Optional.of(pending));
+        when(monitoringService.covenantsForCp("CP-1"))
+                .thenReturn(List.of(covenant("1", "50", "DSCR > 1.2", AssessmentResult.BREACHED, "100")));
+        as("admin-1", "ADMIN");
+        service().withdrawDisposition("CP-1", "1", "  raised by mistake ");
+        assertThat(pending.getDecisionNote()).isEqualTo("raised by mistake");
+
+        when(dispositionRepo.findByCpIdAndAppliedCovenantId("CP-1", "1")).thenReturn(Optional.of(pending));
+        assertThatThrownBy(() -> service().withdrawDisposition("CP-1", "1", null))
+                .satisfies(t -> assertStatus(t, 404));
+    }
+
+    @Test
+    void compliantCovenantCloseToItsLimitIsAtRisk() {
+        lenient().when(settingsService.atRiskHeadroomPercent()).thenReturn(10);
+        when(monitoringService.covenantsForCp("CP-1")).thenReturn(List.of(
+                covenant("1", "50", "DSCR > 1.2", AssessmentResult.COMPLIANT, "100"),
+                covenant("2", "50", "DSCR > 1.2", AssessmentResult.COMPLIANT, "101")));
+        when(masterRepo.findAllById(any())).thenReturn(List.of(master("50", CovenantCategory.FINANCIAL)));
+        when(assessmentRepo.findAllById(any())).thenReturn(List.of(assessment("100", "1.25"), assessment("101", "1.5")));
+
+        List<CpReviewRow> rows = service().reviewRows("CP-1");
+
+        assertThat(rows.get(0).atRisk()).isTrue();
+        assertThat(rows.get(1).atRisk()).isFalse();
+    }
+
     private static CovenantDisposition requested(String assessmentId) {
         CovenantDisposition d =
                 disposition("1", assessmentId, CovenantDispositionStatus.WAIVER, CovenantStatusSource.USER, null);

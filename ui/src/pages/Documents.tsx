@@ -21,14 +21,16 @@ const TYPES: { value: DocumentType; label: string }[] = [
   { value: 'EVIDENCE', label: 'Evidence' },
 ];
 
-function Upload({ cpId }: { cpId: string }) {
+function Upload({ cpId, agreements }: { cpId: string; agreements: DpsDocument[] }) {
   const qc = useQueryClient();
+  const [amends, setAmends] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [type, setType] = useState<DocumentType>('LOAN_AGREEMENT');
   const [cpIds, setCpIds] = useState<string[]>([cpId]);
   const [asOf, setAsOf] = useState('');
   const upload = useMutation({
-    mutationFn: () => dps.upload(file!, type, cpIds, type === 'FINANCIAL_STATEMENT' ? asOf : undefined),
+    mutationFn: () => dps.upload(file!, type, cpIds, type === 'FINANCIAL_STATEMENT' ? asOf : undefined,
+      type === 'LOAN_AGREEMENT' ? amends : null),
     onSuccess: () => {
       notifications.show({ color: 'green', message: 'Uploaded. Processing has started.' });
       setFile(null);
@@ -56,6 +58,10 @@ function Upload({ cpId }: { cpId: string }) {
             onChange={(v) => v && setType(v as DocumentType)} />
           {type === 'FINANCIAL_STATEMENT' && (
             <TextInput type="date" label="Period end" value={asOf} onChange={(e) => setAsOf(e.currentTarget.value)} />
+          )}
+          {type === 'LOAN_AGREEMENT' && agreements.length > 0 && (
+            <Select label="Amendment of (optional)" clearable value={amends} onChange={setAmends}
+              placeholder="A new agreement" data={agreements.map((a) => ({ value: a.id, label: a.fileName }))} />
           )}
         </Group>
         <TagsInput label="Linked credit proposals" value={cpIds} onChange={setCpIds}
@@ -188,7 +194,91 @@ function DocumentLinks({ doc, canEdit }: { doc: DpsDocument; canEdit: boolean })
   );
 }
 
-function DocumentDetail({ doc }: { doc: DpsDocument }) {
+/** B3: take a wrong upload out of use (it is kept, marked REMOVED), or swap it for the right file. */
+function RemoveOrReplace({ doc, onDone }: { doc: DpsDocument; onDone: () => void }) {
+  const qc = useQueryClient();
+  const [reason, setReason] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [open, setOpen] = useState(false);
+  const run = useMutation({
+    mutationFn: async () => {
+      const why = reason.trim() || (file ? `Replaced by ${file.name}` : '');
+      await r3.removeDocument(doc.id, why);
+      if (file) {
+        await dps.upload(file, doc.type, doc.cpIds, doc.asOfDate ?? undefined, doc.amendsDocumentId ?? null);
+      }
+    },
+    onSuccess: () => {
+      notifications.show({ color: 'green',
+        message: file ? 'Replaced. The new file is being read.' : 'Removed. Its figures no longer count.' });
+      qc.invalidateQueries({ queryKey: ['documents'] });
+      onDone();
+    },
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
+  if (doc.status === 'REMOVED') {
+    return null;
+  }
+  return (
+    <>
+      <Button size="xs" variant="light" color="red" onClick={() => setOpen(true)}>Remove or replace</Button>
+      <Modal opened={open} onClose={() => setOpen(false)} title={`Remove or replace ${doc.fileName}`}>
+        <Stack>
+          <Text size="sm">
+            The file is kept for the record but marked REMOVED. Figures read from it stop counting (an earlier
+            upload for the same period counts again), and the covenants that used them are checked again.
+          </Text>
+          <FileInput label="Replace with (optional)" value={file} onChange={setFile} accept=".pdf,.xlsx,.csv"
+            placeholder="Choose the right file" clearable />
+          <Textarea label="Why" value={reason} onChange={(e) => setReason(e.currentTarget.value)}
+            placeholder="e.g. Uploaded to the wrong CP" required={!file} />
+          <Group justify="end">
+            <Button variant="default" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button color="red" loading={run.isPending} disabled={!reason.trim() && !file}
+              onClick={() => run.mutate()}>{file ? 'Replace' : 'Remove'}</Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </>
+  );
+}
+
+/** C7: how an amendment changes the covenants of the agreement it amends, matched by covenant. */
+function AmendmentChanges({ doc, terms }: { doc: DpsDocument; terms: ExtractedTerm[] }) {
+  const original = useQuery({
+    queryKey: ['terms', doc.amendsDocumentId], queryFn: () => dps.terms(doc.amendsDocumentId!),
+    enabled: !!doc.amendsDocumentId,
+  });
+  if (!doc.amendsDocumentId || !original.data) {
+    return null;
+  }
+  const key = (t: ExtractedTerm) => t.covenantMasterId ?? t.metricRaw.toLowerCase();
+  const before = new Map(original.data.filter((t) => t.status !== 'REJECTED').map((t) => [key(t), t]));
+  const rows = terms.filter((t) => t.status !== 'REJECTED').map((t) => ({ name: t.metricRaw, old: before.get(key(t))?.expression ?? null,
+    now: t.expression })).filter((r) => r.old !== r.now);
+  return (
+    <Card withBorder>
+      <Text fw={600} mb="xs">Changes made by this amendment</Text>
+      {rows.length === 0 ? <Text size="sm" c="dimmed">No covenant terms changed.</Text> : (
+        <Table>
+          <Table.Tbody>
+            {rows.map((r) => (
+              <Table.Tr key={r.name}>
+                <Table.Td>{r.name}</Table.Td>
+                <Table.Td><Text ff="monospace" size="sm">{r.old ?? 'new'} → {r.now ?? '—'}</Text></Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      )}
+      <Text size="xs" c="dimmed" mt="xs">
+        To use a changed rule, open the covenant on the CP workspace, Schedule and changes, and save the new rule.
+      </Text>
+    </Card>
+  );
+}
+
+function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => void }) {
   const identity = useIdentity();
   const canReview = hasRole(identity, 'RM', 'APPROVER', 'ADMIN');
   const qc = useQueryClient();
@@ -220,7 +310,10 @@ function DocumentDetail({ doc }: { doc: DpsDocument }) {
         {job.data?.status === 'NEEDS_REVIEW' && canReview && (
           <Button size="xs" onClick={() => resume.mutate()} loading={resume.isPending}>Review done</Button>
         )}
+        {canReview && <RemoveOrReplace doc={doc} onDone={onClose} />}
       </Group>
+      {doc.amendsDocumentId && <Text size="sm" c="dimmed">This is an amendment of an earlier agreement.</Text>}
+      {terms.data && <AmendmentChanges doc={doc} terms={terms.data} />}
       {job.data?.error && <Text c="red" size="sm">{job.data.error}</Text>}
       <DocumentLinks doc={doc} canEdit={canReview} />
       {doc.type === 'LOAN_AGREEMENT' && (terms.isLoading ? <Loading /> : (
@@ -274,7 +367,8 @@ export function Documents() {
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)} />
       </Group>
       {/* Keyed by CP: switching CP must reset the card, or the old CP stays in "Linked credit proposals". */}
-      {cpId && <Upload key={cpId} cpId={cpId} />}
+      {cpId && <Upload key={cpId} cpId={cpId} agreements={(docs.data ?? [])
+        .filter((d) => d.type === 'LOAN_AGREEMENT' && d.status !== 'REMOVED')} />}
       {docs.isLoading && cpId && <Loading />}
       {docs.error && <ErrorNote error={docs.error} />}
       {docs.data && (
@@ -301,7 +395,7 @@ export function Documents() {
         </Table>
       )}
       <Modal opened={!!open} onClose={() => setOpen(null)} size="90%" title="Document">
-        {open && <DocumentDetail doc={open} />}
+        {open && <DocumentDetail doc={open} onClose={() => setOpen(null)} />}
       </Modal>
     </Stack>
   );

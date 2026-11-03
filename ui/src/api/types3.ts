@@ -41,6 +41,7 @@ export interface DefinitionChange {
   oldExpression: string | null;
   newExpression: string | null;
   source: string;
+  reason?: string | null;
 }
 
 export interface AppliedCovenant {
@@ -48,6 +49,8 @@ export interface AppliedCovenant {
   cpId: string;
   frequency: Frequency;
   cronExpression: string | null;
+  conditionOverride?: string | null;
+  effectiveCondition?: string | null;
   status: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED';
   [key: string]: unknown;
 }
@@ -72,6 +75,8 @@ export interface CovenantDetail {
   collateralTypes: string[];
   active: boolean;
   custom: boolean;
+  /** C5: the credit policy clause or link behind it. */
+  policyReference?: string | null;
 }
 
 export interface CovenantUsage {
@@ -269,4 +274,22 @@ export interface SentNotification {
   errorMessage: string | null;
   changedBy: string;
   changedDate: string;
+}
+
+/** B6: one thing waiting on the signed-in user. */
+export interface Alert {
+  kind: 'APPROVAL' | 'BREACH' | 'OVERDUE' | 'REVIEW' | 'AT_RISK';
+  cpId: string;
+  appliedCovenantId: string;
+  covenantName: string;
+  message: string;
+}
+
+/** C9: check results in one month. */
+export interface TrendPoint {
+  month: string;
+  compliant: number;
+  breached: number;
+  error: number;
+  total: number;
 }

@@ -9,7 +9,7 @@ from datetime import date
 from sqlalchemy import false, func, select
 from sqlalchemy.orm import Session
 
-from dps.models import AuditEvent, Document, DocumentCpLink, EventOutbox, ExtractedTerm, StatementValue
+from dps.models import AuditEvent, Document, DocumentCpLink, EventOutbox, ExtractedTerm, StatementValue, utcnow
 
 
 def audit(db: Session, actor: str, action: str, target_type: str, target_id: str, **detail) -> None:
@@ -76,6 +76,44 @@ def recommendations(db: Session, cp_id: str) -> list[dict]:
             "customCovenant": custom,
         })
     return out
+
+
+def remove_document(db: Session, doc: Document, *, user: str, reason: str, data_source_id: str) -> None:
+    """B3: take a wrongly uploaded document out of use without deleting it.
+
+    The document is marked REMOVED and kept for the audit trail. Its statement values stop being served;
+    where it had replaced an earlier value for the same CP, line and period, that earlier value is served
+    again. Its proposed covenants are withdrawn. Core is told about each changed CP and period, so the
+    covenants that used these figures are checked again.
+    """
+    doc.status = "REMOVED"
+    touched: set[tuple[str, date]] = set()
+    for row in db.scalars(select(StatementValue).where(StatementValue.document_id == doc.id,
+                                                       StatementValue.superseded == false())):
+        row.superseded = True
+        touched.add((row.cp_id, row.as_of_date))
+        db.flush()
+        still_active = db.scalar(select(func.count()).select_from(StatementValue).where(
+            StatementValue.cp_id == row.cp_id, StatementValue.key == row.key,
+            StatementValue.as_of_date == row.as_of_date, StatementValue.superseded == false()))
+        if not still_active:
+            earlier = db.scalars(
+                select(StatementValue)
+                .outerjoin(Document, Document.id == StatementValue.document_id)
+                .where(StatementValue.cp_id == row.cp_id, StatementValue.key == row.key,
+                       StatementValue.as_of_date == row.as_of_date, StatementValue.id != row.id,
+                       (StatementValue.document_id.is_(None)) | (Document.status != "REMOVED"))
+                .order_by(StatementValue.created_at.desc())).first()
+            if earlier is not None:
+                earlier.superseded = False
+    for term in db.scalars(select(ExtractedTerm).where(ExtractedTerm.document_id == doc.id,
+                                                       ExtractedTerm.status != "REJECTED")):
+        term.status = "WITHDRAWN"
+    for cp_id, as_of in sorted(touched):
+        db.add(EventOutbox(type="DATA_EVENT", payload_json=json.dumps({
+            "dataSourceId": data_source_id, "entityKey": cp_id, "entityKeyLevel": "CP_ID",
+            "asOfDate": as_of.isoformat(), "changedAt": utcnow().isoformat(), "documentId": doc.id})))
+    audit(db, user, "REMOVE", "document", doc.id, reason=reason, values=len(touched))
 
 
 def store_manual_value(db: Session, *, cp_id: str, key: str, value: float, unit: str, currency: str | None,

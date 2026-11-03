@@ -39,6 +39,24 @@ public final class HeadroomCalculator {
                 : actual.subtract(threshold); // lower bound ⇒ cushion above the floor
     }
 
+    /**
+     * C3: whether a compliant covenant is close to its limit: headroom is non-negative but below
+     * {@code percent}% of the limit's size. {@code false} when headroom cannot be computed, the limit
+     * is zero, or {@code percent} is 0 (warning switched off).
+     */
+    public static boolean atRisk(BigDecimal headroom, List<FormulaThreshold> thresholds, int percent) {
+        if (headroom == null || percent <= 0 || headroom.signum() < 0 || thresholds == null
+                || thresholds.size() != 1) {
+            return false;
+        }
+        BigDecimal limit = parsePlainNumber(thresholds.get(0).displayValue());
+        if (limit == null || limit.signum() == 0) {
+            return false;
+        }
+        BigDecimal margin = limit.abs().multiply(BigDecimal.valueOf(percent)).divide(BigDecimal.valueOf(100));
+        return headroom.compareTo(margin) < 0;
+    }
+
     /** Whether the literal operand sits to the left of the measure/expression operand. */
     private static boolean literalOnLeft(String expression, FormulaThreshold t) {
         int labelIdx = t.label() == null ? -1 : expression.indexOf(t.label());

@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from dps import __version__, services
 from dps.access import CpAccessChecker, require_cp
-from dps.auth import ADMIN, APPROVER, SERVICE, SUPPORT, Principal, require_roles
+from dps.auth import ADMIN, APPROVER, RM, SERVICE, SUPPORT, Principal, require_roles
 from dps.catalog import catalog as line_item_catalog
 from dps.errors import ApiError, not_found
 from dps.models import Document, DocumentCpLink, ExtractedTerm, Job, StatementValue, utcnow
@@ -96,6 +96,7 @@ def document_view(d: Document) -> dict:
         "pageCount": d.page_count, "asOfDate": d.as_of_date.isoformat() if d.as_of_date else None,
         "status": d.status, "cpIds": d.active_cp_ids(), "latestJobId": d.latest_job_id,
         "uploadedBy": d.uploaded_by, "uploadedAt": d.uploaded_at.isoformat(),
+        "amendsDocumentId": d.amends_document_id,
     }
 
 
@@ -208,6 +209,7 @@ def upload_document(
     cpIds: Annotated[list[str], Form()],  # noqa: N803 - contract field name
     type: Annotated[Literal["LOAN_AGREEMENT", "FINANCIAL_STATEMENT", "EVIDENCE"], Form()],  # noqa: A002
     asOfDate: Annotated[date | None, Form()] = None,  # noqa: N803
+    amendsDocumentId: Annotated[str | None, Form()] = None,  # noqa: N803 - C7: the agreement this one amends
 ) -> JSONResponse:
     settings: Settings = request.app.state.settings
     store: FileStore = request.app.state.store
@@ -234,9 +236,16 @@ def upload_document(
         raise ApiError(400, "NOT_A_PDF", "This file is named .pdf but is not a PDF document")
     for cp in cp_ids:
         require_cp(checker, user, cp, read_only=False)
+    if amendsDocumentId:
+        original = load_document(db, amendsDocumentId)
+        require_document_access(checker, user, original, read_only=True)
+        if type != "LOAN_AGREEMENT" or original.type != "LOAN_AGREEMENT":
+            raise ApiError(400, "AMENDMENT_NOT_AGREEMENT", "Only a loan agreement can amend a loan agreement")
 
     digest, rel = store.put(data, ext)
-    existing = db.scalar(select(Document).where(Document.sha256 == digest, Document.type == type))
+    # A removed document does not count: uploading the same file again starts it afresh.
+    existing = db.scalar(select(Document).where(Document.sha256 == digest, Document.type == type,
+                                                Document.status != "REMOVED"))
     if existing is not None:  # idempotent re-upload: just add any new links
         doc = existing
         _add_links(db, doc, cp_ids, user.user)
@@ -244,7 +253,8 @@ def upload_document(
         return JSONResponse(status_code=202, content={"documentId": doc.id, "jobId": doc.latest_job_id})
 
     doc = Document(type=type, file_name=name, storage_path=rel, sha256=digest, size_bytes=len(data),
-                   page_count=page_count(store.path(rel)), as_of_date=asOfDate, uploaded_by=user.user)
+                   page_count=page_count(store.path(rel)), as_of_date=asOfDate, uploaded_by=user.user,
+                   amends_document_id=amendsDocumentId or None)
     db.add(doc)
     db.flush()
     _add_links(db, doc, cp_ids, user.user)
@@ -281,6 +291,27 @@ def list_documents(cpId: str, db: DB, user: User, checker: Checker) -> list[dict
 def get_document(document_id: str, db: DB, user: User, checker: Checker) -> dict:
     doc = load_document(db, document_id)
     require_document_access(checker, user, doc, read_only=True)
+    return document_view(doc)
+
+
+class RemoveRequest(BaseModel):
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+@router.post("/dps/v1/documents/{document_id}/remove")
+def remove_document(document_id: str, body: RemoveRequest, request: Request, db: DB, user: User,
+                    checker: Checker) -> dict:
+    """B3: take a wrong upload out of use. It is kept, marked REMOVED, and its figures stop counting."""
+    require_roles(user, RM, APPROVER, ADMIN)
+    doc = load_document(db, document_id)
+    require_document_access(checker, user, doc, read_only=False)
+    if doc.status == "REMOVED":
+        raise ApiError(409, "ALREADY_REMOVED", "This document was already removed")
+    if doc.status in ("QUEUED", "RUNNING"):
+        raise ApiError(409, "STILL_PROCESSING", "Wait until the document has been read, then remove it")
+    services.remove_document(db, doc, user=user.user, reason=body.reason.strip(),
+                             data_source_id=request.app.state.settings.core_data_source_id)
+    db.commit()
     return document_view(doc)
 
 

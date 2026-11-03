@@ -23,7 +23,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "cov_threshold_audit")
 public class ThresholdAudit {
 
-    public enum Event { RECOMMENDED, APPLIED }
+    public enum Event { RECOMMENDED, APPLIED, AMENDED }
 
     @Id
     @UuidGenerator

@@ -1,7 +1,7 @@
 import { api, download } from './client';
 import type { Frequency, NewCovenant } from './types';
 import type {
-  AiSuggestion, AppliedChange, AppliedCovenant, Assessment, Attachment, CovenantDetail, CovenantUsage,
+  AiSuggestion, Alert, AppliedChange, TrendPoint, AppliedCovenant, Assessment, Attachment, CovenantDetail, CovenantUsage,
   CpDiagnostics, Cycle, DataColumn, DataSource, DataSourceTable, DataSourceWrite, DefinitionChange, ExpressionChange,
   HealthReport, MeasureDetail, MeasureWrite, OpsAudit, Remediation, RunResult, ScheduleEvent, SentNotification,
   TestConnection, ThresholdSuggestion,
@@ -30,6 +30,7 @@ export const r3 = {
   applied: (cpId: string) => api<AppliedCovenant[]>(`/api/v1/credit-proposals/${enc(cpId)}/applied-covenants`),
   updateApplied: (appliedId: string, body: {
     frequency?: Frequency; cronExpression?: string | null; status?: 'ACTIVE' | 'SUSPENDED';
+    conditionExpression?: string; reason?: string;
   }) => api<AppliedCovenant>(`/api/v1/applied-covenants/${enc(appliedId)}`, { method: 'PATCH', json: body }),
   appliedChanges: (appliedId: string) => api<AppliedChange[]>(`/api/v1/applied-covenants/${enc(appliedId)}/audit`),
   definitionHistory: (appliedId: string) =>
@@ -53,6 +54,13 @@ export const r3 = {
     api<ThresholdSuggestion[]>(`/api/v1/credit-proposals/${enc(cpId)}/ml-threshold-recommendations`,
       { method: 'POST', json: { items } }),
 
+  withdrawRequest: (cpId: string, appliedId: string, note?: string) =>
+    api<unknown>(`${mon(cpId)}/covenants/${enc(appliedId)}/status/withdraw`, { method: 'POST', json: { note } }),
+  alerts: () => api<Alert[]>('/api/v1/alerts'),
+  trend: (months = 12) => api<TrendPoint[]>(`/api/v1/analytics/trend?months=${months}`),
+  removeDocument: (documentId: string, reason: string) =>
+    api<unknown>(`/dps/v1/documents/${enc(documentId)}/remove`, { method: 'POST', json: { reason } }),
+
   // ---- deletes for mistakes ----
   deleteCertificate: (cpId: string, id: string) =>
     api<unknown>(`${mon(cpId)}/compliance-certificate/${enc(id)}`, { method: 'DELETE' }),
@@ -68,14 +76,15 @@ export const r3 = {
 
   // ---- library ----
   covenant: (id: string) => api<CovenantDetail>(`/api/v1/covenants/${enc(id)}`),
-  updateCovenant: (id: string, c: CovenantDetail, patch: Partial<NewCovenant> & { defaultCron?: string | null }) =>
+  updateCovenant: (id: string, c: CovenantDetail, patch: Partial<NewCovenant> & { defaultCron?: string | null; policyReference?: string | null }) =>
     api<CovenantDetail>(`/api/v1/covenants/${enc(id)}`, { method: 'PUT', json: {
       name: c.name, category: c.category, description: c.description, conditionExpression: c.conditionExpression,
       businessSegments: c.businessSegments, islamicBanking: c.islamicBanking, assessmentType: c.assessmentType,
       industries: c.industries, countriesOfRisk: c.countriesOfRisk,
       countriesOfIncorporation: c.countriesOfIncorporation, creditProposalTypes: c.creditProposalTypes,
       legalEntityTypes: c.legalEntityTypes, facilityTypes: c.facilityTypes, collateralTypes: c.collateralTypes,
-      defaultFrequency: c.defaultFrequency, defaultCron: c.defaultCron, ...patch,
+      defaultFrequency: c.defaultFrequency, defaultCron: c.defaultCron, policyReference: c.policyReference ?? null,
+      ...patch,
     } }),
   deactivateCovenant: (id: string) => api<CovenantDetail>(`/api/v1/covenants/${enc(id)}`, { method: 'DELETE' }),
   covenantUsage: (id: string) => api<CovenantUsage>(`/api/v1/covenants/${enc(id)}/usage`),

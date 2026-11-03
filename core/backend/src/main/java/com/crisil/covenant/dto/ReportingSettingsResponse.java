@@ -15,7 +15,15 @@ public record ReportingSettingsResponse(
         boolean dispositionApprovalRequired,
         String reportingCurrency,
         Instant modifiedDate,
-        String modifiedBy) {
+        String modifiedBy,
+        int atRiskHeadroomPercent) {
+
+    public ReportingSettingsResponse(int fiscalYearStartMonth, boolean periodicIncludesCurrentPeriod, int dueSoonDays,
+                                     int upcomingWindowDays, boolean dispositionApprovalRequired,
+                                     String reportingCurrency, Instant modifiedDate, String modifiedBy) {
+        this(fiscalYearStartMonth, periodicIncludesCurrentPeriod, dueSoonDays, upcomingWindowDays,
+                dispositionApprovalRequired, reportingCurrency, modifiedDate, modifiedBy, 10);
+    }
 
     public static ReportingSettingsResponse from(ReportingSetting s) {
         return new ReportingSettingsResponse(
@@ -26,7 +34,8 @@ public record ReportingSettingsResponse(
                 s.isDispositionApprovalRequired(),
                 s.getReportingCurrency(),
                 s.getModifiedDate(),
-                s.getModifiedBy());
+                s.getModifiedBy(),
+                s.getAtRiskHeadroomPercent());
     }
 
     /** The built-in defaults used when no settings row has been persisted yet. */

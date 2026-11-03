@@ -13,7 +13,13 @@ public record DefinitionChangeRow(
         String changedBy,
         String oldExpression,
         String newExpression,
-        ThresholdSource source) {
+        ThresholdSource source,
+        String reason) {
+
+    public DefinitionChangeRow(Instant changedAt, String changedBy, String oldExpression, String newExpression,
+                               ThresholdSource source) {
+        this(changedAt, changedBy, oldExpression, newExpression, source, null);
+    }
 
     public static DefinitionChangeRow from(ThresholdAudit audit) {
         return new DefinitionChangeRow(
@@ -21,6 +27,7 @@ public record DefinitionChangeRow(
                 audit.getChangedBy(),
                 audit.getOldExpression(),
                 audit.getNewExpression(),
-                audit.getSource());
+                audit.getSource(),
+                audit.getRationale());
     }
 }

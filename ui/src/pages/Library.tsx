@@ -18,7 +18,7 @@ import { ErrorNote, Loading } from '../components/Status';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
 
-type Draft = NewCovenant & { defaultCron: string };
+type Draft = NewCovenant & { defaultCron: string; policyReference: string };
 
 /** Adds a covenant to the shared library, or edits one (AUTHOR / ADMIN; Core checks the role and the rule). */
 function CovenantForm({ existing, onClose }: { existing?: CovenantDetail; onClose: () => void }) {
@@ -28,9 +28,10 @@ function CovenantForm({ existing, onClose }: { existing?: CovenantDetail; onClos
     description: existing.description ?? '', conditionExpression: existing.conditionExpression ?? '',
     assessmentType: existing.assessmentType, defaultFrequency: existing.defaultFrequency,
     businessSegments: existing.businessSegments.filter((s) => s !== 'ALL'), defaultCron: existing.defaultCron ?? '',
+    policyReference: existing.policyReference ?? '',
   } : {
     name: '', category: 'FINANCIAL', description: '', conditionExpression: '',
-    assessmentType: 'AUTO', defaultFrequency: 'QUARTERLY', businessSegments: [], defaultCron: '',
+    assessmentType: 'AUTO', defaultFrequency: 'QUARTERLY', businessSegments: [], defaultCron: '', policyReference: '',
   });
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const manual = draft.assessmentType === 'MANUAL';
@@ -49,7 +50,7 @@ function CovenantForm({ existing, onClose }: { existing?: CovenantDetail; onClos
         name: draft.name.trim(), category: draft.category, description: draft.description.trim(),
         conditionExpression: draft.conditionExpression.trim(), assessmentType: draft.assessmentType,
         defaultFrequency: draft.defaultFrequency, businessSegments: draft.businessSegments,
-        defaultCron: cron || null,
+        defaultCron: cron || null, policyReference: draft.policyReference.trim() || null,
       };
       return existing ? r3.updateCovenant(existing.id, existing, body) : core.createCovenant(body);
     },
@@ -99,6 +100,10 @@ function CovenantForm({ existing, onClose }: { existing?: CovenantDetail; onClos
             onChange={(e) => set({ defaultCron: e.currentTarget.value })} placeholder="0 0 9 15 * ?"
             description="Quartz cron: seconds minutes hours day month weekday. 0 0 9 15 * ? = 9:00 on the 15th of every month." />
         )}
+        <TextInput label="Credit policy reference" value={draft.policyReference}
+          onChange={(e) => set({ policyReference: e.currentTarget.value })}
+          placeholder="e.g. Credit Policy 2026, section 4.2, or a link"
+          description="Shown to the RM when they ask for a waiver." />
         <TagsInput label="Business segments" value={draft.businessSegments}
           onChange={(v) => set({ businessSegments: v.map((s) => s.toUpperCase()) })}
           placeholder="Leave empty for all, or type e.g. CORPORATE and press Enter" />
@@ -145,6 +150,11 @@ function CovenantDetails({ id, canAuthor, onClose }: { id: string; canAuthor: bo
           <Text>{c.description}</Text>
           <Text ff="monospace" size="sm">{c.conditionExpression}</Text>
           <Text size="sm" c="dimmed">Business segments: {c.businessSegments.join(', ') || 'ALL'}</Text>
+          {c.policyReference && (
+            <Text size="sm">Credit policy: {/^https?:\/\//.test(c.policyReference)
+              ? <Anchor href={c.policyReference} target="_blank" rel="noreferrer">{c.policyReference}</Anchor>
+              : c.policyReference}</Text>
+          )}
           {canAuthor && (
             <Group>
               <Button variant="light" onClick={() => setEditing(true)}>Edit</Button>

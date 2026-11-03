@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../api/client';
 import { core } from '../api/endpoints';
+import { r3 } from '../api/endpoints3';
 import type { ReviewRow } from '../api/types';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
@@ -36,9 +37,17 @@ function RequestDialog({ cpId, row, onClose }: { cpId: string; row: ReviewRow; o
     },
     onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
   });
+  const policy = useQuery({ queryKey: ['covenant', row.covenantMasterId], queryFn: () => r3.covenant(row.covenantMasterId) })
+    .data?.policyReference;
   return (
     <Modal opened onClose={onClose} title={`Breach: ${row.covenantName}`}>
       <Stack>
+        {policy && (
+          <Text size="sm" bg="var(--mantine-color-blue-light)" p="xs">
+            Credit policy: {/^https?:\/\//.test(policy)
+              ? <Anchor href={policy} target="_blank" rel="noreferrer">{policy}</Anchor> : policy}
+          </Text>
+        )}
         <SegmentedControl value={status} onChange={(v) => setStatus(v as 'WAIVER' | 'EXTENSION')}
           data={[{ value: 'WAIVER', label: 'Waiver' }, { value: 'EXTENSION', label: 'Extension' }]} />
         {status === 'EXTENSION' && (
@@ -53,6 +62,23 @@ function RequestDialog({ cpId, row, onClose }: { cpId: string; row: ReviewRow; o
         </Group>
       </Stack>
     </Modal>
+  );
+}
+
+/** B2: the requester takes a waiver or extension request back before an approver decides it. */
+function WithdrawButton({ cpId, row }: { cpId: string; row: ReviewRow }) {
+  const qc = useQueryClient();
+  const withdraw = useMutation({
+    mutationFn: () => r3.withdrawRequest(cpId, row.appliedCovenantId),
+    onSuccess: () => {
+      notifications.show({ color: 'green', message: 'Request withdrawn.' });
+      qc.invalidateQueries({ queryKey: ['review', cpId] });
+    },
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
+  return (
+    <Button size="xs" variant="subtle" color="gray" loading={withdraw.isPending}
+      onClick={() => window.confirm('Withdraw this request?') && withdraw.mutate()}>Withdraw</Button>
   );
 }
 
@@ -113,7 +139,10 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                 <Table.Td><Text ff="monospace" size="sm">{r.conditionExpression}</Text></Table.Td>
                 <Table.Td>{formatValue(r.computedValue)}</Table.Td>
                 <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined}>{formatValue(r.headroom)}</Table.Td>
-                <Table.Td><StatusBadge value={r.latestResult} /></Table.Td>
+                <Table.Td>
+                  <StatusBadge value={r.latestResult} />
+                  {r.atRisk && <Badge mt={4} color="orange" variant="outline" display="block" w="fit-content">at risk</Badge>}
+                </Table.Td>
                 <Table.Td>
                   <Stack gap={2}>
                     <StatusBadge value={r.dispositionStatus} />
@@ -129,6 +158,7 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                 <Table.Td>
                   {pending && approver && !ownRequest && <DecisionButtons cpId={cpId} row={r} />}
                   {pending && (!approver || ownRequest) && <Text size="xs" c="dimmed">Awaiting approver</Text>}
+                  {pending && ownRequest && <WithdrawButton cpId={cpId} row={r} />}
                   {!pending && r.dispositionable && (
                     <Button size="xs" variant="light" onClick={() => setEditing(r)}>Waive / extend</Button>
                   )}

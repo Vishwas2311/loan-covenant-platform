@@ -30,6 +30,9 @@ public interface CovenantWriteRequest {
     /** Quartz cron, required only when {@link #safeDefaultFrequency()} is CUSTOM. */
     String defaultCron();
 
+    /** C5: the bank's credit policy clause or link behind this covenant (optional). */
+    String policyReference();
+
     List<String> safeBusinessSegments();
 
     List<String> safeIndustries();

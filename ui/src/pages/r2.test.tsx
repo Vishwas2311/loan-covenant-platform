@@ -96,7 +96,7 @@ describe('reports', () => {
     mockFetch((url) => (url.startsWith('/api/v1/analytics') ? { status: 500, body: { message: 'down' } } : { body: [] }));
     renderAt('/reports', '/reports', <Reports />);
     expect(await screen.findByText('No open breaches.')).toBeInTheDocument();
-    expect(await screen.findByText('down')).toBeInTheDocument();
+    expect(await screen.findAllByText('down')).not.toHaveLength(0);
   });
 });
 

@@ -5,6 +5,7 @@ import {
 } from '@tabler/icons-react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { DEV_USERS, getAccessToken, hasRole, setIdentity } from './auth/identity';
+import { AlertBell } from './components/AlertBell';
 import { signedIn, signOut } from './auth/oidc';
 import { useIdentity } from './auth/useIdentity';
 import { CpWorkspace } from './pages/CpWorkspace';
@@ -65,7 +66,10 @@ export function App() {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Title order={4}>Covenant Platform</Title>
-          <IdentitySwitcher />
+          <Group gap="sm">
+            <AlertBell />
+            <IdentitySwitcher />
+          </Group>
         </Group>
       </AppShell.Header>
       <AppShell.Navbar p="xs">

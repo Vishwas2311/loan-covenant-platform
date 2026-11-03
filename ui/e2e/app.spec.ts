@@ -174,6 +174,61 @@ test('19. support diagnoses a CP and reads the sent e-mails with the support tok
   await expect(page.getByRole('button', { name: /Send today/ })).toBeVisible();
 });
 
+test('20. an RM changes a covenant\'s rule for one CP, then goes back to the library rule', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1005');
+  await page.getByRole('button', { name: 'Minimum Interest Coverage' }).click();
+  const drawer = page.getByRole('dialog');
+  await drawer.getByRole('tab', { name: 'Schedule and changes' }).click();
+  const rule = drawer.getByLabel('Rule for this CP');
+  const original = await rule.inputValue();
+  await rule.fill(original.replace(/(\d+(\.\d+)?)\s*$/, (n) => String(Number(n) + 0.5)));
+  await drawer.getByLabel('Why').fill('e2e: amendment test');
+  await drawer.getByRole('button', { name: 'Save rule' }).click();
+  await expect(page.getByText('Rule saved. It applies from the next check.')).toBeVisible();
+  await expect(drawer.getByText('e2e: amendment test').first()).toBeVisible();
+  await drawer.getByLabel('Why').fill('e2e: back to the library rule');
+  await drawer.getByRole('button', { name: 'Use the library rule' }).click();
+  await expect(drawer.getByText('Same as the library rule')).toBeVisible();
+});
+
+test('21. an RM withdraws their own waiver request', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1007');
+  const request = page.getByRole('button', { name: 'Waive / extend' }).first();
+  test.skip(await request.count() === 0, 'CP-1007 has no breach open for a waiver');
+  const covenant = (await request.locator('xpath=ancestor::tr').locator('td').first().innerText()).trim();
+  await request.click();
+  await page.getByRole('dialog').getByLabel('Reason').fill('e2e: to be withdrawn');
+  await page.getByRole('dialog').getByRole('button', { name: 'Submit' }).click();
+  const row = page.getByRole('row').filter({ hasText: covenant });
+  page.once('dialog', (d) => void d.accept());
+  await row.getByRole('button', { name: 'Withdraw' }).click();
+  await expect(page.getByText('Request withdrawn.')).toBeVisible();
+  await expect(row.getByRole('button', { name: 'Waive / extend' })).toBeVisible();
+});
+
+test('22. alerts, charts and the at-risk setting', async ({ browser }) => {
+  const approver = await sessionAs(browser, 'wrm-meera', '/reports');
+  await expect(approver.getByRole('button', { name: /Alerts \(\d+\)/ })).toBeVisible();
+  await expect(approver.getByRole('img', { name: /Checks per month for 12 months/ })).toBeVisible();
+  const admin = await sessionAs(browser, 'admin-1', '/settings');
+  await expect(admin.getByLabel(/At risk/)).toBeVisible();
+});
+
+test('23. an RM removes a wrongly uploaded document', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/documents/CP-1003');
+  const name = `e2e-evidence-${Date.now()}.pdf`;
+  await page.getByRole('textbox', { name: 'Type' }).click();
+  await page.getByRole('option', { name: 'Evidence' }).click();
+  await page.locator('input[type=file]').first().setInputFiles({ name, mimeType: 'application/pdf', buffer: uniqueAgreement() });
+  await page.getByRole('button', { name: 'Upload' }).click();
+  await page.getByRole('cell', { name }).click();
+  await page.getByRole('button', { name: 'Remove or replace' }).click();
+  await page.getByLabel('Why').fill('e2e: uploaded by mistake');
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByText('Removed. Its figures no longer count.')).toBeVisible();
+  await expect(page.getByRole('row').filter({ hasText: name }).getByText('REMOVED')).toBeVisible();
+});
+
 test('14. sign out returns to the sign-in page', async ({ page }) => {
   await signIn(page, 'rm-anil');
   await page.getByRole('button', { name: 'Sign out' }).click();

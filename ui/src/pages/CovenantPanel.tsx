@@ -200,6 +200,54 @@ function Evidence({ cpId, row, canAct }: { cpId: string; row: ReviewRow; canAct:
   );
 }
 
+/** A3: this CP's own rule for the covenant, for example after an amendment; empty = the library rule. */
+function RuleForCp({ cpId, row, canAct, override }: {
+  cpId: string; row: ReviewRow; canAct: boolean; override: string | null;
+}) {
+  const qc = useQueryClient();
+  const [rule, setRule] = useState<string | null>(null);
+  const [reason, setReason] = useState('');
+  const shown = rule ?? row.conditionExpression ?? '';
+  const save = useMutation({
+    mutationFn: (expression: string) =>
+      r3.updateApplied(row.appliedCovenantId, { conditionExpression: expression, reason: reason.trim() }),
+    onSuccess: () => {
+      notifications.show({ color: 'green', message: 'Rule saved. It applies from the next check.' });
+      ['applied', 'review'].forEach((k) => qc.invalidateQueries({ queryKey: [k, cpId] }));
+      qc.invalidateQueries({ queryKey: ['definition-history', row.appliedCovenantId] });
+      setRule(null);
+      setReason('');
+    },
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
+  if (row.assessmentType === 'MANUAL') {
+    return null;
+  }
+  return (
+    <Stack gap="xs">
+      <Group align="end">
+        <TextInput label="Rule for this CP" value={shown} disabled={!canAct} w={280}
+          styles={{ input: { fontFamily: 'monospace' } }} onChange={(e) => setRule(e.currentTarget.value)}
+          description={override ? 'Differs from the library rule' : 'Same as the library rule'} />
+        {canAct && (
+          <TextInput label="Why" value={reason} onChange={(e) => setReason(e.currentTarget.value)} w={260}
+            placeholder="e.g. Amendment 2 signed 1 Nov 2026" />
+        )}
+      </Group>
+      {canAct && (
+        <Group>
+          <Button size="xs" loading={save.isPending} disabled={rule === null || !shown.trim() || !reason.trim()}
+            onClick={() => save.mutate(shown.trim())}>Save rule</Button>
+          {override && (
+            <Button size="xs" variant="subtle" loading={save.isPending} disabled={!reason.trim()}
+              onClick={() => save.mutate('')}>Use the library rule</Button>
+          )}
+        </Group>
+      )}
+    </Stack>
+  );
+}
+
 /** A3: how often this CP's covenant is checked, pausing it, and every change made to it. */
 function Monitoring({ cpId, row, canAct }: { cpId: string; row: ReviewRow; canAct: boolean }) {
   const qc = useQueryClient();
@@ -237,6 +285,7 @@ function Monitoring({ cpId, row, canAct }: { cpId: string; row: ReviewRow; canAc
     || (cron !== null && cron !== (current?.cronExpression ?? ''));
   return (
     <Stack>
+      <RuleForCp cpId={cpId} row={row} canAct={canAct} override={current?.conditionOverride ?? null} />
       <Group align="end">
         <Select label="How often" data={FREQUENCIES} value={shownFrequency} allowDeselect={false} disabled={!canAct}
           onChange={(v) => v && setFrequency(v as Frequency)} w={160} />
@@ -273,7 +322,10 @@ function Monitoring({ cpId, row, canAct }: { cpId: string; row: ReviewRow; canAc
           {(definitions.data ?? []).map((d, i) => (
             <Table.Tr key={`d${i}`}>
               <Table.Td>{when(d.changedAt)}</Table.Td><Table.Td>Rule</Table.Td>
-              <Table.Td><Text ff="monospace" size="xs">{d.oldExpression ?? '—'} → {d.newExpression ?? '—'}</Text></Table.Td>
+              <Table.Td>
+                <Text ff="monospace" size="xs">{d.oldExpression ?? '—'} → {d.newExpression ?? '—'}</Text>
+                {d.reason && <Text size="xs" c="dimmed">{d.reason}</Text>}
+              </Table.Td>
               <Table.Td>{d.changedBy}</Table.Td>
             </Table.Tr>
           ))}

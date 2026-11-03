@@ -41,6 +41,9 @@ export function Settings() {
         onChange={(v) => set({ dueSoonDays: Number(v) })} />
       <NumberInput label="Upcoming window (days)" min={1} max={365} value={form!.upcomingWindowDays}
         onChange={(v) => set({ upcomingWindowDays: Number(v) })} />
+      <NumberInput label="'At risk' warning: headroom below this % of the limit" min={0} max={100}
+        value={form!.atRiskHeadroomPercent ?? 10} onChange={(v) => set({ atRiskHeadroomPercent: Number(v) })}
+        description="For example 10: a DSCR of 1.60 against a floor of 1.50 is at risk. 0 switches it off." />
       <Switch label="Waivers and extensions need an approver (maker-checker)"
         checked={form!.dispositionApprovalRequired}
         onChange={(e) => set({ dispositionApprovalRequired: e.currentTarget.checked })} />

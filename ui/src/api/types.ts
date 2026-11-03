@@ -41,6 +41,8 @@ export interface ReviewRow {
   requestedStatus: DispositionStatus | null;
   requestedBy: string | null;
   attachments?: Attachment[];
+  /** C3: compliant, but close to its limit. */
+  atRisk?: boolean;
 }
 
 export interface StatusAudit {
@@ -104,6 +106,7 @@ export interface NewCovenant {
   assessmentType: AssessmentType;
   defaultFrequency: Frequency;
   businessSegments: string[];
+  policyReference?: string | null;
 }
 
 export interface Measure {
@@ -129,6 +132,8 @@ export interface ReportingSettings {
   reportingCurrency: string;
   modifiedDate: string | null;
   modifiedBy: string | null;
+  /** A compliant covenant with headroom under this % of its limit shows AT RISK; 0 = off. */
+  atRiskHeadroomPercent?: number;
 }
 
 export type DocumentType = 'LOAN_AGREEMENT' | 'FINANCIAL_STATEMENT' | 'EVIDENCE';
@@ -144,6 +149,8 @@ export interface DpsDocument {
   latestJobId: string | null;
   uploadedBy: string;
   uploadedAt: string;
+  /** C7: the agreement this one amends. */
+  amendsDocumentId?: string | null;
 }
 
 export interface ExtractedTerm {

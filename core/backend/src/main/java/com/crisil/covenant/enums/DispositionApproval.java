@@ -8,5 +8,7 @@ package com.crisil.covenant.enums;
 public enum DispositionApproval {
     REQUESTED,
     APPROVED,
-    REJECTED
+    REJECTED,
+    /** The requester took the request back before it was decided; the breach stands. */
+    WITHDRAWN
 }

@@ -27,6 +27,18 @@ class HeadroomCalculatorTest {
     }
 
     @Test
+    void atRiskWhenHeadroomIsUnderTheShareOfTheLimit() {
+        List<FormulaThreshold> t = List.of(num("DSCR >= 1.5", "1.5", "DSCR", ">="));
+        assertThat(HeadroomCalculator.atRisk(new BigDecimal("0.1"), t, 10)).isTrue();   // 0.1 < 0.15
+        assertThat(HeadroomCalculator.atRisk(new BigDecimal("0.2"), t, 10)).isFalse();
+        assertThat(HeadroomCalculator.atRisk(new BigDecimal("0.1"), t, 0)).isFalse();   // switched off
+        assertThat(HeadroomCalculator.atRisk(new BigDecimal("-0.1"), t, 10)).isFalse(); // breached, not at risk
+        assertThat(HeadroomCalculator.atRisk(null, t, 10)).isFalse();
+        assertThat(HeadroomCalculator.atRisk(BigDecimal.ZERO, List.of(num("X >= 0", "0", "X", ">=")), 10)).isFalse();
+        assertThat(HeadroomCalculator.atRisk(BigDecimal.ONE, List.of(), 10)).isFalse();
+    }
+
+    @Test
     void upperBoundBreachIsNegative() {
         String expr = "DSCR <= 1.5";
         BigDecimal h = HeadroomCalculator.compute(expr, List.of(num(expr, "1.5", "DSCR", "<=")), "1.8");

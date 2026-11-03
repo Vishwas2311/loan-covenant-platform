@@ -30,7 +30,18 @@ public record UpdateCovenantRequest(
         List<String> facilityTypes,
         List<String> collateralTypes,
         Frequency defaultFrequency,
-        @Size(max = 64) String defaultCron) implements CovenantWriteRequest {
+        @Size(max = 64) String defaultCron,
+        @Size(max = 500) String policyReference) implements CovenantWriteRequest {
+
+    public UpdateCovenantRequest(String name, CovenantCategory category, String description, String conditionExpression,
+            List<String> businessSegments, boolean islamicBanking, AssessmentType assessmentType,
+            List<String> industries, List<String> countriesOfRisk, List<String> countriesOfIncorporation,
+            List<String> creditProposalTypes, List<String> legalEntityTypes, List<String> facilityTypes,
+            List<String> collateralTypes, Frequency defaultFrequency, String defaultCron) {
+        this(name, category, description, conditionExpression, businessSegments, islamicBanking, assessmentType,
+                industries, countriesOfRisk, countriesOfIncorporation, creditProposalTypes, legalEntityTypes,
+                facilityTypes, collateralTypes, defaultFrequency, defaultCron, null);
+    }
 
     /** Pre-eligibility constructor: conventional (Islamic=No), AUTO, every dimension = wildcard. */
     public UpdateCovenantRequest(String name, CovenantCategory category,

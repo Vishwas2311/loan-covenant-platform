@@ -8,6 +8,7 @@ import com.crisil.covenant.enums.CovenantCategory;
 import com.crisil.covenant.config.AuditingConfig;
 import com.crisil.covenant.config.CurrentUserContext;
 import com.crisil.covenant.formula.FormulaEngine;
+import com.crisil.covenant.formula.FormulaThreshold;
 import com.crisil.covenant.entity.CovenantMaster;
 import com.crisil.covenant.repository.CovenantMasterRepository;
 import com.crisil.covenant.domain.CovenantOnCp;
@@ -110,13 +111,14 @@ public class ReviewService {
                     .add(AttachmentView.from(a));
         }
 
+        int atRiskPercent = settingsService.atRiskHeadroomPercent();
         List<CpReviewRow> rows = new ArrayList<>(covenants.size());
         for (CovenantOnCp c : covenants) {
             Assessment latest = c.latestAssessmentId() == null ? null
                     : assessmentById.get(c.latestAssessmentId());
             rows.add(toRow(c, dispByAc.get(c.appliedCovenantId()), latest,
                     masterById.get(c.covenantMasterId()),
-                    attByAc.getOrDefault(c.appliedCovenantId(), List.of())));
+                    attByAc.getOrDefault(c.appliedCovenantId(), List.of()), atRiskPercent));
         }
         return rows;
     }
@@ -127,7 +129,7 @@ public class ReviewService {
      * never hidden merely because its classification is unknown.
      */
     private CpReviewRow toRow(CovenantOnCp c, CovenantDisposition disp, Assessment latest,
-                              CovenantMaster master, List<AttachmentView> attachments) {
+                              CovenantMaster master, List<AttachmentView> attachments, int atRiskPercent) {
         CovenantCategory category = master == null ? null : master.getCategory();
         AssessmentType assessmentType =
                 master == null ? AssessmentType.AUTO : master.getAssessmentType();
@@ -139,10 +141,9 @@ public class ReviewService {
         boolean manual = assessmentType == AssessmentType.MANUAL;
         String computedValue = (latest == null || manual) ? null : latest.getComputedValue();
         String computedValueType = (latest == null || manual) ? null : latest.getComputedValueType();
+        List<FormulaThreshold> thresholds = manual ? List.of() : formulaEngine.thresholds(c.conditionExpression());
         BigDecimal headroom = manual ? null : HeadroomCalculator.compute(
-                c.conditionExpression(),
-                formulaEngine.thresholds(c.conditionExpression()),
-                latest == null ? null : latest.getComputedValue());
+                c.conditionExpression(), thresholds, latest == null ? null : latest.getComputedValue());
 
         AssessmentResult result = c.latestResult();
         boolean breached = result == AssessmentResult.BREACHED; // AC12: dispositionable only when breached
@@ -176,7 +177,9 @@ public class ReviewService {
                 attachments,
                 onThisBreach ? disp.getApprovalStatus() : null,
                 onThisBreach ? disp.getStatus() : null,
-                onThisBreach ? disp.getRequestedBy() : null);
+                onThisBreach ? disp.getRequestedBy() : null,
+                result == AssessmentResult.COMPLIANT
+                        && HeadroomCalculator.atRisk(headroom, thresholds, atRiskPercent));
     }
 
     /**
@@ -296,6 +299,28 @@ public class ReviewService {
                     disp.getStatusSource(), req.note() != null ? req.note() : disp.getNote(), decider,
                     Instant.now(clock)));
         }
+        return rowFor(cpId, appliedId);
+    }
+
+    /**
+     * Take back a Waiver/Extension request that no approver has decided yet. Only the person who
+     * raised it, or an ADMIN, may do so; the breach stands and the RM can raise a new request.
+     */
+    @Transactional
+    public CpReviewRow withdrawDisposition(String cpId, String appliedId, String note) {
+        CovenantDisposition disp = dispositionRepo.findByCpIdAndAppliedCovenantId(cpId, appliedId)
+                .filter(d -> d.getApprovalStatus() == DispositionApproval.REQUESTED)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No disposition awaiting approval for covenant " + appliedId + " on CP " + cpId));
+        String user = CurrentUserContext.currentUser().orElse(AuditingConfig.SYSTEM_USER);
+        if (!user.equals(disp.getRequestedBy()) && !CurrentUserContext.hasAnyRole(Roles.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the requester may withdraw this request");
+        }
+        disp.setApprovalStatus(DispositionApproval.WITHDRAWN);
+        disp.setDecidedBy(user);
+        disp.setDecidedAt(Instant.now(clock));
+        disp.setDecisionNote(note == null || note.isBlank() ? "Withdrawn by the requester" : note.trim());
+        dispositionRepo.save(disp);
         return rowFor(cpId, appliedId);
     }
 

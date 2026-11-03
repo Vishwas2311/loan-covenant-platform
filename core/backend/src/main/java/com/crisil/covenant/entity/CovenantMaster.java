@@ -104,6 +104,10 @@ public class CovenantMaster extends AuditableEntity {
     @Column(name = "owner_cp_id", length = 64)
     private String ownerCpId;
 
+    /** C5: the bank's credit policy clause or link behind this covenant. */
+    @Column(name = "policy_reference", length = 500)
+    private String policyReference;
+
     public String getId() {
         return id;
     }
@@ -266,6 +270,14 @@ public class CovenantMaster extends AuditableEntity {
 
     public String getOwnerCpId() {
         return ownerCpId;
+    }
+
+    public String getPolicyReference() {
+        return policyReference;
+    }
+
+    public void setPolicyReference(String policyReference) {
+        this.policyReference = policyReference;
     }
 
     public void setOwnerCpId(String ownerCpId) {

@@ -53,7 +53,24 @@ public record CpReviewRow(
         List<AttachmentView> attachments,
         DispositionApproval approvalStatus,
         CovenantDispositionStatus requestedStatus,
-        String requestedBy) {
+        String requestedBy,
+        boolean atRisk) {
+
+    /** Row without the C3 at-risk flag. */
+    public CpReviewRow(String appliedCovenantId, String covenantMasterId, String covenantName,
+                       String conditionExpression, CovenantCategory category, AssessmentType assessmentType,
+                       String computedValue, String computedValueType, BigDecimal headroom,
+                       AssessmentResult latestResult, String latestAssessmentId, Instant lastAssessedAt,
+                       CovenantDispositionStatus dispositionStatus, LocalDate extensionDate,
+                       CovenantStatusSource statusSource, String note, boolean dispositionable,
+                       LocalDate startDate, LocalDate nextDueDate, TimingStatus timingStatus, long overdueByDays,
+                       List<AttachmentView> attachments, DispositionApproval approvalStatus,
+                       CovenantDispositionStatus requestedStatus, String requestedBy) {
+        this(appliedCovenantId, covenantMasterId, covenantName, conditionExpression, category, assessmentType,
+                computedValue, computedValueType, headroom, latestResult, latestAssessmentId, lastAssessedAt,
+                dispositionStatus, extensionDate, statusSource, note, dispositionable, startDate, nextDueDate,
+                timingStatus, overdueByDays, attachments, approvalStatus, requestedStatus, requestedBy, false);
+    }
 
     /** Row without maker-checker data (no disposition on the current breach). */
     public CpReviewRow(String appliedCovenantId, String covenantMasterId, String covenantName,

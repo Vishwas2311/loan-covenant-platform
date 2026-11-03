@@ -55,6 +55,8 @@ class Document(Base):
     uploaded_by: Mapped[str] = mapped_column(String(255))
     uploaded_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
     latest_job_id: Mapped[str | None] = mapped_column(String(36))
+    # C7: set when this agreement amends an earlier one (its terms replace the earlier terms).
+    amends_document_id: Mapped[str | None] = mapped_column(String(36))
 
     links: Mapped[list[DocumentCpLink]] = relationship(back_populates="document", cascade="all, delete-orphan")
 

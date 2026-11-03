@@ -65,6 +65,18 @@ public class ReportingSetting extends AuditableEntity {
     @Column(name = "reporting_currency", nullable = false, length = 3)
     private String reportingCurrency = "INR";
 
+    /** A compliant covenant with headroom under this % of its limit is flagged at risk (0 = off). */
+    @Column(name = "at_risk_headroom_percent", nullable = false)
+    private int atRiskHeadroomPercent = 10;
+
+    public int getAtRiskHeadroomPercent() {
+        return atRiskHeadroomPercent;
+    }
+
+    public void setAtRiskHeadroomPercent(int atRiskHeadroomPercent) {
+        this.atRiskHeadroomPercent = atRiskHeadroomPercent;
+    }
+
     public String getReportingCurrency() {
         return reportingCurrency;
     }
