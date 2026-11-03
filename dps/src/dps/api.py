@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
+from sqlalchemy import false, select, text
 from sqlalchemy.orm import Session
 
 from dps import __version__, services
@@ -341,7 +341,7 @@ def document_narrative(document_id: str, request: Request, db: DB, user: User, c
     doc = load_document(db, document_id)
     require_document_access(checker, user, doc, read_only=True)
     rows = db.scalars(select(StatementValue).where(StatementValue.document_id == doc.id,
-                                                   StatementValue.superseded.is_(False)))
+                                                   StatementValue.superseded == false()))
     seen: dict[str, dict] = {}
     for v in rows:
         seen.setdefault(v.key, {"key": v.key, "value": v.value})

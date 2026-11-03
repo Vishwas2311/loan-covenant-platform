@@ -22,7 +22,9 @@ import dps.models  # noqa: E402,F401  (register tables)
 from dps.db import Base  # noqa: E402
 from dps.settings import get_settings  # noqa: E402
 
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+# Alembic keeps options in a configparser, which reads "%" as interpolation: escape it, or a URL-encoded
+# password (%21 for "!") breaks every migration.
+config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

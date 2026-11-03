@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from dps.auth import Principal
+from dps.db import Base, make_engine
 from dps.main import create_app
 from dps.settings import AuthMode, Settings
 
@@ -23,9 +25,19 @@ class FakeChecker:
         return has_bypass(principal, read_only) or cp_id in self.owners.get(principal.user, set())
 
 
+# Set DPS_TEST_DATABASE_URL (e.g. mssql+pymssql://sa:...@localhost:1433/dps_test) to run the suite on
+# SQL Server instead of a throwaway SQLite file; each test then starts from an emptied schema.
+TEST_DATABASE_URL = os.environ.get("DPS_TEST_DATABASE_URL", "")
+
+
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
-    return Settings(database_url=f"sqlite:///{tmp_path / 'dps.db'}", storage_dir=tmp_path / "store",
+    url = TEST_DATABASE_URL or f"sqlite:///{tmp_path / 'dps.db'}"
+    if TEST_DATABASE_URL:
+        engine = make_engine(url)
+        Base.metadata.drop_all(engine)
+        engine.dispose()
+    return Settings(database_url=url, storage_dir=tmp_path / "store",
                     auth_mode=AuthMode.DEV_HEADER, max_upload_mb=1, core_data_source_id="ds-dps")
 
 

@@ -38,7 +38,8 @@ dev = [
   "ruff==0.14.*",
 ]
 # Production SQL Server driver (needs the Microsoft ODBC driver on the host).
-mssql = ["pyodbc==5.3.*"]
+# SQL Server for production: DPS_DATABASE_URL=mssql+pymssql://user:password@host:1433/dps
+mssql = ["pymssql==2.3.*"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -6,7 +6,7 @@ import json
 from collections import defaultdict
 from datetime import date
 
-from sqlalchemy import func, select
+from sqlalchemy import false, func, select
 from sqlalchemy.orm import Session
 
 from dps.models import AuditEvent, Document, DocumentCpLink, EventOutbox, ExtractedTerm, StatementValue
@@ -27,7 +27,7 @@ def values_series(db: Session, entity: str, keys: list[str], to: date, frm: date
         StatementValue.cp_id == entity,
         StatementValue.key.in_(keys),
         StatementValue.as_of_date <= to,
-        StatementValue.superseded.is_(False),
+        StatementValue.superseded == false(),
     )
     if frm is not None:
         base = base.where(StatementValue.as_of_date >= frm)
@@ -83,7 +83,7 @@ def store_manual_value(db: Session, *, cp_id: str, key: str, value: float, unit:
     """FR-20: approver-entered value. Supersedes the current value for the same key/period and queues C5."""
     for old in db.scalars(select(StatementValue).where(
             StatementValue.cp_id == cp_id, StatementValue.key == key,
-            StatementValue.as_of_date == as_of, StatementValue.superseded.is_(False))):
+            StatementValue.as_of_date == as_of, StatementValue.superseded == false())):
         old.superseded = True
     row = StatementValue(cp_id=cp_id, key=key, value=value, unit=unit, currency=currency, as_of_date=as_of,
                          source_type="USER", note=note, entered_by=user)

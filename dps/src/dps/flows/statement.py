@@ -14,7 +14,7 @@ from typing import Literal
 
 from crewai.flow.flow import Flow, listen, router, start
 from pydantic import BaseModel, Field, PrivateAttr
-from sqlalchemy import select
+from sqlalchemy import false, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from dps import services
@@ -175,7 +175,7 @@ class StatementProcessingFlow(Flow[StatementState]):
             for cp in cp_ids:
                 for old in db.scalars(select(StatementValue).where(
                         StatementValue.cp_id == cp, StatementValue.as_of_date == doc.as_of_date,
-                        StatementValue.key.in_([v.key for v in values]), StatementValue.superseded.is_(False))):
+                        StatementValue.key.in_([v.key for v in values]), StatementValue.superseded == false())):
                     if old.document_id == doc.id:
                         db.delete(old)
                     else:

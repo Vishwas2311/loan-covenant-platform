@@ -12,7 +12,7 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 COPY alembic.ini ./
 COPY migrations ./migrations
-RUN pip install --no-cache-dir ".[worker]" \
+RUN pip install --no-cache-dir ".[worker,mssql]" \
     && if [ "$INSTALL_HEAVY" = "1" ]; then          pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu ".[heavy]"; fi
 # /home/dps/.cache holds the Docling models the heavy worker downloads on first use.
 RUN mkdir -p /data/storage /home/dps/.cache && chown -R dps /data /home/dps/.cache
