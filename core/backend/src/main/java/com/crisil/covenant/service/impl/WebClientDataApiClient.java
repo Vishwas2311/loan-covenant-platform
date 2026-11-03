@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -33,11 +34,19 @@ public class WebClientDataApiClient implements DataApiClient {
 
     private final WebClient client;
     private final WebClient dpsClient;
+    private final List<String> allowedBaseUrls;
 
+    /**
+     * @param allowedBaseUrls the only URL prefixes a source's {@code baseUrl} may point at. Anyone who
+     *     can edit data sources could otherwise make Core call any host it can reach (SSRF).
+     */
     public WebClientDataApiClient(@Qualifier("dataApiWebClient") WebClient dataApiWebClient,
-                                  @Qualifier("dpsWebClient") WebClient dpsWebClient) {
+                                  @Qualifier("dpsWebClient") WebClient dpsWebClient,
+                                  @Value("${covenant.data-sources.allowed-rest-base-urls:}")
+                                  List<String> allowedBaseUrls) {
         this.client = dataApiWebClient;
         this.dpsClient = dpsWebClient;
+        this.allowedBaseUrls = allowedBaseUrls.stream().map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 
     @Override
@@ -75,12 +84,39 @@ public class WebClientDataApiClient implements DataApiClient {
     private WebClient.RequestBodySpec requestTo(RestEndpoint endpoint) {
         String valuesPath = endpoint.valuesPath() == null || endpoint.valuesPath().isBlank()
                 ? DEFAULT_VALUES_PATH : endpoint.valuesPath();
-        WebClient target = RestEndpoint.AUTH_DPS.equals(endpoint.auth()) ? dpsClient : client;
+        requireRelativePath(valuesPath);
+        if (RestEndpoint.AUTH_DPS.equals(endpoint.auth())) {
+            // The DPS client carries the service credentials: never send them to a source-chosen host.
+            return dpsClient.post().uri(valuesPath);
+        }
         String baseUrl = endpoint.baseUrl();
         if (baseUrl != null && !baseUrl.isBlank()) {
             URI absolute = UriComponentsBuilder.fromUriString(baseUrl).path(valuesPath).build(true).toUri();
-            return target.post().uri(absolute);
+            requireAllowed(absolute);
+            return client.post().uri(absolute);
         }
-        return target.post().uri(valuesPath);
+        return client.post().uri(valuesPath);
+    }
+
+    /** An absolute URL here would replace the client's base URL, so only a plain path is accepted. */
+    private static void requireRelativePath(String path) {
+        if (!path.startsWith("/") || path.startsWith("//") || path.contains("://") || path.contains("..")
+                || path.contains("\\")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "DATA_SOURCE_PATH_INVALID",
+                    "valuesPath must be a path such as /api/data/values");
+        }
+    }
+
+    private void requireAllowed(URI absolute) {
+        String target = absolute.toString();
+        for (String prefix : allowedBaseUrls) {
+            String withSlash = prefix.endsWith("/") ? prefix : prefix + "/";
+            if (target.equals(prefix) || target.startsWith(withSlash)) {
+                return;
+            }
+        }
+        throw new ApiException(HttpStatus.BAD_REQUEST, "DATA_SOURCE_HOST_NOT_ALLOWED",
+                "baseUrl " + absolute.getScheme() + "://" + absolute.getAuthority()
+                        + " is not in covenant.data-sources.allowed-rest-base-urls");
     }
 }

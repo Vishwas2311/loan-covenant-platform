@@ -27,6 +27,9 @@ covenant:
   # MSSQL data sources must name their password with secretRef (COVENANT_DS_* env var).
   data-sources:
     allow-plaintext-password: false
+    allow-h2: false
+    # No default host in production: list the bank's data APIs explicitly.
+    allowed-rest-base-urls: ${COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS:}
 
 management:
   endpoint:

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     storage_dir: Path = Path("./storage")
     max_upload_mb: int = 50
 
+    # "prod" refuses DEV_HEADER at startup; set DPS_ENV=prod in every production deployment.
+    env: str = "dev"
     auth_mode: AuthMode = AuthMode.JWT
     jwt_issuer: str = ""
     jwt_audience: str = ""

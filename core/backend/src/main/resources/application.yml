@@ -56,6 +56,9 @@ springdoc:
     tags-sorter: alpha
 
 covenant:
+  # URL prefixes a REST data source's baseUrl may point at (comma list); anything else is refused.
+  data-sources:
+    allowed-rest-base-urls: ${COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS:http://localhost:9311}
   clients:
     credit-proposal:
       base-url: http://localhost:9311

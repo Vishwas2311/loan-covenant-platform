@@ -61,11 +61,25 @@ def test_jwt_roles_reach_authorisation(jwt_client):
 
 def test_jwt_mode_needs_key_material():
     with pytest.raises(RuntimeError, match="JWKS"):
-        Authenticator(Settings(auth_mode=AuthMode.JWT))
+        Authenticator(Settings(auth_mode=AuthMode.JWT, jwt_issuer=ISS, jwt_audience=AUD))
+
+
+@pytest.mark.parametrize("issuer, audience", [("", ""), (ISS, ""), ("", AUD)])
+def test_jwt_mode_needs_issuer_and_audience(issuer, audience):
+    with pytest.raises(RuntimeError, match="ISSUER and DPS_JWT_AUDIENCE"):
+        Authenticator(Settings(auth_mode=AuthMode.JWT, jwt_issuer=issuer, jwt_audience=audience,
+                               jwt_jwks_url="https://login.example/keys"))
+
+
+def test_dev_header_mode_refused_in_prod():
+    with pytest.raises(RuntimeError, match="DPS_ENV=prod"):
+        Authenticator(Settings(auth_mode=AuthMode.DEV_HEADER, env="prod"))
+    Authenticator(Settings(auth_mode=AuthMode.DEV_HEADER, env="dev"))
 
 
 def test_jwt_mode_with_jwks_url_builds():
-    Authenticator(Settings(auth_mode=AuthMode.JWT, jwt_jwks_url="https://login.example/keys"))
+    Authenticator(Settings(auth_mode=AuthMode.JWT, jwt_issuer=ISS, jwt_audience=AUD,
+                           jwt_jwks_url="https://login.example/keys"))
 
 
 def test_token_without_user_rejected(jwt_client):

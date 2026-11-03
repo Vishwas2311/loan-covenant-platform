@@ -17,6 +17,7 @@ public final class JdbcDataSourceFactory {
             throw new ApiException(HttpStatus.BAD_REQUEST, "DATA_SOURCE_CONFIG_MISSING",
                     "Data source '" + source.getName() + "' is missing required config: jdbcUrl");
         }
+        JdbcUrlPolicy.requireSafe(url);
         DriverManagerDataSource ds = new DriverManagerDataSource(url);
         String username = source.config("username");
         if (username != null && !username.isBlank()) {

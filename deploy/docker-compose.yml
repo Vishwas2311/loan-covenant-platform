@@ -41,8 +41,7 @@ services:
       COVENANT_DB_URL: jdbc:sqlserver://sqlserver:1433;databaseName=covenant;encrypt=true;trustServerCertificate=true
       COVENANT_DB_USER: sa
       COVENANT_DB_PASSWORD: ${MSSQL_SA_PASSWORD}
-      COVENANT_SECURITY_MODE: DEV_HEADER
-      # Demo MSSQL sources name this with secretRef (the prod profile refuses plaintext passwords).
+      # Demo MSSQL sources name this with secretRef (local-stack refuses plaintext passwords).
       COVENANT_DS_DEMO_READER_PASSWORD: ${DEMO_READER_PASSWORD:?set DEMO_READER_PASSWORD in deploy/.env}
       COVENANT_SUPPORT_TOKEN: ${COVENANT_SUPPORT_TOKEN:?set COVENANT_SUPPORT_TOKEN in deploy/.env}
       COVENANT_DPS_BASE_URL: http://dps-api:9400
@@ -53,8 +52,9 @@ services:
       COVENANT_CLIENTS_NOTIFICATION_BASE_URL: http://bank-stubs:8080
       COVENANT_CLIENTS_FILE_UPLOAD_BASE_URL: http://bank-stubs:8080
       COVENANT_CLIENTS_AI_SUGGESTION_BASE_URL: http://bank-stubs:8080
-      # prod as in the image, plus the in-app ML threshold mock (application-local-stack.yml).
-      SPRING_PROFILES_ACTIVE: prod,local-stack
+      # SQL Server, DEV_HEADER sign-in and the in-app ML mock (application-local-stack.yml). Not prod:
+      # the prod profile refuses DEV_HEADER.
+      SPRING_PROFILES_ACTIVE: local-stack
       # Local stack only: load the demo portfolio that matches the stubbed CPs.
       SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/integration,classpath:db/demo
       SPRING_FLYWAY_OUT_OF_ORDER: "true"

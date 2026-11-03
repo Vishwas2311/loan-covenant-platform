@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -41,9 +43,22 @@ public class SecurityConfig {
         "/api/v1/covenants/**", "/api/v1/measures/**", "/api/v1/data-sources/**", "/api/v1/settings/**"
     };
 
+    /**
+     * DEV_HEADER trusts whatever X-User / X-Roles a caller sends, so one environment variable would
+     * open every endpoint. Under the {@code prod} profile Core refuses to start in that mode.
+     */
+    static void requireJwtInProduction(SecurityProperties.Mode mode, Environment environment) {
+        if (mode == SecurityProperties.Mode.DEV_HEADER && environment.acceptsProfiles(Profiles.of("prod"))) {
+            throw new IllegalStateException(
+                    "covenant.security.mode=DEV_HEADER is not allowed with the prod profile; use JWT");
+        }
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityProperties props,
-                                            ObjectProvider<JwtDecoder> jwtDecoder) throws Exception {
+                                            ObjectProvider<JwtDecoder> jwtDecoder,
+                                            Environment environment) throws Exception {
+        requireJwtInProduction(props.getMode(), environment);
         http.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -90,9 +105,12 @@ public class SecurityConfig {
     static JwtDecoder buildDecoder(SecurityProperties.Jwt jwt) {
         boolean hasJwks = jwt.getJwkSetUri() != null && !jwt.getJwkSetUri().isBlank();
         boolean hasIssuer = jwt.getIssuerUri() != null && !jwt.getIssuerUri().isBlank();
-        if (!hasJwks && !hasIssuer) {
+        boolean hasAudience = jwt.getAudience() != null && !jwt.getAudience().isBlank();
+        // Entra ID signs every tenant's tokens with the same keys: without the issuer and audience
+        // checks, a token Microsoft issued for any other tenant or app would be accepted.
+        if (!hasIssuer || !hasAudience) {
             throw new IllegalStateException(
-                    "covenant.security.mode=JWT needs covenant.security.jwt.issuer-uri or jwk-set-uri "
+                    "covenant.security.mode=JWT needs covenant.security.jwt.issuer-uri and audience "
                             + "(or set covenant.security.mode=DEV_HEADER for local development only)");
         }
         NimbusJwtDecoder decoder = hasJwks

@@ -1,6 +1,23 @@
-# Local Docker stack (deploy/docker-compose.yml). There is no ML threshold service locally, so the
-# ML client calls the in-app mock (MockMlThresholdController), as in the dev profile.
+# Local Docker stack (deploy/docker-compose.yml): SQL Server from the environment like prod, but with
+# DEV_HEADER sign-in ("Act as"), which the prod profile refuses. There is no ML threshold service
+# locally, so the ML client calls the in-app mock (MockMlThresholdController), as in the dev profile.
+spring:
+  datasource:
+    url: ${COVENANT_DB_URL}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    username: ${COVENANT_DB_USER}
+    password: ${COVENANT_DB_PASSWORD}
+  h2:
+    console:
+      enabled: false
+
 covenant:
+  security:
+    mode: DEV_HEADER
+  data-sources:
+    allow-plaintext-password: false
+    allow-h2: false
+    allowed-rest-base-urls: http://localhost:9311,http://bank-stubs:8080
   clients:
     ml:
       base-url: http://localhost:${server.port}/internal/mock-ml

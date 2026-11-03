@@ -35,6 +35,12 @@ class Authenticator:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._jwks: jwt.PyJWKClient | None = None
+        if settings.auth_mode == AuthMode.DEV_HEADER and settings.env.lower() == "prod":
+            raise RuntimeError("DPS_AUTH_MODE=DEV_HEADER is not allowed with DPS_ENV=prod; use JWT")
+        # Entra ID signs every tenant's tokens with the same keys: without issuer and audience checks a
+        # token Microsoft issued for any other tenant or app would be accepted.
+        if settings.auth_mode == AuthMode.JWT and not (settings.jwt_issuer and settings.jwt_audience):
+            raise RuntimeError("DPS_AUTH_MODE=JWT needs DPS_JWT_ISSUER and DPS_JWT_AUDIENCE")
         if settings.auth_mode == AuthMode.JWT and not settings.jwt_public_key_pem:
             if not settings.jwt_jwks_url:
                 raise RuntimeError("DPS_AUTH_MODE=JWT needs DPS_JWT_JWKS_URL or DPS_JWT_PUBLIC_KEY_PEM")

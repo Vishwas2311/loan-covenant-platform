@@ -17,6 +17,7 @@ import com.crisil.covenant.enums.DataColumnType;
 import com.crisil.covenant.enums.DataSourceType;
 import com.crisil.covenant.enums.TableLayout;
 import com.crisil.covenant.util.DataSourceSecrets;
+import com.crisil.covenant.util.JdbcUrlPolicy;
 import com.crisil.covenant.util.SqlIdentifiers;
 
 /**
@@ -173,6 +174,7 @@ public class ColumnDiscoveryService {
 
     private static javax.sql.DataSource buildDataSource(DataSource source) {
         String jdbcUrl = require(source, "jdbcUrl");
+        JdbcUrlPolicy.requireSafe(jdbcUrl);
         DriverManagerDataSource ds = new DriverManagerDataSource(jdbcUrl);
         String username = source.config("username");
         if (username != null && !username.isBlank()) {

@@ -8,6 +8,7 @@ import com.crisil.covenant.dto.TestConnectionResult;
 import com.crisil.covenant.dto.UpdateDataSourceRequest;
 import com.crisil.covenant.exception.ApiException;
 import com.crisil.covenant.util.DataSourceSecrets;
+import com.crisil.covenant.util.JdbcUrlPolicy;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,10 @@ public class DataSourceService {
     /** Off in production: MSSQL credentials must then come from a {@code secretRef}. */
     @Value("${covenant.data-sources.allow-plaintext-password:true}")
     private boolean allowPlaintextPassword = true;
+
+    /** Off in production and the local stack: only SQL Server JDBC URLs may be saved. */
+    @Value("${covenant.data-sources.allow-h2:true}")
+    private boolean allowH2 = true;
 
     public DataSourceService(DataSourceRepository repository, ColumnDiscoveryService columnDiscovery) {
         this.repository = repository;
@@ -82,6 +87,10 @@ public class DataSourceService {
      */
     private java.util.Map<String, String> checkCredentials(java.util.Map<String, String> incoming) {
         java.util.Map<String, String> config = new java.util.LinkedHashMap<>(incoming);
+        String jdbcUrl = config.get("jdbcUrl");
+        if (jdbcUrl != null && !jdbcUrl.isBlank()) {
+            JdbcUrlPolicy.requireAllowed(jdbcUrl, allowH2);
+        }
         String ref = config.get("secretRef");
         if (ref != null && !ref.isBlank()) {
             DataSourceSecrets.validateRef(ref);

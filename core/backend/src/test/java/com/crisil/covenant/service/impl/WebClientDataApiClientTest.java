@@ -49,7 +49,7 @@ class WebClientDataApiClientTest {
     /** A client whose global base URL is {@code baseUrl} (used when the endpoint doesn't route absolutely). */
     private WebClientDataApiClient clientWithGlobalBase(String baseUrl) {
         return new WebClientDataApiClient(WebClient.builder().baseUrl(baseUrl).build(),
-                WebClient.builder().baseUrl("http://localhost:1").build());
+                WebClient.builder().baseUrl("http://localhost:1").build(), List.of(wireMock.baseUrl()));
     }
 
     @Test
@@ -65,13 +65,14 @@ class WebClientDataApiClientTest {
         WebClient dps = WebClient.builder().baseUrl(wireMock.baseUrl())
                 .defaultHeader("X-User", "covenant-core").defaultHeader("X-Roles", "SERVICE").build();
         WebClientDataApiClient client = new WebClientDataApiClient(
-                WebClient.builder().baseUrl("http://localhost:1").build(), dps);
+                WebClient.builder().baseUrl("http://localhost:1").build(), dps, List.of());
 
         DataSeriesResponse relative = client.fetchValues(
                 new RestEndpoint(null, "/dps/v1/values", RestEndpoint.AUTH_DPS), "CP-1",
                 null, LocalDate.parse("2026-03-31"), List.of("DPS_EBITDA"));
+        // A baseUrl on a DPS source is ignored: the service credentials only go to the DPS client's host.
         DataSeriesResponse absolute = client.fetchValues(
-                new RestEndpoint(wireMock.baseUrl(), "/dps/v1/values", RestEndpoint.AUTH_DPS), "CP-1",
+                new RestEndpoint("http://attacker.example", "/dps/v1/values", RestEndpoint.AUTH_DPS), "CP-1",
                 null, LocalDate.parse("2026-03-31"), List.of("DPS_EBITDA"));
 
         assertThat(relative.safePoints().get(0).safeValues()).containsEntry("DPS_EBITDA", 5.0);
@@ -142,6 +143,32 @@ class WebClientDataApiClientTest {
                 LocalDate.parse("2024-01-01"), LocalDate.parse("2026-03-31"), List.of("DSCR"));
 
         assertThat(out.safePoints()).isEmpty();
+    }
+
+    @Test
+    void baseUrlOutsideTheAllowlistIsRefused() {
+        WebClientDataApiClient client = clientWithGlobalBase(wireMock.baseUrl());
+
+        for (String base : new String[] {"http://169.254.169.254", wireMock.baseUrl() + "@attacker.example",
+                                         "http://attacker.example"}) {
+            assertThatThrownBy(() -> client.fetchValues(new RestEndpoint(base, VALUES_PATH), "CP-1",
+                    null, LocalDate.now(), List.of("k")))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("code").isEqualTo("DATA_SOURCE_HOST_NOT_ALLOWED");
+        }
+    }
+
+    @Test
+    void valuesPathMustBeAPlainPath() {
+        WebClientDataApiClient client = clientWithGlobalBase(wireMock.baseUrl());
+
+        for (String path : new String[] {"http://attacker.example/x", "//attacker.example/x", "api/values",
+                                         "/api/../admin", "/api\\values"}) {
+            assertThatThrownBy(() -> client.fetchValues(new RestEndpoint(null, path), "CP-1",
+                    null, LocalDate.now(), List.of("k")))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("code").isEqualTo("DATA_SOURCE_PATH_INVALID");
+        }
     }
 
     @Test

@@ -94,7 +94,8 @@ class DataSourceServiceTest {
         when(repository.findById("1")).thenReturn(Optional.of(ds));
         echoSave();
         UpdateDataSourceRequest req =
-                new UpdateDataSourceRequest("same", DataSourceType.MSSQL, null, Map.of("jdbcUrl", "j"));
+                new UpdateDataSourceRequest("same", DataSourceType.MSSQL, null,
+                        Map.of("jdbcUrl", "jdbc:sqlserver://db:1433"));
         DataSourceResponse r = service.update("1", req);
         assertThat(r.name()).isEqualTo("same");
     }
@@ -176,6 +177,20 @@ class DataSourceServiceTest {
         assertThatThrownBy(() -> service.create(req))
                 .isInstanceOf(ApiException.class)
                 .extracting("code").isEqualTo("DATA_SOURCE_PLAINTEXT_PASSWORD");
+    }
+
+    @Test
+    void jdbcUrlCheckedOnSave() {
+        ReflectionTestUtils.setField(service, "allowH2", false);
+        when(repository.existsByNameIgnoreCase(any())).thenReturn(false);
+
+        assertThatThrownBy(() -> service.create(new CreateDataSourceRequest("H", DataSourceType.MSSQL, null,
+                Map.of("jdbcUrl", "jdbc:h2:mem:x"))))
+                .isInstanceOf(ApiException.class)
+                .extracting("code").isEqualTo("DATA_SOURCE_JDBC_URL_INVALID");
+        assertThatThrownBy(() -> service.create(new CreateDataSourceRequest("P", DataSourceType.MSSQL, null,
+                Map.of("jdbcUrl", "jdbc:postgresql://db/x"))))
+                .isInstanceOf(ApiException.class);
     }
 
     @Test
