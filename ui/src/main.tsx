@@ -8,20 +8,35 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
+import { loadAuthConfig, startAuth } from './auth/oidc';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 });
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <MantineProvider defaultColorScheme="auto">
-      <Notifications />
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </MantineProvider>
-  </StrictMode>,
-);
+function render() {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <MantineProvider defaultColorScheme="auto">
+        <Notifications />
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </MantineProvider>
+    </StrictMode>,
+  );
+}
+
+// Real sign-in when the server configures it (local Keycloak, Entra ID); otherwise development mode.
+loadAuthConfig()
+  .then((cfg) => startAuth(cfg))
+  .then((ready) => {
+    if (ready) {
+      render();
+    }
+  })
+  .catch((err: unknown) => {
+    document.getElementById('root')!.textContent = `Sign-in failed: ${String(err)}`;
+  });

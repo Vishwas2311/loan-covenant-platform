@@ -6,7 +6,7 @@ Combined product built from:
 
 Design, PRD and decisions live in [docs/integration/](docs/integration/README.md).
 
-Deploying and operating it: [docs/runbook.md](docs/runbook.md). Security settings: [SECURITY.md](SECURITY.md). Load-test results: [loadtest/README.md](loadtest/README.md).
+Testing it locally with real sign-in and Azure OpenAI: [docs/local-real-testing.md](docs/local-real-testing.md). Deploying and operating it: [docs/runbook.md](docs/runbook.md). Security settings: [SECURITY.md](SECURITY.md). Load-test results: [loadtest/README.md](loadtest/README.md).
 
 ## Layout
 

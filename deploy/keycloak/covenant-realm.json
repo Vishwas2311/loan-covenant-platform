@@ -1,0 +1,370 @@
+{
+  "realm": "covenant",
+  "enabled": true,
+  "displayName": "Covenant Platform (local)",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 3600,
+  "roles": {
+    "realm": [
+      {
+        "name": "RM"
+      },
+      {
+        "name": "APPROVER"
+      },
+      {
+        "name": "AUTHOR"
+      },
+      {
+        "name": "SUPPORT"
+      },
+      {
+        "name": "AUDITOR"
+      },
+      {
+        "name": "ADMIN"
+      },
+      {
+        "name": "SERVICE"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "covenant-ui",
+      "name": "Covenant UI",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8080/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "covenant-platform",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "covenant-cli",
+      "name": "Local test scripts (password grant, local only)",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "covenant-platform",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "core-service",
+      "name": "core-service",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${CORE_SERVICE_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "covenant-platform",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "dps-service",
+      "name": "dps-service",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${DPS_SERVICE_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "covenant-platform",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "rm-anil",
+      "enabled": true,
+      "firstName": "Anil",
+      "lastName": "Kapoor",
+      "email": "rm-anil@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "RM"
+      ]
+    },
+    {
+      "username": "wrm-meera",
+      "enabled": true,
+      "firstName": "Meera",
+      "lastName": "Nair",
+      "email": "wrm-meera@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "APPROVER"
+      ]
+    },
+    {
+      "username": "rm-priya",
+      "enabled": true,
+      "firstName": "Priya",
+      "lastName": "Shah",
+      "email": "rm-priya@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "RM"
+      ]
+    },
+    {
+      "username": "wrm-vikram",
+      "enabled": true,
+      "firstName": "Vikram",
+      "lastName": "Rao",
+      "email": "wrm-vikram@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "APPROVER"
+      ]
+    },
+    {
+      "username": "rm-load",
+      "enabled": true,
+      "firstName": "Load",
+      "lastName": "RM",
+      "email": "rm-load@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "RM"
+      ]
+    },
+    {
+      "username": "author-1",
+      "enabled": true,
+      "firstName": "Library",
+      "lastName": "Author",
+      "email": "author-1@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "AUTHOR"
+      ]
+    },
+    {
+      "username": "admin-1",
+      "enabled": true,
+      "firstName": "Platform",
+      "lastName": "Admin",
+      "email": "admin-1@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ]
+    },
+    {
+      "username": "auditor-1",
+      "enabled": true,
+      "firstName": "Internal",
+      "lastName": "Auditor",
+      "email": "auditor-1@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "AUDITOR"
+      ]
+    },
+    {
+      "username": "support-1",
+      "enabled": true,
+      "firstName": "Production",
+      "lastName": "Support",
+      "email": "support-1@covenant.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "SUPPORT"
+      ]
+    },
+    {
+      "username": "service-account-core-service",
+      "enabled": true,
+      "serviceAccountClientId": "core-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    },
+    {
+      "username": "service-account-dps-service",
+      "enabled": true,
+      "serviceAccountClientId": "dps-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    }
+  ]
+}

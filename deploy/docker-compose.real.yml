@@ -1,0 +1,74 @@
+# "Real" local testing: production-style sign-in and AI on your own machine.
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml --env-file deploy/.env up -d --build
+# Adds Keycloak (stands in for Microsoft Entra ID) and switches Core, DPS and the UI from the development
+# "Act as" mode to real sign-in (JWT), with client-credentials tokens between Core and DPS, and turns on
+# advisory AI with Azure OpenAI. Guide: docs/local-real-testing.md.
+
+x-dps-real: &dps-real
+  DPS_AUTH_MODE: JWT
+  DPS_JWT_ISSUER: http://localhost:8180/realms/covenant
+  DPS_JWT_AUDIENCE: covenant-platform
+  # Inside Docker, Keycloak is "keycloak:8080"; tokens still name the browser-facing issuer above.
+  DPS_JWT_JWKS_URL: http://keycloak:8080/realms/covenant/protocol/openid-connect/certs
+  DPS_CORE_TOKEN_URL: http://keycloak:8080/realms/covenant/protocol/openid-connect/token
+  DPS_CORE_CLIENT_ID: dps-service
+  DPS_CORE_CLIENT_SECRET: ${DPS_SERVICE_CLIENT_SECRET:?run the secret step in docs/local-real-testing.md}
+  DPS_CORE_SCOPE: openid
+  DPS_AI_MODEL: azure/${AZURE_DEPLOYMENT:-gpt-6.1-sol}
+  AZURE_API_KEY: ${AZURE_API_KEY:-}
+  AZURE_API_BASE: ${AZURE_API_BASE:-}
+  AZURE_API_VERSION: ${AZURE_API_VERSION:-2025-04-01-preview}
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.5
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:?run the secret step in docs/local-real-testing.md}
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      # Filled into keycloak/covenant-realm.json at import (its ${...} placeholders).
+      KC_DEMO_PASSWORD: ${KC_DEMO_PASSWORD:?run the secret step in docs/local-real-testing.md}
+      CORE_SERVICE_CLIENT_SECRET: ${CORE_SERVICE_CLIENT_SECRET:?run the secret step}
+      DPS_SERVICE_CLIENT_SECRET: ${DPS_SERVICE_CLIENT_SECRET:?run the secret step}
+    volumes: ["./keycloak:/opt/keycloak/data/import:ro"]
+    ports: ["8180:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  core:
+    depends_on:
+      keycloak: { condition: service_healthy }
+    environment:
+      COVENANT_SECURITY_MODE: JWT
+      COVENANT_JWT_ISSUER: http://localhost:8180/realms/covenant
+      COVENANT_JWT_JWKS: http://keycloak:8080/realms/covenant/protocol/openid-connect/certs
+      COVENANT_JWT_AUDIENCE: covenant-platform
+      COVENANT_DPS_TOKEN_URI: http://keycloak:8080/realms/covenant/protocol/openid-connect/token
+      COVENANT_DPS_CLIENT_ID: core-service
+      COVENANT_DPS_CLIENT_SECRET: ${CORE_SERVICE_CLIENT_SECRET:?run the secret step}
+      COVENANT_DPS_SCOPE: openid
+
+  dps-api:
+    depends_on:
+      keycloak: { condition: service_healthy }
+    environment: *dps-real
+
+  dps-worker:
+    environment: *dps-real
+
+  dps-worker-heavy:
+    environment: *dps-real
+
+  ui:
+    environment:
+      OIDC_AUTHORITY: http://localhost:8180/realms/covenant
+      OIDC_CLIENT_ID: covenant-ui
+      OIDC_SCOPE: openid profile
+      OIDC_ORIGIN: http://localhost:8180

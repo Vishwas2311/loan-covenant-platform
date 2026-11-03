@@ -27,8 +27,29 @@ export const DEV_USERS: Identity[] = [
   { user: 'support-1', roles: ['SUPPORT'] },
 ];
 
+const ROLES: Role[] = ['RM', 'APPROVER', 'AUTHOR', 'SUPPORT', 'AUDITOR', 'ADMIN'];
+let tokenIdentity: Identity | null = null;
+
+/**
+ * Who a signed-in token belongs to, for the UI only (menus, buttons). Core and DPS verify the token
+ * themselves, so a tampered value here changes nothing they allow.
+ */
+export function identityFromToken(token: string): Identity | null {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const claims = JSON.parse(decodeURIComponent(escape(window.atob(payload)))) as Record<string, unknown>;
+    const user = (claims.preferred_username ?? claims.upn ?? claims.sub) as string | undefined;
+    const raw = Array.isArray(claims.roles) ? (claims.roles as unknown[]) : [];
+    const roles = raw.map((r) => String(r).toUpperCase()).filter((r): r is Role => ROLES.includes(r as Role));
+    return user ? { user, roles } : null;
+  } catch {
+    return null;
+  }
+}
+
 export function setAccessToken(token: string | null): void {
   accessToken = token;
+  tokenIdentity = token ? identityFromToken(token) : null;
   listeners.forEach((l) => l());
 }
 
@@ -37,6 +58,9 @@ export function getAccessToken(): string | null {
 }
 
 export function getIdentity(): Identity {
+  if (tokenIdentity) {
+    return tokenIdentity;
+  }
   try {
     const raw = window.localStorage.getItem(KEY);
     if (raw) {

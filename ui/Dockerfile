@@ -7,7 +7,8 @@ COPY . .
 RUN npx vite build
 
 FROM nginx:1.27-alpine
-ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 CORE_UPSTREAM=http://core:9310 DPS_UPSTREAM=http://dps-api:9400
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 CORE_UPSTREAM=http://core:9310 DPS_UPSTREAM=http://dps-api:9400 \
+    OIDC_AUTHORITY="" OIDC_CLIENT_ID="" OIDC_SCOPE="openid profile" OIDC_ORIGIN=""
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /src/dist /usr/share/nginx/html

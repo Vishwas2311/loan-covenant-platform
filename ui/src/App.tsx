@@ -1,9 +1,10 @@
-import { AppShell, Group, NavLink, Select, Text, Title } from '@mantine/core';
+import { AppShell, Button, Group, NavLink, Select, Text, Title } from '@mantine/core';
 import {
   IconBooks, IconBuildingBank, IconChartBar, IconFileText, IconLayoutDashboard, IconSettings, IconSparkles, IconTool,
 } from '@tabler/icons-react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { DEV_USERS, getAccessToken, hasRole, setIdentity } from './auth/identity';
+import { signedIn, signOut } from './auth/oidc';
 import { useIdentity } from './auth/useIdentity';
 import { CpWorkspace } from './pages/CpWorkspace';
 import { Documents } from './pages/Documents';
@@ -26,7 +27,12 @@ const NAV = [
 function IdentitySwitcher() {
   const identity = useIdentity();
   if (getAccessToken()) {
-    return <Text size="sm">{identity.user}</Text>;
+    return (
+      <Group gap="sm">
+        <Text size="sm">{identity.user} ({identity.roles.join(', ') || 'no role'})</Text>
+        {signedIn() && <Button size="xs" variant="default" onClick={() => void signOut()}>Sign out</Button>}
+      </Group>
+    );
   }
   return (
     <Select
