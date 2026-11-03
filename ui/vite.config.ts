@@ -15,6 +15,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // e2e/ holds the Playwright browser tests (npm run e2e), which need the running stack.
+    include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test-setup.ts'],
     css: false,
     testTimeout: 15000,

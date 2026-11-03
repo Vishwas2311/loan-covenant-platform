@@ -1,3 +1,7 @@
 node_modules
 dist
 coverage
+
+# Playwright browser tests
+e2e-report/
+test-results/

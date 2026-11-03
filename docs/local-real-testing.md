@@ -99,10 +99,30 @@ Do these in order; each step says what you should see.
 | 8 | `wrm-meera` | Same covenant → approve | Status *Waiver approved*; the status history shows both steps |
 | 9 | `rm-anil` | **Reports** → open breaches → download Excel and PDF | Both files open |
 | 10 | `rm-anil` | **Reports** → **Ask AI**: "Which of my covenants are breached?"; then **Documents** → the statement from step 5 | An answer written by Azure OpenAI about your CPs only; the statement shows an AI-written narrative |
-| 11 | `author-1` | **Covenant library** → create a covenant | Saved; `rm-anil` cannot do this |
+| 11 | `author-1` | **Covenant library** → search "DSCR" → **Download Excel** | Matching covenants; the Excel file opens. (Creating covenants is done through Core's API; the UI has no form for it yet) |
 | 12 | `support-1` | **Document jobs** | All DPS jobs with their status; a failed one can be retried |
 | 13 | `admin-1` | **Settings** → change a setting | Saved; other roles do not see Settings |
 | 14 | any | **Sign out** | Back at the Keycloak sign-in page |
+
+### Automated browser tests
+
+The 14 steps above are also automated (Playwright, a real Chromium browser signing in through Keycloak). With the stack running in real mode:
+
+```bash
+cd ui
+```
+
+```bash
+npx playwright install chromium
+```
+
+(once, about 150 MB)
+
+```bash
+npm run e2e
+```
+
+It ends with `12 passed` (steps 6–8 are one test). The maker-checker test has the approver *reject* the waiver, so the covenant stays breached and the tests can run again and again. On a failure, `ui/e2e-report/index.html` has a screenshot and a step-by-step trace.
 
 **The daily breach run** normally fires at 06:00. To run it now (as `admin-1`):
 
