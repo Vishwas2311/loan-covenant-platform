@@ -5,7 +5,9 @@
   },
   "response": {
     "status": 200,
-    "headers": { "Content-Type": "application/json" },
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "jsonBody": {
       "cpId": "CP-1005",
       "name": "Tata Steel Ltd",
@@ -13,7 +15,21 @@
       "sector": "STEEL",
       "purpose": "European Ops Refinancing",
       "approvalStatus": "APPROVED",
-      "tags": ["large-corporate", "rated-AA+", "nifty-50"]
+      "tags": [
+        "large-corporate",
+        "rated-AA+",
+        "nifty-50"
+      ],
+      "rm": {
+        "userId": "rm-anil",
+        "name": "Anil Kapoor",
+        "email": "anil.kapoor@crisil.com"
+      },
+      "wrm": {
+        "userId": "wrm-meera",
+        "name": "Meera Nair",
+        "email": "meera.nair@crisil.com"
+      }
     }
   }
 }

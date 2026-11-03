@@ -5,7 +5,9 @@
   },
   "response": {
     "status": 200,
-    "headers": { "Content-Type": "application/json" },
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "jsonBody": {
       "cpId": "CP-1003",
       "name": "Reliance Industries Ltd",
@@ -13,9 +15,21 @@
       "sector": "RETAIL",
       "purpose": "Reliance Retail Store Expansion",
       "approvalStatus": "APPROVED",
-      "tags": ["large-corporate", "rated-AAA", "nifty-50"],
-      "rm": { "userId": "rm-rohit", "name": "Rohit Sharma", "email": "rohit.sharma@crisil.com" },
-      "wrm": { "userId": "wrm-meera", "name": "Meera Nair", "email": "meera.nair@crisil.com" }
+      "tags": [
+        "large-corporate",
+        "rated-AAA",
+        "nifty-50"
+      ],
+      "rm": {
+        "userId": "rm-anil",
+        "name": "Anil Kapoor",
+        "email": "anil.kapoor@crisil.com"
+      },
+      "wrm": {
+        "userId": "wrm-meera",
+        "name": "Meera Nair",
+        "email": "meera.nair@crisil.com"
+      }
     }
   }
 }

@@ -5,7 +5,9 @@
   },
   "response": {
     "status": 200,
-    "headers": { "Content-Type": "application/json" },
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "jsonBody": {
       "cpId": "CP-1010",
       "name": "Larsen and Toubro Ltd",
@@ -13,7 +15,21 @@
       "sector": "ENGINEERING",
       "purpose": "Mumbai-Ahmedabad HSR Package",
       "approvalStatus": "APPROVED",
-      "tags": ["large-corporate", "rated-AAA", "nifty-50"]
+      "tags": [
+        "large-corporate",
+        "rated-AAA",
+        "nifty-50"
+      ],
+      "rm": {
+        "userId": "rm-priya",
+        "name": "Priya Sharma",
+        "email": "priya.sharma@crisil.com"
+      },
+      "wrm": {
+        "userId": "wrm-vikram",
+        "name": "Vikram Rao",
+        "email": "vikram.rao@crisil.com"
+      }
     }
   }
 }

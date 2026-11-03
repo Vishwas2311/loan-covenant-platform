@@ -17,6 +17,7 @@ import httpx
 
 from dps.advisor import ADVISORY, Completion
 from dps.auth import ROLES_HEADER, USER_HEADER, Principal
+from dps.errors import ApiError
 
 log = logging.getLogger(__name__)
 
@@ -29,13 +30,20 @@ Fetch = Callable[[Principal, str], object]
 
 
 def core_fetch(base_url: str, timeout: float, client: httpx.Client | None = None) -> Fetch:
-    http = client or httpx.Client(base_url=base_url, timeout=timeout)
+    # Whole-portfolio reads: allow more than the per-call timeout used for single lookups.
+    http = client or httpx.Client(base_url=base_url, timeout=max(timeout, 30.0))
 
     def fetch(principal: Principal, path: str):
         headers = ({"Authorization": f"Bearer {principal.token}"} if principal.token
                    else {USER_HEADER: principal.user, ROLES_HEADER: ",".join(sorted(principal.roles))})
-        resp = http.get(path, headers=headers)
-        resp.raise_for_status()
+        try:
+            resp = http.get(path, headers=headers)
+        except httpx.HTTPError as exc:
+            raise ApiError(503, "CORE_UNAVAILABLE", "Core did not answer in time; try again") from exc
+        if resp.status_code >= 500:
+            raise ApiError(503, "CORE_UNAVAILABLE", f"Core answered HTTP {resp.status_code}; try again")
+        if resp.status_code >= 400:
+            raise ApiError(resp.status_code, "CORE_REFUSED", f"Core refused the request (HTTP {resp.status_code})")
         return resp.json()
 
     return fetch

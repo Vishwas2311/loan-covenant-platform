@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import httpx
+import pytest
 from conftest import FakeChecker, h
 
 from dps.ask import MAX_CONTEXT, REFUSAL, _trim, answer, core_fetch
@@ -75,3 +76,17 @@ def test_ask_endpoint(settings):
     body = client.post("/dps/v1/ask", json={"question": "Which breaches are open?"}, headers=h()).json()
     assert body["citations"] == ["breach:a1"]
     assert client.post("/dps/v1/ask", json={"question": ""}, headers=h()).status_code in (400, 422)
+
+@pytest.mark.parametrize("respond, status, code", [
+    (lambda request: (_ for _ in ()).throw(httpx.ReadTimeout("slow")), 503, "CORE_UNAVAILABLE"),
+    (lambda request: httpx.Response(502), 503, "CORE_UNAVAILABLE"),
+    (lambda request: httpx.Response(401), 401, "CORE_REFUSED"),
+])
+def test_core_fetch_turns_core_failures_into_clear_errors(respond, status, code):
+    from dps.errors import ApiError
+
+    f = core_fetch("http://core", 1.0, httpx.Client(base_url="http://core", transport=httpx.MockTransport(respond)))
+    with pytest.raises(ApiError) as err:
+        f(Principal(user="rm-anil", roles=frozenset({"RM"})), "/api/v1/monitoring/summary")
+    assert (err.value.status, err.value.code) == (status, code)
+

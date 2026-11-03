@@ -5,7 +5,9 @@
   },
   "response": {
     "status": 200,
-    "headers": { "Content-Type": "application/json" },
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "jsonBody": {
       "cpId": "CP-1007",
       "name": "Adani Ports and SEZ Ltd",
@@ -13,7 +15,21 @@
       "sector": "PORTS",
       "purpose": "Vizhinjam Port Development",
       "approvalStatus": "UNDER_REVIEW",
-      "tags": ["large-corporate", "rated-AA", "greenfield"]
+      "tags": [
+        "large-corporate",
+        "rated-AA",
+        "greenfield"
+      ],
+      "rm": {
+        "userId": "rm-anil",
+        "name": "Anil Kapoor",
+        "email": "anil.kapoor@crisil.com"
+      },
+      "wrm": {
+        "userId": "wrm-meera",
+        "name": "Meera Nair",
+        "email": "meera.nair@crisil.com"
+      }
     }
   }
 }
