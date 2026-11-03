@@ -29,7 +29,9 @@ def create_app(settings: Settings | None = None, *, cp_checker: CpAccessChecker 
     app.state.store = FileStore(settings.storage_dir)
     app.state.authenticator = Authenticator(settings)
     app.state.cp_checker = cp_checker or CoreCpAccessChecker(settings.core_base_url, settings.core_timeout_seconds)
-    app.state.advisor = advisor or Advisor(crewai_completion(settings.ai_model) if settings.ai_model else None)
+    completion = (crewai_completion(settings.ai_model, settings.ai_temperature)
+                  if settings.ai_model and not advisor else None)
+    app.state.advisor = advisor or Advisor(completion)
     app.state.core_fetch = core_fetch or ask.core_fetch(settings.core_base_url, settings.core_timeout_seconds)
     if create_schema:  # tests / local only; production uses Alembic migrations
         Base.metadata.create_all(app.state.db.engine)

@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     # Advisory AI (C3 suggestions, statement narrative). Empty: rules only. Example: azure/gpt-4o
     # with AZURE_API_KEY, AZURE_API_BASE and AZURE_API_VERSION set for LiteLLM.
     ai_model: str = ""
+    # Empty: the model's default (required by newer Azure OpenAI models). Set e.g. 0 where the model allows it.
+    ai_temperature: float | None = None
 
 
 @lru_cache(maxsize=1)

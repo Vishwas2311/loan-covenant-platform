@@ -67,10 +67,11 @@ def _parse(text: str, allowed_ids: set[str]) -> list[dict]:
     return out
 
 
-def crewai_completion(model: str) -> Completion:  # pragma: no cover - needs a live model
+def crewai_completion(model: str, temperature: float | None = None) -> Completion:  # pragma: no cover - live model
     from crewai import LLM
 
-    llm = LLM(model=model, temperature=0)
+    # None keeps the model's default: newer Azure OpenAI models refuse any other temperature.
+    llm = LLM(model=model) if temperature is None else LLM(model=model, temperature=temperature)
     return lambda messages: llm.call(messages)
 
 
