@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1002"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1002",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "OIL_GAS",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "TERM_LOAN",
+        "facilityAmount": 25000,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 60,
+        "collateralType": "SPECTRUM_LICENCE",
+        "guarantor": "Reliance Industries Ltd"
+      }
+    }
+  }
+}

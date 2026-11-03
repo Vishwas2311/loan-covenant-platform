@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-2003"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2003",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "DIVERSIFIED",
+      "attributes": {
+        "ratingGrade": "AA",
+        "loanType": "TERM_LOAN",
+        "facilityAmount": 6500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 84,
+        "collateralType": "PLANT_AND_MACHINERY",
+        "guarantor": "Grasim Industries Ltd"
+      }
+    }
+  }
+}

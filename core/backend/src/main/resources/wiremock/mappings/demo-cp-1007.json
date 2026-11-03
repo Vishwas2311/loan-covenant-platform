@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1007"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1007",
+      "name": "Adani Ports and SEZ Ltd",
+      "businessSegment": "INFRASTRUCTURE",
+      "sector": "PORTS",
+      "purpose": "Vizhinjam Port Development",
+      "approvalStatus": "UNDER_REVIEW",
+      "tags": ["large-corporate", "rated-AA", "greenfield"]
+    }
+  }
+}

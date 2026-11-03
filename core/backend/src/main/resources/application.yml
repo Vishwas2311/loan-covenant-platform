@@ -1,0 +1,220 @@
+spring:
+  application:
+    name: covenant-service
+  datasource:
+    url: jdbc:h2:file:./data/covenant;MODE=MSSQLServer;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;CASE_INSENSITIVE_IDENTIFIERS=TRUE;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+  flyway:
+    enabled: true
+    # db/integration holds the DPS data source, its measures and the masters it needs (T10); tests
+    # run on db/migration alone so their library starts empty.
+    locations: classpath:db/migration,classpath:db/integration
+    baseline-on-migrate: true
+    out-of-order: false
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.scheduler.instanceName: covenant-scheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.threadPool.threadCount: "10"
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.MSSQLDelegate
+      org.quartz.jobStore.useProperties: "true"
+      org.quartz.jobStore.misfireThreshold: "60000"
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: "false"
+
+server:
+  port: 9310
+  error:
+    include-message: always
+    include-binding-errors: always
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+covenant:
+  clients:
+    credit-proposal:
+      base-url: http://localhost:9311
+    attributes:
+      base-url: http://localhost:9311
+    data-api:
+      base-url: http://localhost:9311
+    # External workflow engine: a case is opened per CP at assessment start via
+    # POST /api/runtime/cases. Prod points this at the real engine (e.g. http://localhost:9120);
+    # dev/local uses the WireMock stub on the same 9311 host (wiremock/mappings/workflow-cases.json).
+    workflow:
+      base-url: http://localhost:9311
+    # External ML threshold-recommendation service. Prod points this at the real service
+    # (externally configured); dev overrides it to the in-app mock stub (application-dev.yml).
+    ml:
+      base-url: http://localhost:9311
+    # External notification service (RM/WRM breach summaries). Prod points this at the real
+    # service (externally configured); dev/local uses the WireMock stub on the same 9311 host
+    # (wiremock/mappings/notifications.json).
+    notification:
+      base-url: http://localhost:9311
+    # External file-upload service (US-MON-17 evidence + compliance certificates). Prod points this
+    # at the real service (externally configured); dev/local uses the WireMock stub on the same 9311
+    # host (wiremock/mappings/file-upload.json).
+    file-upload:
+      base-url: http://localhost:9311
+    # External AI status-suggestion service (US-MON-18). Prod points this at the real service
+    # (externally configured); dev/local uses the WireMock stub on the same 9311 host
+    # (wiremock/mappings/ai-suggestions.json).
+    ai-suggestion:
+      base-url: http://localhost:9311
+      # external (default): the service above. dps: the Document Processing Service (C3).
+      provider: ${COVENANT_AI_PROVIDER:external}
+    # R1: Document Processing Service (C1 extracted-covenant recommendations).
+    dps:
+      base-url: ${COVENANT_DPS_BASE_URL:http://localhost:9400}
+      service-token: ${COVENANT_DPS_SERVICE_TOKEN:}
+  # Daily breach-assessment run (US-MON-14). One durable Quartz trigger registered at startup by
+  # DailyRunInitializer; 06:00 every day by default. Overridable per environment.
+  notifications:
+    cron: "0 0 6 * * ?"
+  security:
+    # R0/T1 authentication. JWT (default) validates Entra ID bearer tokens. Configure via env:
+    # COVENANT_JWT_ISSUER (e.g. https://login.microsoftonline.com/<tenant>/v2.0),
+    # COVENANT_JWT_JWKS (optional), COVENANT_JWT_AUDIENCE (the API's client id / app id URI).
+    mode: ${COVENANT_SECURITY_MODE:JWT}
+    jwt:
+      issuer-uri: ${COVENANT_JWT_ISSUER:}
+      jwk-set-uri: ${COVENANT_JWT_JWKS:}
+      audience: ${COVENANT_JWT_AUDIENCE:}
+      principal-claim: ${COVENANT_JWT_PRINCIPAL_CLAIM:preferred_username}
+      roles-claim: roles
+    spel:
+      denied-tokens: "T(,new ,.class,@,?.,?["
+  # Production-support surface (/api/v1/ops/**) token gate (SupportProperties). enabled=true is the
+  # fail-closed production default; the shared secret MUST be injected out-of-band via the
+  # COVENANT_SUPPORT_TOKEN environment variable. There is deliberately no fallback value here:
+  # SupportTokenStartupCheck refuses to start when the gate is enabled and no token is configured.
+  # Local dev/test profiles set their own non-secret token.
+  support:
+    enabled: true
+    token: ${COVENANT_SUPPORT_TOKEN:}
+
+# Resilience around the external ML call (US-ML-12 AC6): ~3s time limit, 2 retries, and a
+# count-based circuit breaker that opens at a 50% failure rate. On breach the recommender falls
+# back to an empty list so onboarding continues.
+resilience4j:
+  circuitbreaker:
+    instances:
+      dpsRecommendations:
+        # DPS is optional for onboarding (empty list on failure); an open breaker must not mark Core DOWN.
+        register-health-indicator: false
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      mlThresholds:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      # External notification service (US-MON-14 AC6): same shape as mlThresholds. On breach the
+      # client returns a failed NotificationResult so the run completes and the failure is audited.
+      notifications:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      # External file-upload service (US-MON-17 AC5): same shape as notifications. On breach the
+      # client returns a failed FileUploadResult so the upload is rejected without data corruption.
+      fileUpload:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      # External AI status-suggestion service (US-MON-18 AC6): same shape. On breach the recommender
+      # returns an empty list so the modal shows a graceful "AI unavailable" message.
+      aiSuggestion:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      dpsRecommendations:
+        max-attempts: 2
+        wait-duration: 200ms
+      mlThresholds:
+        max-attempts: 3
+        wait-duration: 200ms
+      notifications:
+        max-attempts: 3
+        wait-duration: 200ms
+      fileUpload:
+        max-attempts: 3
+        wait-duration: 200ms
+      aiSuggestion:
+        max-attempts: 3
+        wait-duration: 200ms
+  timelimiter:
+    instances:
+      dpsRecommendations:
+        timeout-duration: 3s
+        cancel-running-future: true
+      mlThresholds:
+        timeout-duration: 3s
+        cancel-running-future: true
+      notifications:
+        timeout-duration: 5s
+        cancel-running-future: true
+      fileUpload:
+        timeout-duration: 10s
+        cancel-running-future: true
+      aiSuggestion:
+        timeout-duration: 10s
+        cancel-running-future: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    root: INFO
+    com.crisil.covenant: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO

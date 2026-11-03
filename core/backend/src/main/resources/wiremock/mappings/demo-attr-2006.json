@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-2006"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2006",
+      "businessSegment": "CORPORATE",
+      "sector": "FMCG",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "WORKING_CAPITAL",
+        "facilityAmount": 4000,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 48,
+        "collateralType": "RECEIVABLES",
+        "guarantor": "Unilever PLC"
+      }
+    }
+  }
+}

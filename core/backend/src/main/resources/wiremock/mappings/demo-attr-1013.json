@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1013"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1013",
+      "businessSegment": "CORPORATE",
+      "sector": "METALS_MINING",
+      "attributes": {
+        "ratingGrade": "AA",
+        "loanType": "TERM_LOAN",
+        "facilityAmount": 3500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 72,
+        "collateralType": "PLANT_AND_MACHINERY",
+        "guarantor": "JSW Group"
+      }
+    }
+  }
+}

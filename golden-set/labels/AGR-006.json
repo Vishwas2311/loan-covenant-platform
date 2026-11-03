@@ -1,0 +1,11 @@
+{
+  "documentId": "AGR-006",
+  "type": "LOAN_AGREEMENT",
+  "sourceFile": "279_Loan_Agreement_Daily_Health.pdf",
+  "sha256": "ce12db35fe22358309e3a2c52ad95c32ca3e21d12babc141c610ac4f269809f3",
+  "pages": 2,
+  "status": "DRAFT_UNVERIFIED",
+  "labelledBy": "auto-draft (regex extractor, covenanttrackingphase1.2)",
+  "reviewedBy": null,
+  "covenants": []
+}

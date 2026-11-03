@@ -1,0 +1,8 @@
+package com.crisil.covenant.dto;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import java.util.List;
+
+public record BulkApplyCovenantsRequest(@NotEmpty @Valid List<ApplyCovenantRequest> items) {
+}

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1013"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1013",
+      "name": "JSW Steel Ltd",
+      "businessSegment": "METALS",
+      "sector": "STEEL",
+      "purpose": "Green Steel Transition",
+      "approvalStatus": "UNDER_REVIEW",
+      "tags": ["large-corporate", "rated-AA", "esg-transition"]
+    }
+  }
+}

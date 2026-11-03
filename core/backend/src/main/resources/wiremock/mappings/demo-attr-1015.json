@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1015"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1015",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "AUTOMOTIVE",
+      "attributes": {
+        "ratingGrade": "AA+",
+        "loanType": "WORKING_CAPITAL",
+        "facilityAmount": 2800,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 12,
+        "collateralType": "INVENTORY_AND_RECEIVABLES",
+        "guarantor": "Mahindra and Mahindra Ltd"
+      }
+    }
+  }
+}

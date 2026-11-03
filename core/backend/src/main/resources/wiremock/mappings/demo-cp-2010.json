@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-2010"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2010",
+      "name": "ReNew Power Ltd",
+      "businessSegment": "CORPORATE",
+      "sector": "RENEWABLES",
+      "purpose": "Wind-Solar Hybrid Park",
+      "approvalStatus": "APPROVED",
+      "obligorId": "OBL-RENEW",
+      "tags": ["large-corporate", "renewables"],
+      "rm": { "userId": "rm-priya", "name": "Priya Sharma", "email": "priya.sharma@crisil.com" },
+      "wrm": { "userId": "wrm-vikram", "name": "Vikram Rao", "email": "vikram.rao@crisil.com" }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+-- =====================================================================================
+-- US-MON-23 : demo CP renewal lineage (parent_cp_id) for the cycle-history viewer
+-- -------------------------------------------------------------------------------------
+-- Dev-only seed so the read-only cycle viewer is demoable end-to-end without first
+-- running a recommendation/attributes fetch. Chains three seeded CPs that already have
+-- applied covenants, assessments, an attachment (CP-1002) and certificates (V10):
+--
+--   CP-1001  --parent-->  CP-1002  --parent-->  CP-1003  (root)
+--
+-- so opening CP-1001's assessment screen shows:
+--   Cycle 1 = CP-1003 (oldest root) · Cycle 2 = CP-1002 · Cycle 3 = CP-1001 (current).
+--
+-- Runs AFTER the demo cache seed (V10) and the prod column add (V12 — dev is out-of-order,
+-- so V12's parent_cp_id column is present before this UPDATE). The null-preserving
+-- CachedCovenantAttributesService.enrichOwnership() keeps these links across attribute
+-- refreshes even when a CP stub omits parentCpId, so the demo stays stable. The matching
+-- WireMock CP stubs (demo-cp-1001/1002 carry parentCpId) provide the live-lookup fallback.
+-- =====================================================================================
+UPDATE cov_credit_proposal_cache SET parent_cp_id = 'CP-1002' WHERE cp_id = 'CP-1001';
+UPDATE cov_credit_proposal_cache SET parent_cp_id = 'CP-1003' WHERE cp_id = 'CP-1002';
+-- CP-1003 is the root of the chain and intentionally has no parent_cp_id.

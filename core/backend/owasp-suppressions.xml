@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+        Add CVE suppressions here ONLY with documented justification.
+        Each suppression must include a `notes` element explaining why the CVE is not exploitable
+        in our context, and a date for review.
+        Example:
+        <suppress until="2026-12-31Z">
+            <notes><![CDATA[CVE-XXXX-YYYY: Not exploitable because we don't expose the affected endpoint.]]></notes>
+            <cve>CVE-XXXX-YYYY</cve>
+        </suppress>
+    -->
+</suppressions>

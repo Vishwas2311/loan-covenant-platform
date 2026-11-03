@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-2010"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2010",
+      "businessSegment": "CORPORATE",
+      "sector": "RENEWABLES",
+      "attributes": {
+        "ratingGrade": "A",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 3800,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 108,
+        "collateralType": "PLANT_AND_MACHINERY",
+        "guarantor": "ReNew Energy Global PLC"
+      }
+    }
+  }
+}

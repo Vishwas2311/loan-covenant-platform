@@ -1,0 +1,99 @@
+# Local end-to-end stack: SQL Server, bank-service stubs, Core with the demo portfolio, DPS (API + standard worker), UI.
+#   cp deploy/.env.example deploy/.env   # then set the passwords
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up --build
+# UI: http://localhost:8080   Core: http://localhost:9310/swagger-ui.html   DPS: http://localhost:9400/docs
+#
+# Identity runs in DEV_HEADER mode here (the UI's "Act as" switcher). Production uses JWT (Entra ID)
+# for both services; see docs/integration/02-target-architecture.md.
+name: covenant-platform
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-CU15-ubuntu-22.04
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in deploy/.env}
+    ports: ["1433:1433"]
+    volumes: [sqldata:/var/opt/mssql]
+    healthcheck:
+      # -b makes sqlcmd exit non-zero on a SQL error, so the service is healthy only once the database exists.
+      test:
+        - CMD-SHELL
+        - >-
+          /opt/mssql-tools18/bin/sqlcmd -C -b -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}"
+          -Q "IF DB_ID('covenant') IS NULL CREATE DATABASE covenant"
+      interval: 10s
+      retries: 20
+
+  # Stand-in for the bank's CP, attribute, data-catalog, workflow, notification, file and AI services,
+  # using the same stub mappings the Core dev profile serves (core/backend/src/main/resources/wiremock).
+  bank-stubs:
+    image: wiremock/wiremock:3.9.2
+    volumes: ["../core/backend/src/main/resources/wiremock/mappings:/home/wiremock/mappings:ro"]
+    ports: ["9311:8080"]
+
+  core:
+    build: ../core/backend
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      bank-stubs: { condition: service_started }
+    environment:
+      COVENANT_DB_URL: jdbc:sqlserver://sqlserver:1433;databaseName=covenant;encrypt=true;trustServerCertificate=true
+      COVENANT_DB_USER: sa
+      COVENANT_DB_PASSWORD: ${MSSQL_SA_PASSWORD}
+      COVENANT_SECURITY_MODE: DEV_HEADER
+      COVENANT_SUPPORT_TOKEN: ${COVENANT_SUPPORT_TOKEN:?set COVENANT_SUPPORT_TOKEN in deploy/.env}
+      COVENANT_DPS_BASE_URL: http://dps-api:9400
+      COVENANT_CLIENTS_CREDIT_PROPOSAL_BASE_URL: http://bank-stubs:8080
+      COVENANT_CLIENTS_ATTRIBUTES_BASE_URL: http://bank-stubs:8080
+      COVENANT_CLIENTS_DATA_API_BASE_URL: http://bank-stubs:8080
+      COVENANT_CLIENTS_WORKFLOW_BASE_URL: http://bank-stubs:8080
+      COVENANT_CLIENTS_NOTIFICATION_BASE_URL: http://bank-stubs:8080
+      COVENANT_CLIENTS_FILE_UPLOAD_BASE_URL: http://bank-stubs:8080
+      COVENANT_CLIENTS_AI_SUGGESTION_BASE_URL: http://bank-stubs:8080
+      # Local stack only: load the demo portfolio that matches the stubbed CPs.
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/integration,classpath:db/demo
+      SPRING_FLYWAY_OUT_OF_ORDER: "true"
+    ports: ["9310:9310"]
+    restart: on-failure
+
+  stack-init:
+    image: mcr.microsoft.com/mssql/server:2022-CU15-ubuntu-22.04
+    depends_on:
+      core: { condition: service_started }
+    entrypoint: ["/bin/sh", "/stack-init.sh"]
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      DEMO_READER_PASSWORD: ${DEMO_READER_PASSWORD:?set DEMO_READER_PASSWORD in deploy/.env}
+    volumes: ["./stack-init.sh:/stack-init.sh:ro"]
+    restart: "no"
+
+  dps-api:
+    build: ../dps
+    environment: &dps-env
+      DPS_AUTH_MODE: DEV_HEADER
+      DPS_CORE_BASE_URL: http://core:9310
+      DPS_CORE_DATA_SOURCE_ID: d5000000-0000-0000-0000-000000000d95
+      DPS_DATABASE_URL: sqlite:////data/dps.db
+    volumes: [dpsdata:/data]
+    ports: ["9400:9400"]
+
+  dps-worker:
+    build: ../dps
+    command: ["python", "-m", "dps.worker"]
+    depends_on: [dps-api]
+    environment:
+      <<: *dps-env
+      DPS_WORKER_ID: dps-worker-1
+      DPS_WORKER_POOL: STANDARD
+    volumes: [dpsdata:/data]
+    restart: on-failure
+
+  ui:
+    build: ../ui
+    depends_on: [core, dps-api]
+    ports: ["8080:8080"]
+
+volumes:
+  sqldata:
+  dpsdata:

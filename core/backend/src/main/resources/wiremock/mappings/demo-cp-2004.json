@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-2004"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2004",
+      "name": "Sun Pharmaceutical Industries Ltd",
+      "businessSegment": "CORPORATE",
+      "sector": "PHARMA",
+      "purpose": "USFDA Upgrade",
+      "approvalStatus": "APPROVED",
+      "obligorId": "OBL-SUNPHARMA",
+      "tags": ["large-corporate", "pharma"],
+      "rm": { "userId": "rm-anil", "name": "Anil Kapoor", "email": "anil.kapoor@crisil.com" },
+      "wrm": { "userId": "wrm-meera", "name": "Meera Nair", "email": "meera.nair@crisil.com" }
+    }
+  }
+}

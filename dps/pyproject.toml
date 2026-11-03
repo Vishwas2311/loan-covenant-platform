@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "covenant-dps"
+version = "0.1.0"
+description = "Document Processing Service: agreements and statements to covenant proposals and values for Covenant Core"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "fastapi==0.136.1",
+  "uvicorn[standard]==0.46.0",
+  "python-multipart==0.0.27",
+  "pydantic==2.12.*",
+  "pydantic-settings>=2.14.2,<3",
+  "SQLAlchemy==2.0.*",
+  "alembic==1.17.*",
+  "PyJWT[crypto]>=2.15,<3",
+  "httpx==0.28.*",
+  "pypdf==6.10.2",
+  "openpyxl==3.1.*",
+]
+
+[project.optional-dependencies]
+# Background workers (dps-worker): CrewAI Flows A/B and the fast OCR path. The API image does not need these.
+worker = [
+  "crewai==1.15.34",
+  "rapidocr-onnxruntime==1.4.*",
+  "pypdfium2>=4.30",
+  "pdfplumber==0.11.*",
+]
+# dps-worker-heavy only: layout-aware Docling fallback (03-flows-design.md section 8).
+heavy = ["docling>=2.0"]
+dev = [
+  "covenant-dps[worker]",
+  "pytest==8.4.*",
+  "pytest-cov==7.0.*",
+  "ruff==0.14.*",
+]
+# Production SQL Server driver (needs the Microsoft ODBC driver on the host).
+mssql = ["pyodbc==5.3.*"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --cov=dps --cov-report=term-missing --cov-fail-under=90"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S", "UP"]
+ignore = ["S101"]  # asserts in tests
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]  # test tokens are not secrets

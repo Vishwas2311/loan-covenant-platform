@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1002"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1002",
+      "name": "Reliance Industries Ltd",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "TELECOM",
+      "purpose": "Jio 5G Network Rollout",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AAA", "nifty-50"],
+      "rm": { "userId": "rm-anil", "name": "Anil Kapoor", "email": "anil.kapoor@crisil.com" },
+      "wrm": { "userId": "wrm-meera", "name": "Meera Nair", "email": "meera.nair@crisil.com" },
+      "parentCpId": "CP-1003"
+    }
+  }
+}

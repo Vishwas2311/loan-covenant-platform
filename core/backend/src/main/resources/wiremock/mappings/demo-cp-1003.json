@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1003"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1003",
+      "name": "Reliance Industries Ltd",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "RETAIL",
+      "purpose": "Reliance Retail Store Expansion",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AAA", "nifty-50"],
+      "rm": { "userId": "rm-rohit", "name": "Rohit Sharma", "email": "rohit.sharma@crisil.com" },
+      "wrm": { "userId": "wrm-meera", "name": "Meera Nair", "email": "meera.nair@crisil.com" }
+    }
+  }
+}

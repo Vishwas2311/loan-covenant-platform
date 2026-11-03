@@ -1,0 +1,599 @@
+openapi: 3.1.0
+info:
+  title: Document Processing Service (DPS) API
+  version: 0.1.0
+  description: |
+    Our Python service. It turns loan agreements and financial statements into covenant
+    proposals and financial values for Covenant Core. It never decides compliance.
+
+    Contracts implemented here (see docs/integration/04-api-contracts.md):
+    - C1 `POST /dps/v1/recommendations`: covenant proposals for Core onboarding
+    - C2 `POST /dps/v1/values`: Core's REST data-source contract (shape fixed by Core)
+    - C3 `POST /dps/v1/ai-suggestions`: Core's AiStatusRecommender contract
+    - plus the public document / job / term endpoints used by the UI through the gateway
+servers:
+  - url: http://localhost:9400
+    description: local dev
+security:
+  - bearer: []
+tags:
+  - name: core-integration
+    description: Called by Covenant Core with a service token
+  - name: documents
+    description: Called by the UI through the gateway with a user token
+  - name: ops
+    description: Health and operations
+paths:
+  /health:
+    get:
+      tags: [ops]
+      security: []
+      operationId: health
+      summary: Liveness and dependency status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+
+  /dps/v1/recommendations:
+    post:
+      tags: [core-integration]
+      operationId: recommendations
+      summary: "C1: covenant proposals for a CP's onboarding grid"
+      description: Returns only PUBLISHED proposals from agreements linked to the CP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecommendationRequest" }
+      responses:
+        "200":
+          description: Proposals (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Recommendation" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+
+  /dps/v1/values:
+    post:
+      tags: [core-integration]
+      operationId: values
+      summary: "C2: financial values (Core REST data-source contract)"
+      description: |
+        Shape is fixed by Core's `WebClientDataApiClient` / `DataSeriesResponse`.
+        `from` absent means point-in-time: return the single latest point with asOfDate <= `to`.
+        `cpId` carries the obligor id when Core's table is OBLIGOR_ID-keyed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ValuesRequest" }
+      responses:
+        "200":
+          description: Series
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValuesResponse" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  /dps/v1/catalog:
+    get:
+      tags: [core-integration]
+      operationId: catalog
+      summary: Line-item keys DPS can serve (for Core column discovery)
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Catalog
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Catalog" }
+
+  /dps/v1/ai-suggestions:
+    post:
+      tags: [core-integration]
+      operationId: aiSuggestions
+      summary: "C3: AI status suggestions (Core AiStatusRecommender contract)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AiStatusRequest" }
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Suggestions (empty when AI is unavailable)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AiStatusRecommendation" }
+
+  /dps/v1/documents:
+    post:
+      tags: [documents]
+      operationId: uploadDocument
+      summary: Upload an agreement, statement or evidence document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/DocumentUpload" }
+      responses:
+        "202":
+          description: Accepted; processing job queued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UploadAccepted" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+    get:
+      tags: [documents]
+      operationId: listDocuments
+      summary: Documents linked to a CP
+      parameters:
+        - { name: cpId, in: query, required: true, schema: { type: string } }
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Document" }
+
+  /dps/v1/documents/{documentId}:
+    get:
+      tags: [documents]
+      operationId: getDocument
+      summary: One document with its status and linked CPs
+      parameters: [ { $ref: "#/components/parameters/DocumentId" } ]
+      responses:
+        "200":
+          description: Document
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Document" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /dps/v1/documents/{documentId}/links:
+    post:
+      tags: [documents]
+      operationId: linkDocument
+      summary: Link a document to more CPs (D7, FR-21)
+      parameters: [ { $ref: "#/components/parameters/DocumentId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LinkRequest" }
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Document" }
+    delete:
+      tags: [documents]
+      operationId: unlinkDocument
+      summary: Unlink CPs (history kept)
+      parameters: [ { $ref: "#/components/parameters/DocumentId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LinkRequest" }
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Document" }
+
+  /dps/v1/documents/{documentId}/terms:
+    get:
+      tags: [documents]
+      operationId: listTerms
+      summary: Extracted covenant proposals with sources (review screen)
+      parameters: [ { $ref: "#/components/parameters/DocumentId" } ]
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Terms
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ExtractedTerm" }
+
+  /dps/v1/documents/{documentId}/values:
+    get:
+      tags: [documents]
+      operationId: listDocumentValues
+      summary: Statement values with sources
+      parameters: [ { $ref: "#/components/parameters/DocumentId" } ]
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Values
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StatementValue" }
+
+  /dps/v1/terms/{termId}:
+    patch:
+      tags: [documents]
+      operationId: reviewTerm
+      summary: Reviewer edit / approve / reject a proposal
+      parameters:
+        - { name: termId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TermReview" }
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "200":
+          description: Updated term
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExtractedTerm" }
+
+  /dps/v1/jobs/{jobId}:
+    get:
+      tags: [documents]
+      operationId: getJob
+      summary: Job status with per-step timings and errors
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /dps/v1/jobs/{jobId}/resume:
+    post:
+      tags: [documents]
+      operationId: resumeJob
+      summary: Resume a NEEDS_REVIEW job after review
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "202":
+          description: Resumed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+
+  /dps/v1/cps/{cpId}/manual-values:
+    post:
+      tags: [documents]
+      operationId: enterManualValue
+      summary: Approver enters a missing line item (D9, FR-20)
+      parameters:
+        - { name: cpId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ManualValue" }
+      responses:
+        "201":
+          description: Stored (source USER); C5 data-event emitted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatementValue" }
+        "403": { $ref: "#/components/responses/Error" }
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Entra ID token. User tokens via the gateway; client-credentials tokens (role SERVICE) for Core.
+  parameters:
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      schema: { type: string }
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    Error:
+      description: Error envelope (same shape as Core)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    Error:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code: { type: string, examples: [FORBIDDEN_CP] }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+        timestamp: { type: string, format: date-time }
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP, DEGRADED, DOWN] }
+        database: { type: string, enum: [UP, DOWN] }
+        version: { type: string }
+    SourceRef:
+      type: object
+      required: [documentId]
+      properties:
+        documentId: { type: string }
+        fileId: { type: [string, "null"] }
+        page: { type: [integer, "null"], minimum: 1 }
+        cell: { type: [string, "null"], description: "Sheet!A1 style for spreadsheets" }
+        quote: { type: [string, "null"], maxLength: 500 }
+    RecommendationRequest:
+      type: object
+      required: [cpId]
+      properties:
+        cpId: { type: string }
+    CustomCovenant:
+      type: object
+      required: [name, assessmentType]
+      properties:
+        name: { type: string }
+        definition: { type: [string, "null"] }
+        assessmentType: { type: string, enum: [AUTO, MANUAL] }
+    Recommendation:
+      type: object
+      description: Same core fields as Core's MlThresholdRecommendation plus source and frequency.
+      required: [confidence, source]
+      properties:
+        covenantMasterId: { type: [string, "null"], description: "null => offer as CP-scoped custom covenant" }
+        recommendedExpression: { type: [string, "null"], examples: ["DSCR >= 1.25"] }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        rationale: { type: [string, "null"] }
+        frequency:
+          type: [string, "null"]
+          enum: [DAILY, WEEKLY, MONTHLY, QUARTERLY, YEARLY, CUSTOM, null]
+        source: { $ref: "#/components/schemas/SourceRef" }
+        customCovenant:
+          oneOf:
+            - $ref: "#/components/schemas/CustomCovenant"
+            - type: "null"
+    ValuesRequest:
+      type: object
+      required: [cpId, to, keys]
+      properties:
+        cpId: { type: string }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        keys:
+          type: array
+          items: { type: string }
+    DataPoint:
+      type: object
+      required: [asOfDate, values]
+      properties:
+        asOfDate: { type: string, format: date }
+        values:
+          type: object
+          additionalProperties: true
+    ValuesResponse:
+      type: object
+      required: [cpId, points]
+      properties:
+        cpId: { type: string }
+        points:
+          type: array
+          items: { $ref: "#/components/schemas/DataPoint" }
+        missingKeys:
+          type: array
+          items: { type: string }
+        sourceChangedAt: { type: [string, "null"], format: date-time }
+    Catalog:
+      type: object
+      required: [columns]
+      properties:
+        columns:
+          type: array
+          items:
+            type: object
+            required: [key, dataType]
+            properties:
+              key: { type: string }
+              label: { type: string }
+              dataType: { type: string, enum: [NUMBER, STRING, DATE, BOOLEAN] }
+              kind: { type: string, enum: [METRIC] }
+    AiStatusCovenant:
+      type: object
+      required: [appliedCovenantId]
+      properties:
+        appliedCovenantId: { type: string }
+        covenantName: { type: [string, "null"] }
+        covenantDescription: { type: [string, "null"] }
+        conditionExpression: { type: [string, "null"] }
+        computedValue: { type: [string, "null"] }
+        latestResult:
+          type: [string, "null"]
+          enum: [COMPLIANT, BREACHED, NA, ERROR, PENDING_REVIEW, null]
+        attachmentFileIds:
+          type: array
+          items: { type: string }
+    AiStatusRequest:
+      type: object
+      required: [cpId, covenants]
+      properties:
+        cpId: { type: string }
+        certificateFileIds:
+          type: array
+          items: { type: string }
+        covenants:
+          type: array
+          items: { $ref: "#/components/schemas/AiStatusCovenant" }
+    AiStatusRecommendation:
+      type: object
+      required: [appliedCovenantId, recommendedStatus]
+      properties:
+        appliedCovenantId: { type: string }
+        recommendedStatus: { type: string, enum: [COMPLIED, BREACHED, WAIVER, EXTENSION] }
+        rationale: { type: [string, "null"] }
+        confidence: { type: [number, "null"], minimum: 0, maximum: 100 }
+    DocumentType:
+      type: string
+      enum: [LOAN_AGREEMENT, FINANCIAL_STATEMENT, EVIDENCE]
+    DocumentUpload:
+      type: object
+      required: [file, cpIds, type]
+      properties:
+        file: { type: string, format: binary }
+        cpIds:
+          type: array
+          minItems: 1
+          items: { type: string }
+        type: { $ref: "#/components/schemas/DocumentType" }
+        asOfDate:
+          type: string
+          format: date
+          description: Required for FINANCIAL_STATEMENT (period end)
+    UploadAccepted:
+      type: object
+      required: [documentId, jobId]
+      properties:
+        documentId: { type: string }
+        jobId: { type: string }
+    Document:
+      type: object
+      required: [id, type, fileName, status, cpIds, uploadedBy, uploadedAt]
+      properties:
+        id: { type: string }
+        type: { $ref: "#/components/schemas/DocumentType" }
+        fileName: { type: string }
+        fileId: { type: [string, "null"] }
+        sha256: { type: string }
+        pageCount: { type: [integer, "null"] }
+        asOfDate: { type: [string, "null"], format: date }
+        status: { type: string, enum: [QUEUED, PROCESSING, NEEDS_REVIEW, PUBLISHED, REPORTED, FAILED] }
+        cpIds:
+          type: array
+          items: { type: string }
+        latestJobId: { type: [string, "null"] }
+        uploadedBy: { type: string }
+        uploadedAt: { type: string, format: date-time }
+    LinkRequest:
+      type: object
+      required: [cpIds]
+      properties:
+        cpIds:
+          type: array
+          minItems: 1
+          items: { type: string }
+    ExtractedTerm:
+      type: object
+      required: [id, documentId, metricRaw, status, confidence, method, source]
+      properties:
+        id: { type: string }
+        documentId: { type: string }
+        metricRaw: { type: string }
+        covenantMasterId: { type: [string, "null"] }
+        expression: { type: [string, "null"] }
+        operator: { type: [string, "null"], enum: [">=", "<=", ">", "<", "==", null] }
+        threshold: { type: [number, "null"] }
+        unit: { type: [string, "null"] }
+        frequency: { type: [string, "null"] }
+        category: { type: string, enum: [FINANCIAL, NON_FINANCIAL] }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        method: { type: string, enum: [REGEX, LLM, MANUAL] }
+        status: { type: string, enum: [PROPOSED, NEEDS_REVIEW, PUBLISHED, REJECTED] }
+        issues:
+          type: array
+          items: { type: string }
+        source: { $ref: "#/components/schemas/SourceRef" }
+        reviewedBy: { type: [string, "null"] }
+        reviewNote: { type: [string, "null"] }
+    TermReview:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [APPROVE, REJECT, EDIT] }
+        expression: { type: string }
+        covenantMasterId: { type: string }
+        note: { type: string, maxLength: 2000 }
+    StatementValue:
+      type: object
+      required: [key, value, unit, asOfDate, sourceType]
+      properties:
+        id: { type: string }
+        cpId: { type: string }
+        key: { type: string, examples: [EBITDA] }
+        value: { type: number }
+        unit: { type: string, examples: ["AED mn"] }
+        currency: { type: [string, "null"], examples: [AED] }
+        asOfDate: { type: string, format: date }
+        derived: { type: boolean, default: false }
+        sourceType: { type: string, enum: [DOCUMENT, USER] }
+        source:
+          oneOf:
+            - $ref: "#/components/schemas/SourceRef"
+            - type: "null"
+        note: { type: [string, "null"] }
+        enteredBy: { type: [string, "null"] }
+    ManualValue:
+      type: object
+      required: [asOfDate, key, value, unit, note]
+      properties:
+        asOfDate: { type: string, format: date }
+        key: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        currency: { type: string }
+        note: { type: string, minLength: 3, maxLength: 2000 }
+    Job:
+      type: object
+      required: [id, documentId, flow, status, attempts, createdAt]
+      properties:
+        id: { type: string }
+        documentId: { type: string }
+        flow: { type: string, enum: [AGREEMENT_INTAKE, STATEMENT_PROCESSING] }
+        status: { type: string, enum: [QUEUED, RUNNING, NEEDS_REVIEW, DONE, FAILED] }
+        pool: { type: string, enum: [STANDARD, HEAVY] }
+        attempts: { type: integer }
+        currentStep: { type: [string, "null"] }
+        error: { type: [string, "null"] }
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              status: { type: string }
+              startedAt: { type: string, format: date-time }
+              finishedAt: { type: [string, "null"], format: date-time }
+              detail: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: [string, "null"], format: date-time }

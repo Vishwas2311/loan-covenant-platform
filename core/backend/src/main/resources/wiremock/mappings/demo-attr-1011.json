@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1011"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1011",
+      "businessSegment": "CORPORATE",
+      "sector": "MANUFACTURING",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "TERM_LOAN",
+        "facilityAmount": 5500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 60,
+        "collateralType": "GOVERNMENT_CONTRACT",
+        "guarantor": "Larsen and Toubro Ltd"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1011"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1011",
+      "name": "Larsen and Toubro Ltd",
+      "businessSegment": "INFRASTRUCTURE",
+      "sector": "DEFENCE",
+      "purpose": "Defence Systems Manufacturing",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AAA", "strategic-sector"]
+    }
+  }
+}

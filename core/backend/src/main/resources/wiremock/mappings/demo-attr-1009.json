@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1009"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1009",
+      "businessSegment": "CORPORATE",
+      "sector": "TELECOM",
+      "attributes": {
+        "ratingGrade": "AA+",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 4500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 84,
+        "collateralType": "LAND_AND_BUILDING",
+        "guarantor": "Bharti Enterprises Pvt Ltd"
+      }
+    }
+  }
+}

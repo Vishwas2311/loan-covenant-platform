@@ -1,0 +1,72 @@
+{
+  "documentId": "AGR-005",
+  "type": "LOAN_AGREEMENT",
+  "sourceFile": "205_Loan_Agreement_Emirates.pdf",
+  "sha256": "fb53898c6b6de5e6d8304e576d56fdca977d51dbd5ade1d7a366f96fca216ff2",
+  "pages": 6,
+  "status": "DRAFT_UNVERIFIED",
+  "labelledBy": "auto-draft (regex extractor, covenanttrackingphase1.2)",
+  "reviewedBy": null,
+  "covenants": [
+    {
+      "metric": "DSCR",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 1.25,
+      "unit": null,
+      "frequency": null,
+      "page": 4,
+      "quote": "st_Paid) Compliance standard: higher is better. Required threshold: >= 1.25x. 8.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement: ICR "
+    },
+    {
+      "metric": "ICR",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 2.0,
+      "unit": null,
+      "frequency": null,
+      "page": 4,
+      "quote": "est_Paid Compliance standard: higher is better. Required threshold: >= 2.00x."
+    },
+    {
+      "metric": "DEBT_TO_EBITDA",
+      "category": "FINANCIAL",
+      "operator": "<=",
+      "threshold": 3.5,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "/ EBITDA Compliance standard: lower is better. Required threshold: <= 3.50x. 8.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement: Debt_to_Net_Wort"
+    },
+    {
+      "metric": "DEBT_TO_NET_WORTH",
+      "category": "FINANCIAL",
+      "operator": "<=",
+      "threshold": 2.5,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "Net_Worth Compliance standard: lower is better. Required threshold: <= 2.50x. 8.5 EBITDA to EMI Ratio The Borrower shall maintain an EBITDA to EMI Ratio of not less than 1.20 times. For purposes of this Agreement: EBITDA_to_EMI = EBITDA / E"
+    },
+    {
+      "metric": "EBITDA_TO_EMI",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 1.2,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "I_Amount Compliance standard: higher is better. Required threshold: >= 1.20x. ================================================================ ======= ARTICLE 9 - GOVERNING LAW ==============================================================="
+    },
+    {
+      "metric": "NEGATIVE_PLEDGE",
+      "category": "NON_FINANCIAL",
+      "operator": null,
+      "threshold": null,
+      "unit": null,
+      "frequency": null,
+      "page": 3,
+      "quote": "6.1 Without prior written consent of the Lender, the Borrower shall not: (a) incur any additional term borrowing or guarantee obligation which, in the Lender's opinion, may adversely affect repayment capacity;"
+    }
+  ]
+}

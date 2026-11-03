@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1007"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1007",
+      "businessSegment": "INFRASTRUCTURE",
+      "sector": "INFRASTRUCTURE",
+      "attributes": {
+        "ratingGrade": "AA",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 6200,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 144,
+        "collateralType": "PORT_INFRASTRUCTURE",
+        "guarantor": "Adani Enterprises Ltd"
+      }
+    }
+  }
+}

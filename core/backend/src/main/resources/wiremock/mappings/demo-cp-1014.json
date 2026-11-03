@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1014"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1014",
+      "name": "Mahindra and Mahindra Ltd",
+      "businessSegment": "MANUFACTURING",
+      "sector": "AUTOMOTIVE",
+      "purpose": "EV Manufacturing Plant Pune",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AA+", "nifty-50"]
+    }
+  }
+}

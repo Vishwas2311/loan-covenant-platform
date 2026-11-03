@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-2001"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2001",
+      "name": "Vedanta Ltd",
+      "businessSegment": "CORPORATE",
+      "sector": "METALS_MINING",
+      "purpose": "Aluminium Smelter Expansion",
+      "approvalStatus": "APPROVED",
+      "obligorId": "OBL-VEDANTA",
+      "tags": ["large-corporate", "metals-mining"],
+      "rm": { "userId": "rm-anil", "name": "Anil Kapoor", "email": "anil.kapoor@crisil.com" },
+      "wrm": { "userId": "wrm-meera", "name": "Meera Nair", "email": "meera.nair@crisil.com" }
+    }
+  }
+}

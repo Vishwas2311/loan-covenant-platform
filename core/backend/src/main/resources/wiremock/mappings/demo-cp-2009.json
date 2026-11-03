@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-2009"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2009",
+      "name": "Maruti Suzuki India Ltd",
+      "businessSegment": "CORPORATE",
+      "sector": "AUTOMOTIVE",
+      "purpose": "New Assembly Line",
+      "approvalStatus": "APPROVED",
+      "obligorId": "OBL-MARUTI",
+      "tags": ["large-corporate", "automotive"],
+      "rm": { "userId": "rm-priya", "name": "Priya Sharma", "email": "priya.sharma@crisil.com" },
+      "wrm": { "userId": "wrm-vikram", "name": "Vikram Rao", "email": "vikram.rao@crisil.com" }
+    }
+  }
+}

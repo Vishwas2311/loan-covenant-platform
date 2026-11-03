@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/v1/ai/covenant-status"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "recommendations": [
+        {
+          "appliedCovenantId": "ac000000-0000-0000-0000-000000000007",
+          "recommendedStatus": "WAIVER",
+          "rationale": "Borrower cured the shortfall within the contractual cure period; a waiver is recommended.",
+          "confidence": 0.82
+        },
+        {
+          "appliedCovenantId": "ac000000-0000-0000-0000-000000000006",
+          "recommendedStatus": "EXTENSION",
+          "rationale": "Temporary liquidity pressure with a credible remediation plan; a short extension is recommended.",
+          "confidence": 0.74
+        }
+      ]
+    }
+  }
+}

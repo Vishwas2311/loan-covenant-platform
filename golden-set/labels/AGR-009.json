@@ -1,0 +1,92 @@
+{
+  "documentId": "AGR-009",
+  "type": "LOAN_AGREEMENT",
+  "sourceFile": "355_Loan_agreement_1.pdf",
+  "sha256": "fb1dc1be58301485fb81c4c93ecff44f2c66c7b4be7d127d071a875928c5a6e6",
+  "pages": 8,
+  "status": "DRAFT_UNVERIFIED",
+  "labelledBy": "auto-draft (regex extractor, covenanttrackingphase1.2)",
+  "reviewedBy": null,
+  "covenants": [
+    {
+      "metric": "DSCR",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 1.25,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "+ Interest_Paid) Compliance standard: higher is better. Required threshold: >= 1.25x. 8.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreeme"
+    },
+    {
+      "metric": "ICR",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 2.0,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "/ Interest_Paid Compliance standard: higher is better. Required threshold: >= 2.00x. 8.3 Debt to EBITDA Ratio The Borrower shall ensure that its Debt to EBITDA Ratio does not exceed 3.50 times. For purposes of this Agreement: Debt_to_EBITDA"
+    },
+    {
+      "metric": "DEBT_TO_NET_WORTH",
+      "category": "FINANCIAL",
+      "operator": "<=",
+      "threshold": 2.5,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement: Debt_to_Net_Worth = Total_Debt / Net_Worth Compliance standard: lower is better."
+    },
+    {
+      "metric": "DEBT_TO_EBITDA",
+      "category": "FINANCIAL",
+      "operator": "<=",
+      "threshold": 3.5,
+      "unit": null,
+      "frequency": null,
+      "page": 5,
+      "quote": "tal_Debt / EBITDA Compliance standard: lower is better. Required threshold: <= 3.50x. 8.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement: Debt_to"
+    },
+    {
+      "metric": "EBITDA_TO_EMI",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 1.2,
+      "unit": null,
+      "frequency": null,
+      "page": 6,
+      "quote": "TDA / EMI_Amount Compliance standard: higher is better. Required threshold: >= 1.20x. ======================================================================= ARTICLE 9 \u2013 Non Financial Covenants =============================================="
+    },
+    {
+      "metric": "REPORTING_COVENANT",
+      "category": "NON_FINANCIAL",
+      "operator": null,
+      "threshold": null,
+      "unit": null,
+      "frequency": "quarterly",
+      "page": 6,
+      "quote": "9.1.1 Financial Statements and Information:"
+    },
+    {
+      "metric": "COMPLIANCE_CERTIFICATE",
+      "category": "NON_FINANCIAL",
+      "operator": null,
+      "threshold": null,
+      "unit": null,
+      "frequency": null,
+      "page": 7,
+      "quote": "9.1.2 Compliance Certificate:"
+    },
+    {
+      "metric": "BOOKS_AND_RECORDS",
+      "category": "NON_FINANCIAL",
+      "operator": null,
+      "threshold": null,
+      "unit": null,
+      "frequency": null,
+      "page": 7,
+      "quote": "9.1.3 Books and Records:"
+    }
+  ]
+}

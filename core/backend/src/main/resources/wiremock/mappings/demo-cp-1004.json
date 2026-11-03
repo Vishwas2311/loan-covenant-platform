@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1004"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1004",
+      "name": "Tata Steel Ltd",
+      "businessSegment": "METALS",
+      "sector": "STEEL",
+      "purpose": "Kalinganagar Phase-2 Expansion",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AA+", "nifty-50"]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-2005"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2005",
+      "businessSegment": "CORPORATE",
+      "sector": "IT_SERVICES",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "WORKING_CAPITAL",
+        "facilityAmount": 2500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 60,
+        "collateralType": "RECEIVABLES",
+        "guarantor": "Infosys BPM Ltd"
+      }
+    }
+  }
+}

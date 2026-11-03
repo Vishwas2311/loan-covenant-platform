@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1009"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1009",
+      "name": "Bharti Airtel Ltd",
+      "businessSegment": "TELECOM",
+      "sector": "DATA_CENTER",
+      "purpose": "Navi Mumbai Data Center",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AA+", "digital-infra"]
+    }
+  }
+}

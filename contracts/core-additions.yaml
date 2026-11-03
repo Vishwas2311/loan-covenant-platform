@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: "Covenant Core - R0/R1 additions"
+  version: 0.1.0
+  description: |
+    New endpoints added to the forked Covenant Core for the integration. Existing Core endpoints
+    are documented by Core's own springdoc (`/v3/api-docs`).
+    - C5 `POST /api/v1/data-events`: DPS tells Core new data exists for an entity, and Core re-assesses.
+servers:
+  - url: http://localhost:9310
+security:
+  - bearer: []
+paths:
+  /api/v1/data-events:
+    post:
+      operationId: dataEvent
+      summary: "C5: new data available for an entity; re-assess affected covenants"
+      description: |
+        Requires role SERVICE. Idempotent on (documentId, changedAt).
+        Core records the source change for each table of the data source/entity, then re-assesses
+        ACTIVE AUTO covenants that use measures from that source and whose latest result is
+        ERROR, or whose window includes asOfDate.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DataEvent" }
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEventResult" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Error:
+      description: Core error envelope
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message, timestamp]
+            properties:
+              code: { type: string }
+              message: { type: string }
+              details: { type: object, additionalProperties: true }
+              timestamp: { type: string, format: date-time }
+  schemas:
+    DataEvent:
+      type: object
+      required: [dataSourceId, entityKey, entityKeyLevel, asOfDate, changedAt]
+      properties:
+        dataSourceId: { type: string }
+        entityKey: { type: string }
+        entityKeyLevel: { type: string, enum: [CP_ID, OBLIGOR_ID] }
+        asOfDate: { type: string, format: date }
+        changedAt: { type: string, format: date-time }
+        documentId: { type: [string, "null"] }
+    DataEventResult:
+      type: object
+      required: [assessmentsQueued, duplicate]
+      properties:
+        assessmentsQueued: { type: integer }
+        duplicate: { type: boolean }

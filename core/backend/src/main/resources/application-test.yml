@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:covenant-test;MODE=MSSQLServer;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+covenant:
+  # Local only: trust the X-User / X-Roles headers (never in production).
+  security:
+    mode: DEV_HEADER
+  # Non-secret local token for the ops surface (prod injects COVENANT_SUPPORT_TOKEN).
+  support:
+    token: ${COVENANT_SUPPORT_TOKEN:test-support-token}
+  clients:
+    credit-proposal:
+      base-url: http://localhost:9319
+    attributes:
+      base-url: http://localhost:9319
+    data-api:
+      base-url: http://localhost:9319
+    workflow:
+      base-url: http://localhost:9319
+    ml:
+      base-url: http://localhost:9319
+    # Every client stays on the test-only port so a local stack (bank stubs on 9311, DPS on 9400)
+    # can never answer an integration test.
+    notification:
+      base-url: http://localhost:9319
+    file-upload:
+      base-url: http://localhost:9319
+    ai-suggestion:
+      base-url: http://localhost:9319
+    dps:
+      base-url: http://localhost:9319

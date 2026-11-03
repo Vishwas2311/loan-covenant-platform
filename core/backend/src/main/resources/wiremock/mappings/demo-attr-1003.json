@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1003"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1003",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "TELECOM",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "WORKING_CAPITAL",
+        "facilityAmount": 8000,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 12,
+        "collateralType": "INVENTORY_AND_RECEIVABLES",
+        "guarantor": "Reliance Industries Ltd"
+      }
+    }
+  }
+}

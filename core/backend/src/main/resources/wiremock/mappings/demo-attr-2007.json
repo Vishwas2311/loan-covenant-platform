@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-2007"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2007",
+      "businessSegment": "INFRASTRUCTURE",
+      "sector": "INFRASTRUCTURE",
+      "attributes": {
+        "ratingGrade": "A",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 5500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 144,
+        "collateralType": "IMMOVABLE_PROPERTY",
+        "guarantor": "GMR Infrastructure Ltd"
+      }
+    }
+  }
+}

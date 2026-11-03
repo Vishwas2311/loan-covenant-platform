@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1010"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1010",
+      "name": "Larsen and Toubro Ltd",
+      "businessSegment": "INFRASTRUCTURE",
+      "sector": "ENGINEERING",
+      "purpose": "Mumbai-Ahmedabad HSR Package",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AAA", "nifty-50"]
+    }
+  }
+}

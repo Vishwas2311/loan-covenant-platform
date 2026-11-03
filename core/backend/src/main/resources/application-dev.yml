@@ -1,0 +1,26 @@
+# Dev profile: in addition to the production schema migrations (db/migration),
+# load the demo seed data (db/demo/V10__demo_data.sql) so the app is demoable
+# end-to-end against the H2 file DB. This location is intentionally NOT on the
+# default classpath:db/migration path, so test and prod runs get a clean schema
+# with no demo rows.
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/integration,classpath:db/demo
+    # The demo seed (db/demo/V10) sorts AFTER the prod migrations (db/migration V1, V2).
+    # A newly added prod migration (e.g. a future V3+) could land "before" the already-
+    # applied demo migration in the dev file DB; allow it to apply out of order. Dev-only
+    # convenience — test and prod keep Flyway's strict in-order default.
+    out-of-order: true
+
+# In dev the ML client calls the in-app mock stub (MockMlThresholdController) rather than a real
+# external service, so the full resilient HTTP path is exercised end-to-end on one process.
+covenant:
+  # Local only: trust the X-User / X-Roles headers (never in production).
+  security:
+    mode: DEV_HEADER
+  # Non-secret local token for the ops surface (prod injects COVENANT_SUPPORT_TOKEN).
+  support:
+    token: ${COVENANT_SUPPORT_TOKEN:dev-support-token}
+  clients:
+    ml:
+      base-url: http://localhost:${server.port}/internal/mock-ml

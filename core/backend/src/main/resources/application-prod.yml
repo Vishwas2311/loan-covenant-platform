@@ -1,0 +1,35 @@
+# Production profile (T11). Activate with SPRING_PROFILES_ACTIVE=prod.
+# Every connection detail comes from the environment; there is no H2 or local default here, so a
+# missing variable fails startup instead of silently using a file database.
+spring:
+  datasource:
+    url: ${COVENANT_DB_URL}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    username: ${COVENANT_DB_USER}
+    password: ${COVENANT_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${COVENANT_DB_POOL_SIZE:20}
+  h2:
+    console:
+      enabled: false
+  quartz:
+    properties:
+      # Several Core instances share one scheduler: each trigger fires on exactly one node, and a
+      # node that dies has its in-flight jobs recovered by another after the check-in interval.
+      org.quartz.jobStore.isClustered: "true"
+      org.quartz.jobStore.clusterCheckinInterval: "20000"
+      org.quartz.jobStore.acquireTriggersWithinLock: "true"
+      org.quartz.scheduler.instanceId: AUTO
+
+covenant:
+  security:
+    mode: JWT
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.crisil.covenant: INFO

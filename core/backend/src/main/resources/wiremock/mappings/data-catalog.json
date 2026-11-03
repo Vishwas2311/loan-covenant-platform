@@ -1,0 +1,31 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/api/data/catalog"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "columns": [
+        { "key": "DSCR", "label": "Debt Service Coverage Ratio", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "CAR", "label": "Capital Adequacy Ratio", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "currentRatio", "label": "Current Ratio", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "leverageRatio", "label": "Leverage Ratio", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "ebitda", "label": "EBITDA", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "netWorth", "label": "Net Worth", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "auditor", "label": "Statutory Auditor", "dataType": "STRING", "kind": "METRIC" },
+        { "key": "lastAuditDate", "label": "Last Audit Date", "dataType": "DATE", "kind": "METRIC" },
+        { "key": "insurancePolicyActive", "label": "Insurance Policy Active", "dataType": "BOOLEAN", "kind": "METRIC" },
+        { "key": "additionalDebtTaken", "label": "Additional Debt Taken", "dataType": "BOOLEAN", "kind": "METRIC" },
+        { "key": "additionalDebtAmount", "label": "Additional Debt Amount", "dataType": "NUMBER", "kind": "METRIC" },
+        { "key": "threshold_DSCR", "label": "DSCR Threshold", "dataType": "NUMBER", "kind": "THRESHOLD" },
+        { "key": "threshold_CAR", "label": "CAR Threshold", "dataType": "NUMBER", "kind": "THRESHOLD" },
+        { "key": "threshold_currentRatio", "label": "Current Ratio Threshold", "dataType": "NUMBER", "kind": "THRESHOLD" },
+        { "key": "threshold_leverageRatio", "label": "Leverage Ratio Threshold", "dataType": "NUMBER", "kind": "THRESHOLD" },
+        { "key": "threshold_netWorth", "label": "Net Worth Threshold", "dataType": "NUMBER", "kind": "THRESHOLD" },
+        { "key": "threshold_additionalDebtLimit", "label": "Additional Debt Limit", "dataType": "NUMBER", "kind": "THRESHOLD" }
+      ]
+    }
+  }
+}

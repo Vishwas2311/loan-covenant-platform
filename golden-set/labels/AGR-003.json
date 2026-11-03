@@ -1,0 +1,72 @@
+{
+  "documentId": "AGR-003",
+  "type": "LOAN_AGREEMENT",
+  "sourceFile": "193_Loan_Agreement_Bluecart_Retail.pdf",
+  "sha256": "2d659b137c1850ef4d372c84cb0a88f91fc959e1fc72f386a290e85bd4a1df1e",
+  "pages": 6,
+  "status": "DRAFT_UNVERIFIED",
+  "labelledBy": "auto-draft (regex extractor, covenanttrackingphase1.2)",
+  "reviewedBy": null,
+  "covenants": [
+    {
+      "metric": "DSCR",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 1.25,
+      "unit": null,
+      "frequency": null,
+      "page": 3,
+      "quote": "terest_Paid) Compliance standard: higher is better. Required threshold: >= 1.25x. 4.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement: "
+    },
+    {
+      "metric": "ICR",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 2.0,
+      "unit": null,
+      "frequency": null,
+      "page": 3,
+      "quote": "nterest_Paid Compliance standard: higher is better. Required threshold: >= 2.00x. 4.3 Debt to EBITDA Ratio The Borrower shall ensure that its Debt to EBITDA Ratio does not exceed 3.50 times. For purposes of this Agreement: Debt_to_EBITDA = "
+    },
+    {
+      "metric": "DEBT_TO_EBITDA",
+      "category": "FINANCIAL",
+      "operator": "<=",
+      "threshold": 3.5,
+      "unit": null,
+      "frequency": null,
+      "page": 3,
+      "quote": "Debt / EBITDA Compliance standard: lower is better. Required threshold: <= 3.50x. 4.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement: Debt_to_Net"
+    },
+    {
+      "metric": "DEBT_TO_NET_WORTH",
+      "category": "FINANCIAL",
+      "operator": "<=",
+      "threshold": 2.5,
+      "unit": null,
+      "frequency": null,
+      "page": 3,
+      "quote": "t / Net_Worth Compliance standard: lower is better. Required threshold: <= 2.50x. 4.5 EBITDA to EMI Ratio The Borrower shall maintain an EBITDA to EMI Ratio of not less than 1.20 times. For purposes of this Agreement: EBITDA_to_EMI = EBITDA"
+    },
+    {
+      "metric": "EBITDA_TO_EMI",
+      "category": "FINANCIAL",
+      "operator": ">=",
+      "threshold": 1.2,
+      "unit": null,
+      "frequency": null,
+      "page": 3,
+      "quote": "/ EMI_Amount Compliance standard: higher is better. Required threshold: >= 1.20x. ================================================================ ======= ARTICLE 5 - INFORMATION UNDERTAKINGS"
+    },
+    {
+      "metric": "NEGATIVE_PLEDGE",
+      "category": "NON_FINANCIAL",
+      "operator": null,
+      "threshold": null,
+      "unit": null,
+      "frequency": null,
+      "page": 4,
+      "quote": "6.1 Without prior written consent of the Lender, the Borrower shall not: (a) incur any additional term borrowing or guarantee obligation which, in the Lender's opinion, may adversely affect repayment capacity;"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1015"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1015",
+      "name": "Mahindra and Mahindra Ltd",
+      "businessSegment": "MANUFACTURING",
+      "sector": "AUTOMOTIVE",
+      "purpose": "Farm Equipment Export Finance",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AA+", "export-finance"]
+    }
+  }
+}

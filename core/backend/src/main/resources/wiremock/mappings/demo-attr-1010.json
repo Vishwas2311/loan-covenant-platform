@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1010"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1010",
+      "businessSegment": "CORPORATE",
+      "sector": "INFRASTRUCTURE",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 22000,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 120,
+        "collateralType": "CONTRACT_RECEIVABLES",
+        "guarantor": "Larsen and Toubro Ltd"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-2002"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2002",
+      "businessSegment": "CORPORATE",
+      "sector": "POWER",
+      "attributes": {
+        "ratingGrade": "AAA",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 12000,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 120,
+        "collateralType": "PLANT_AND_MACHINERY",
+        "guarantor": "Government of India"
+      }
+    }
+  }
+}

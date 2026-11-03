@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-2003"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-2003",
+      "name": "Aditya Birla Group",
+      "businessSegment": "CONGLOMERATE",
+      "sector": "DIVERSIFIED",
+      "purpose": "Cement Capacity Expansion",
+      "approvalStatus": "APPROVED",
+      "obligorId": "OBL-ABG",
+      "tags": ["large-corporate", "conglomerate"],
+      "rm": { "userId": "rm-anil", "name": "Anil Kapoor", "email": "anil.kapoor@crisil.com" },
+      "wrm": { "userId": "wrm-meera", "name": "Meera Nair", "email": "meera.nair@crisil.com" }
+    }
+  }
+}

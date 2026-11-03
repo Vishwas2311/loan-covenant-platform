@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/credit-proposals/CP-1008"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1008",
+      "name": "Bharti Airtel Ltd",
+      "businessSegment": "TELECOM",
+      "sector": "TELECOM",
+      "purpose": "5G Spectrum Financing",
+      "approvalStatus": "APPROVED",
+      "tags": ["large-corporate", "rated-AA+", "nifty-50"]
+    }
+  }
+}

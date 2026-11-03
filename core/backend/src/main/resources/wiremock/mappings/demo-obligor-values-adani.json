@@ -1,0 +1,32 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/data/values",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(@.cpId == 'OBL-ADANI')]" }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "OBL-ADANI",
+      "points": [
+        { "asOfDate": "2022-03-31", "values": { "group_dscr": 1.62, "group_net_leverage": 2.40, "group_interest_cover": 4.10 } },
+        { "asOfDate": "2023-03-31", "values": { "group_dscr": 1.58, "group_net_leverage": 2.55, "group_interest_cover": 3.95 } },
+        { "asOfDate": "2024-03-31", "values": { "group_dscr": 1.55, "group_net_leverage": 2.60, "group_interest_cover": 3.88 } },
+        { "asOfDate": "2024-06-30", "values": { "group_dscr": 1.52, "group_net_leverage": 2.62, "group_interest_cover": 3.80 } },
+        { "asOfDate": "2024-09-30", "values": { "group_dscr": 1.50, "group_net_leverage": 2.65, "group_interest_cover": 3.75 } },
+        { "asOfDate": "2024-12-31", "values": { "group_dscr": 1.49, "group_net_leverage": 2.66, "group_interest_cover": 3.70 } },
+        { "asOfDate": "2025-03-31", "values": { "group_dscr": 1.53, "group_net_leverage": 2.58, "group_interest_cover": 3.85 } },
+        { "asOfDate": "2025-06-30", "values": { "group_dscr": 1.51, "group_net_leverage": 2.60, "group_interest_cover": 3.82 } },
+        { "asOfDate": "2025-09-30", "values": { "group_dscr": 1.48, "group_net_leverage": 2.63, "group_interest_cover": 3.72 } },
+        { "asOfDate": "2025-12-31", "values": { "group_dscr": 1.46, "group_net_leverage": 2.68, "group_interest_cover": 3.66 } },
+        { "asOfDate": "2026-03-31", "values": { "group_dscr": 1.50, "group_net_leverage": 2.61, "group_interest_cover": 3.78 } }
+      ],
+      "missingKeys": [],
+      "sourceChangedAt": "2026-03-31T00:00:00Z"
+    }
+  }
+}

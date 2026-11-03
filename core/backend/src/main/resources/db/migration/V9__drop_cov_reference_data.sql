@@ -1,0 +1,18 @@
+-- =====================================================================================
+-- V9 — retire cov_reference_data.
+-- =====================================================================================
+-- Eligibility dropdown catalogs are no longer sourced from (or copied into) the covenant
+-- database. In production each dropdown category is served by its own external master-data
+-- API, called directly by the frontend (see frontend config/masterData.ts); dev/test use a
+-- bundled frontend fixture. The backend reference-data stack (entity/repository/service/
+-- controller/dto) and this table are removed together.
+--
+-- Recommendation is unaffected: covenants persist literal eligibility code strings (no FK
+-- into this table) and matching is string-based against the external Attributes API.
+--
+-- Runs before the dev-only demo seeds (V10/V20/V21) — none of which insert into this table
+-- (they intentionally omit reference_data, seeded historically by V2).
+--
+-- MSSQL + H2 (MODE=MSSQLServer) compatible. The table is guaranteed to exist (created in V1).
+-- =====================================================================================
+DROP TABLE cov_reference_data;

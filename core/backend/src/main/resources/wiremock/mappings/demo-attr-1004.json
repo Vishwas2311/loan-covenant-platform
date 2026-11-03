@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/attributes/CP-1004"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "cpId": "CP-1004",
+      "businessSegment": "CORPORATE",
+      "sector": "METALS_MINING",
+      "attributes": {
+        "ratingGrade": "AA+",
+        "loanType": "PROJECT_FINANCE",
+        "facilityAmount": 12500,
+        "facilityAmountUnit": "INR_CRORE",
+        "tenorMonths": 96,
+        "collateralType": "PLANT_AND_MACHINERY",
+        "guarantor": "Tata Sons Pvt Ltd"
+      }
+    }
+  }
+}

@@ -1,0 +1,107 @@
+<FindBugsFilter>
+    <Match>
+        <Class name="~.*\.dto\..*"/>
+    </Match>
+    <Match>
+        <Class name="~.*Dto"/>
+    </Match>
+    <Match>
+        <Class name="~.*Request"/>
+    </Match>
+    <Match>
+        <Class name="~.*Response"/>
+    </Match>
+    <Match>
+        <Class name="~.*\.config\..*"/>
+    </Match>
+    <Match>
+        <Class name="com.crisil.covenant.CovenantApplication"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+    <!-- SPRING_ENDPOINT is an informational marker (every @RestController triggers it),
+         not a bug. Endpoints are reviewed during PR review and threat-modeling. -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive name comparison.
+         Covenant names are admin-entered ASCII; full Unicode normalisation is overkill.
+         We use Locale.ROOT for the locale-stable transformation. -->
+    <Match>
+        <Class name="com.crisil.covenant.service.CovenantMasterService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-folding of SQL type tokens (mapType) for matching.
+         The values come from JDBC INFORMATION_SCHEMA / H2 metadata and are ASCII type
+         names (e.g. VARCHAR, BIGINT, DATETIME2); contains()/equals() matching after an
+         uppercase(Locale.ROOT) fold is safe. Full Unicode normalisation is not warranted. -->
+    <Match>
+        <Class name="com.crisil.covenant.service.ColumnDiscoveryService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive data-source name comparison (duplicate guard).
+         Data source names are admin-entered ASCII; equalsIgnoreCase mirrors the DB-level
+         existsByNameIgnoreCase check. Same rationale as CovenantMasterService above. -->
+    <Match>
+        <Class name="com.crisil.covenant.service.DataSourceService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive table-name comparison (duplicate guard).
+         Same admin-entered ASCII rationale as DataSourceService. -->
+    <Match>
+        <Class name="com.crisil.covenant.service.DataSourceTableService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive measure-code comparison (duplicate guard).
+         Measure codes are ASCII identifiers; mirrors the DB-level existsByCodeIgnoreCase check. -->
+    <Match>
+        <Class name="com.crisil.covenant.service.MeasureService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on ASCII keyword/function matching in the formula language layer.
+         The token set (AVG, SUM, AND, OR, …) is a fixed ASCII allowlist; case-folding via
+         Locale.ROOT before matching is safe. Full Unicode normalisation is not warranted. -->
+    <Match>
+        <Class name="com.crisil.covenant.formula.FunctionKind"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <Match>
+        <Class name="com.crisil.covenant.formula.Lexer"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive sampling-keyword matching (US-AGG-11).
+         The keyword set (FLAT, PERIODIC, PERIODIC_CURRENT, PERIODIC_COMPLETED) is a fixed ASCII
+         allowlist parsed from formula text; equalsIgnoreCase against it is safe. Same rationale
+         as FunctionKind/Lexer above. -->
+    <Match>
+        <Class name="com.crisil.covenant.formula.SamplingKeyword"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive boolean-keyword matching (TRUE/FALSE) when
+         formatting a threshold-override edit. The token set is a fixed ASCII allowlist. -->
+    <Match>
+        <Class name="com.crisil.covenant.formula.FormulaEngine"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive eligibility code matching (US-CM-02 / US-REC-04).
+         Eligibility codes (RETAIL, IN, TERM_LOAN, the ALL sentinel, …) are ASCII catalog codes;
+         the case-fold compares them to the same fixed code space. Full Unicode normalisation is
+         not warranted. -->
+    <Match>
+        <Class name="com.crisil.covenant.domain.Eligibility"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-folding CP eligibility attribute values + boolean flags
+         (true/yes/y). Values come from the Attributes API as ASCII codes; same rationale as
+         Eligibility above. -->
+    <Match>
+        <Class name="com.crisil.covenant.domain.CpEligibility"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+    <!-- IMPROPER_UNICODE on case-insensitive eligibility overlap matching during recommendation. -->
+    <Match>
+        <Class name="com.crisil.covenant.service.RecommendationService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+</FindBugsFilter>
