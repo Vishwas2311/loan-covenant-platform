@@ -75,6 +75,8 @@ def test_upload_validation(client):
     assert upload(client, type_="FINANCIAL_STATEMENT").json()["code"] == "AS_OF_DATE_REQUIRED"
     assert upload(client, cps=(" ",)).json()["code"] == "CP_REQUIRED"
     assert upload(client, type_="BOGUS").status_code == 400
+    assert upload(client, name="fs.csv", data=b"Revenue,100").json()["code"] == "AGREEMENT_NOT_PDF"
+    assert upload(client, name="fake.pdf", data=b"Revenue,100").json()["code"] == "NOT_A_PDF"
 
 
 def test_upload_to_foreign_cp_is_hidden(client):

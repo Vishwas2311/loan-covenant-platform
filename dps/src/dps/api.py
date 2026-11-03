@@ -220,12 +220,18 @@ def upload_document(
     ext = Path(name).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise ApiError(400, "UNSUPPORTED_FILE_TYPE", f"Allowed types: {sorted(ALLOWED_EXTENSIONS)}")
+    if type == "LOAN_AGREEMENT" and ext != ".pdf":
+        # Caught here, not as an unreadable-PDF failure minutes later: a spreadsheet is a statement.
+        raise ApiError(400, "AGREEMENT_NOT_PDF",
+                       "A loan agreement must be a PDF. For a spreadsheet of figures, choose Financial statement.")
     limit = settings.max_upload_mb * 1024 * 1024
     data = file.file.read(limit + 1)
     if len(data) > limit:
         raise ApiError(413, "FILE_TOO_LARGE", f"Maximum size is {settings.max_upload_mb} MB")
     if not data:
         raise ApiError(400, "EMPTY_FILE", "File is empty")
+    if ext == ".pdf" and not data.lstrip()[:5] == b"%PDF-":
+        raise ApiError(400, "NOT_A_PDF", "This file is named .pdf but is not a PDF document")
     for cp in cp_ids:
         require_cp(checker, user, cp, read_only=False)
 

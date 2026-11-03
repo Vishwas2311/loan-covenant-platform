@@ -40,8 +40,13 @@ function Upload({ cpId }: { cpId: string }) {
     <Card withBorder>
       <Stack>
         <Group grow align="end">
-          <FileInput label="File (PDF, XLSX, CSV)" value={file} onChange={setFile} accept=".pdf,.xlsx,.csv"
-            placeholder="Choose a file" />
+          <FileInput label="File (PDF, XLSX, CSV)" value={file} onChange={(f) => {
+            setFile(f);
+            // A spreadsheet can only be a financial statement; a loan agreement is always a PDF.
+            if (f && /\.(csv|xlsx|xls)$/i.test(f.name)) {
+              setType('FINANCIAL_STATEMENT');
+            }
+          }} accept=".pdf,.xlsx,.csv" placeholder="Choose a file" />
           <Select label="Type" data={TYPES} value={type} allowDeselect={false}
             onChange={(v) => v && setType(v as DocumentType)} />
           {type === 'FINANCIAL_STATEMENT' && (

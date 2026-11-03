@@ -230,6 +230,16 @@ describe('Documents', () => {
     expect(await screen.findByText('No documents yet.')).toBeInTheDocument();
     expect(screen.getByText('Upload').closest('button')).toBeDisabled();
   });
+
+  it('choosing a spreadsheet switches the type to financial statement', async () => {
+    mockFetch(() => ({ body: [] }));
+    renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
+    expect(await screen.findByText('No documents yet.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Period end')).not.toBeInTheDocument();
+    const input = document.querySelector('input[type=file]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['Revenue,100'], 'figures.csv', { type: 'text/csv' })] } });
+    expect(await screen.findByLabelText('Period end')).toBeInTheDocument();
+  });
 });
 
 describe('Library and settings', () => {

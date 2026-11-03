@@ -58,10 +58,19 @@ test('5. a financial statement becomes values with cell references', async ({ pa
 });
 
 test('6-8. maker-checker: the RM requests a waiver, cannot decide it, the approver does', async ({ browser }) => {
-  const rm = await sessionAs(browser, 'rm-anil', '/cp/CP-1001');
-  await expect(rm.getByRole('row').nth(1)).toBeVisible(); // the covenant grid has loaded
+  // Use the first of rm-anil's CPs that has a breach open for a waiver (figures change which ones do).
+  const rm = await sessionAs(browser, 'rm-anil', '/portfolio');
+  let cp = '';
+  for (const candidate of ['CP-1001', 'CP-1005', 'CP-1007', 'CP-1002', 'CP-1003', 'CP-1004', 'CP-1006']) {
+    await rm.goto(`/cp/${candidate}`);
+    await expect(rm.getByRole('row').nth(1)).toBeVisible(); // the covenant grid has loaded
+    if (await rm.getByRole('button', { name: 'Waive / extend' }).count() > 0) {
+      cp = candidate;
+      break;
+    }
+  }
+  test.skip(cp === '', 'none of rm-anil’s CPs has a breach open for a waiver');
   const request = rm.getByRole('button', { name: 'Waive / extend' }).first();
-  test.skip(await request.count() === 0, 'CP-1001 has no breached covenant open for a waiver');
   const covenant = (await request.locator('xpath=ancestor::tr').locator('td').first().innerText()).trim();
   await request.click();
   const dialog = rm.getByRole('dialog');
@@ -72,7 +81,7 @@ test('6-8. maker-checker: the RM requests a waiver, cannot decide it, the approv
   await expect(rmRow.getByRole('button', { name: 'Approve' })).toHaveCount(0);
 
   // Reject rather than approve, so the covenant stays breached and the test can run again.
-  const approver = await sessionAs(browser, 'wrm-meera', '/cp/CP-1001');
+  const approver = await sessionAs(browser, 'wrm-meera', `/cp/${cp}`);
   const approverRow = approver.getByRole('row').filter({ hasText: covenant });
   await expect(approverRow.getByRole('button', { name: 'Approve' })).toBeVisible();
   await approverRow.getByRole('button', { name: 'Reject' }).click();
