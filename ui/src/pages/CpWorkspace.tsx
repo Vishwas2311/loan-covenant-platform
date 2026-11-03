@@ -13,6 +13,7 @@ import { useIdentity } from '../auth/useIdentity';
 import { CpPicker } from '../components/CpPicker';
 import { Certificates, Comparison, ManualValue } from './CpExtras';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+import { formatValue } from '../format';
 
 function RequestDialog({ cpId, row, onClose }: { cpId: string; row: ReviewRow; onClose: () => void }) {
   const qc = useQueryClient();
@@ -100,8 +101,8 @@ function ReviewGrid({ cpId }: { cpId: string }) {
               <Table.Tr key={r.appliedCovenantId}>
                 <Table.Td>{r.covenantName}</Table.Td>
                 <Table.Td><Text ff="monospace" size="sm">{r.conditionExpression}</Text></Table.Td>
-                <Table.Td>{r.computedValue ?? '—'}</Table.Td>
-                <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined}>{r.headroom ?? '—'}</Table.Td>
+                <Table.Td>{formatValue(r.computedValue)}</Table.Td>
+                <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined}>{formatValue(r.headroom)}</Table.Td>
                 <Table.Td><StatusBadge value={r.latestResult} /></Table.Td>
                 <Table.Td>
                   <Stack gap={2}>

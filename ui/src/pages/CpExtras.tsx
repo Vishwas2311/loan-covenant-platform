@@ -10,6 +10,7 @@ import { r2 } from '../api/endpoints2';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+import { formatValue } from '../format';
 
 const fail = (e: unknown) => notifications.show({ color: 'red', message: errorMessage(e) });
 
@@ -107,7 +108,7 @@ export function Comparison({ cpId }: { cpId: string }) {
               </Table.Td>
               {r.cells.map((c, i) => (
                 <Table.Td key={data.periods[i]}>
-                  {c ? <><StatusBadge value={c.result} /><Text size="xs">{c.computedValue}</Text></> : '—'}
+                  {c ? <><StatusBadge value={c.result} /><Text size="xs">{formatValue(c.computedValue)}</Text></> : '—'}
                 </Table.Td>
               ))}
             </Table.Tr>
