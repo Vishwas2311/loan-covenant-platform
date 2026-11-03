@@ -254,6 +254,39 @@ describe('Library and settings', () => {
     fireEvent.change(screen.getByLabelText('Search covenants'), { target: { value: 'dscr' } });
   });
 
+  it('lets an author add a covenant, and hides the button from an RM', async () => {
+    const calls = mockFetch((url, init) => {
+      if (url.startsWith('/api/v1/measures')) {
+        return { body: [{ code: 'CURRENT_RATIO', name: 'Current ratio', unit: null, active: true }] };
+      }
+      if (init.method === 'POST') {
+        return { status: 201, body: { id: 'n1', name: 'Minimum Current Ratio' } };
+      }
+      return { body: { content: [], totalElements: 0, number: 0, last: true } };
+    });
+    setIdentity({ user: 'rm-anil', roles: ['RM'] });
+    const view = renderAt('/library', '/library', <Library />);
+    expect(await screen.findByText(/0 covenants/)).toBeInTheDocument();
+    expect(screen.queryByText('New covenant')).not.toBeInTheDocument();
+    view.unmount();
+
+    setIdentity({ user: 'author-1', roles: ['AUTHOR'] });
+    renderAt('/library', '/library', <Library />);
+    fireEvent.click(await screen.findByRole('button', { name: 'New covenant' }));
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: ' Minimum Current Ratio ' } });
+    fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'Stay liquid' } });
+    fireEvent.change(screen.getByLabelText(/^Rule/), { target: { value: 'CURRENT_RATIO >= 1.2' } });
+    expect(await screen.findByText(/Measures: CURRENT_RATIO/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add to library' }));
+    await waitFor(() => expect(calls.some((c) => c.init.method === 'POST')).toBe(true));
+    expect(JSON.parse(calls.find((c) => c.init.method === 'POST')!.init.body as string)).toEqual({
+      name: 'Minimum Current Ratio', category: 'FINANCIAL', description: 'Stay liquid',
+      conditionExpression: 'CURRENT_RATIO >= 1.2', assessmentType: 'AUTO', defaultFrequency: 'QUARTERLY',
+      businessSegments: [],
+    });
+    expect(await screen.findByText('Minimum Current Ratio added to the library.')).toBeInTheDocument();
+  });
+
   it('saves the maker-checker switch', async () => {
     const calls = mockFetch((url, init) => (url.startsWith('/api/v1/fx') ? { body: [] } : { body: {
       fiscalYearStartMonth: 4, periodicIncludesCurrentPeriod: false, dueSoonDays: 7, upcomingWindowDays: 30,

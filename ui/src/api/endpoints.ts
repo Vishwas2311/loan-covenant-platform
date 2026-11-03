@@ -1,6 +1,7 @@
 import { api } from './client';
 import type {
-  Covenant, CpSummary, CreditProposal, DocumentType, DpsDocument, ExtractedTerm, Frequency, Job, OnboardingRow, Page,
+  Covenant, CpSummary, CreditProposal, DocumentType, DpsDocument, ExtractedTerm, Frequency, Job, Measure, NewCovenant,
+  OnboardingRow, Page,
   ReportingSettings, ReviewRow, StatementValue, StatusAudit,
 } from './types';
 
@@ -33,6 +34,8 @@ export const core = {
     { method: 'POST', json: { items } }),
   covenants: (search = '', page = 0) =>
     api<Page<Covenant>>(`/api/v1/covenants?search=${enc(search)}&page=${page}&size=25`),
+  createCovenant: (body: NewCovenant) => api<Covenant>('/api/v1/covenants', { method: 'POST', json: body }),
+  measures: () => api<Measure[]>('/api/v1/measures'),
   settings: () => api<ReportingSettings>('/api/v1/settings/reporting'),
   saveSettings: (s: ReportingSettings) => api<ReportingSettings>('/api/v1/settings/reporting', {
     method: 'PUT',

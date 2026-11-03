@@ -93,6 +93,24 @@ export interface Covenant {
   custom: boolean;
 }
 
+/** POST /api/v1/covenants. Eligibility lists left empty mean "all". */
+export interface NewCovenant {
+  name: string;
+  category: 'FINANCIAL' | 'NON_FINANCIAL';
+  description: string;
+  conditionExpression: string;
+  assessmentType: AssessmentType;
+  defaultFrequency: Frequency;
+  businessSegments: string[];
+}
+
+export interface Measure {
+  code: string;
+  name: string;
+  unit: string | null;
+  active: boolean;
+}
+
 export interface Page<T> {
   content: T[];
   totalElements: number;
