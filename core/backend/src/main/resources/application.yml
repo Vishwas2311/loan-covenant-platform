@@ -96,6 +96,12 @@ covenant:
     dps:
       base-url: ${COVENANT_DPS_BASE_URL:http://localhost:9400}
       service-token: ${COVENANT_DPS_SERVICE_TOKEN:}
+      # Production: client credentials (e.g. Entra ID), refreshed automatically; wins over service-token.
+      oauth:
+        token-uri: ${COVENANT_DPS_TOKEN_URI:}
+        client-id: ${COVENANT_DPS_CLIENT_ID:}
+        client-secret: ${COVENANT_DPS_CLIENT_SECRET:}
+        scope: ${COVENANT_DPS_SCOPE:}
   # Daily breach-assessment run (US-MON-14). One durable Quartz trigger registered at startup by
   # DailyRunInitializer; 06:00 every day by default. Overridable per environment.
   notifications:

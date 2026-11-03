@@ -12,6 +12,8 @@ from dataclasses import dataclass
 import httpx
 
 from dps.auth import ROLES_HEADER, SERVICE, USER_HEADER
+from dps.service_auth import ClientCredentialsToken, TokenError
+from dps.settings import Settings
 
 log = logging.getLogger(__name__)
 
@@ -30,16 +32,35 @@ class CoreUnavailable(Exception):
 
 
 class CoreClient:
+    """Sends a client-credentials token when ``oauth`` is given (production), else a fixed ``service_token``,
+    else the SERVICE dev headers."""
+
     def __init__(self, base_url: str, timeout: float, service_token: str = "",
-                 client: httpx.Client | None = None) -> None:
-        headers = ({"Authorization": f"Bearer {service_token}"} if service_token
-                   else {USER_HEADER: "dps-service", ROLES_HEADER: SERVICE})
+                 client: httpx.Client | None = None, oauth: ClientCredentialsToken | None = None) -> None:
         self._client = client or httpx.Client(base_url=base_url, timeout=timeout)
-        self._headers = headers
+        self._oauth = oauth
+        self._headers = ({"Authorization": f"Bearer {service_token}"} if service_token
+                         else {USER_HEADER: "dps-service", ROLES_HEADER: SERVICE})
+
+    @classmethod
+    def from_settings(cls, settings: Settings) -> CoreClient:
+        oauth = (ClientCredentialsToken(settings.core_token_url, settings.core_client_id,
+                                        settings.core_client_secret, settings.core_scope)
+                 if settings.core_token_url else None)
+        return cls(settings.core_base_url, settings.core_timeout_seconds, settings.core_service_token, oauth=oauth)
+
+    def _auth_headers(self) -> dict[str, str]:
+        if self._oauth is None:
+            return self._headers
+        try:
+            return {"Authorization": f"Bearer {self._oauth.token()}"}
+        except TokenError as exc:
+            raise CoreUnavailable(str(exc)) from exc  # the job is retried, as for any Core outage
 
     def _request(self, method: str, path: str, **kw) -> httpx.Response:
+        headers = self._auth_headers()
         try:
-            resp = self._client.request(method, path, headers=self._headers, **kw)
+            resp = self._client.request(method, path, headers=headers, **kw)
         except httpx.HTTPError as exc:
             raise CoreUnavailable(f"{method} {path}: {type(exc).__name__}") from exc
         if resp.status_code >= 500:

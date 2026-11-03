@@ -153,7 +153,7 @@ def main() -> None:  # pragma: no cover - process entry point
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     settings = get_settings()
     database = Database(settings.database_url)
-    core = CoreClient(settings.core_base_url, settings.core_timeout_seconds, settings.core_service_token)
+    core = CoreClient.from_settings(settings)
     worker = Worker(settings, database.session_factory, core,
                     build_runners(settings, database, FileStore(settings.storage_dir), core))
     stop = {"flag": False}

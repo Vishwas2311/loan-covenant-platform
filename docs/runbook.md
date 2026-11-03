@@ -18,7 +18,10 @@ External systems Core calls: the bank's credit-proposal, attributes, data API, w
 
 ## 2. Before the first deployment
 
-1. **Entra ID app registrations** for Core, DPS and the UI, with app roles `RM`, `APPROVER`, `AUTHOR`, `SUPPORT`, `AUDITOR`, `ADMIN` and `SERVICE`. Note each API's issuer and audience.
+1. **Entra ID app registrations:**
+   - **One API registration shared by Core and DPS** (for example `api://covenant-platform`), with app roles `RM`, `APPROVER`, `AUTHOR`, `SUPPORT`, `AUDITOR`, `ADMIN` and `SERVICE`. It must be one audience: DPS passes the signed-in user's token on to Core (CP access checks, Ask AI), and Core accepts only tokens for its own audience.
+   - **The UI** as a single-page app that requests that API's scope for the user.
+   - **Two client applications**, one for Core and one for DPS, each with a client secret (or certificate) and the `SERVICE` app role on the API. They get tokens with the client-credentials grant for the service-to-service calls.
 2. **Databases** on SQL Server: `covenant` and `dps`, each with a login that owns its database. `READ_COMMITTED_SNAPSHOT` must be on for `covenant` (Core's migration V25 turns it on if its login is allowed; otherwise it stops and prints the statement for a DBA). Turn it on for `dps` too:
    ```sql
    ALTER DATABASE covenant SET READ_COMMITTED_SNAPSHOT ON WITH ROLLBACK IMMEDIATE;
@@ -41,11 +44,13 @@ Both services refuse to start with an unsafe setting, so a mistake shows up at d
 | `COVENANT_DB_USER`, `COVENANT_DB_PASSWORD` | Core's database login | *secret* |
 | `COVENANT_DB_POOL_SIZE` | default `20` | per instance |
 | `COVENANT_JWT_ISSUER` | `https://login.microsoftonline.com/<tenant>/v2.0` | required |
-| `COVENANT_JWT_AUDIENCE` | Core's app ID URI or client ID | required |
+| `COVENANT_JWT_AUDIENCE` | the shared API registration's app ID URI or client ID | required |
 | `COVENANT_JWT_JWKS` | optional; defaults to the issuer's keys | |
 | `COVENANT_SUPPORT_TOKEN` | random, 32+ characters | *secret*; required for `/api/v1/ops/**` (header `X-Support-Token`) |
 | `COVENANT_DPS_BASE_URL` | DPS API's internal URL | |
-| `COVENANT_DPS_SERVICE_TOKEN` | token for Core's calls to DPS | *secret*; see section 9 |
+| `COVENANT_DPS_TOKEN_URI` | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token` | Core's calls to DPS use client credentials; the token is refreshed before it expires |
+| `COVENANT_DPS_CLIENT_ID`, `COVENANT_DPS_CLIENT_SECRET` | Core's client application | *secret* |
+| `COVENANT_DPS_SCOPE` | `api://covenant-platform/.default` | |
 | `COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS` | comma list of the bank's data API URL prefixes | empty means no REST source may set its own host |
 | `COVENANT_DS_<NAME>` | password of each MSSQL data source, named by its `secretRef` | *secret* |
 | `COVENANT_CLIENTS_CREDIT_PROPOSAL_BASE_URL` | bank service | also `..._ATTRIBUTES_...`, `..._DATA_API_...`, `..._WORKFLOW_...`, `..._ML_...`, `..._NOTIFICATION_...`, `..._FILE_UPLOAD_...`, `..._AI_SUGGESTION_...` |
@@ -59,12 +64,14 @@ The daily breach run fires at 06:00 server time (`covenant.notifications.cron`);
 |---|---|---|
 | `DPS_ENV` | `prod` | refuses `DEV_HEADER` sign-in |
 | `DPS_AUTH_MODE` | `JWT` (default) | |
-| `DPS_JWT_ISSUER`, `DPS_JWT_AUDIENCE` | from DPS's app registration | required |
+| `DPS_JWT_ISSUER`, `DPS_JWT_AUDIENCE` | the shared API registration (same audience as Core) | required |
 | `DPS_JWT_JWKS_URL` | `https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys` | |
 | `DPS_DATABASE_URL` | `mssql+pymssql://<user>:<url-encoded password>@<host>:1433/dps` | *secret* |
 | `DPS_STORAGE_DIR` | the shared document store mount | |
 | `DPS_CORE_BASE_URL` | Core's internal URL | |
-| `DPS_CORE_SERVICE_TOKEN` | token for DPS's calls to Core | *secret*; see section 9 |
+| `DPS_CORE_TOKEN_URL` | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token` | DPS's calls to Core use client credentials, refreshed before expiry |
+| `DPS_CORE_CLIENT_ID`, `DPS_CORE_CLIENT_SECRET` | DPS's client application | *secret* |
+| `DPS_CORE_SCOPE` | `api://covenant-platform/.default` | |
 | `DPS_CORE_DATA_SOURCE_ID` | `d5000000-0000-0000-0000-000000000d95` | the DPS data source Core's migration creates |
 | `DPS_WORKER_POOL` | `STANDARD` or `HEAVY` (workers only) | |
 | `DPS_AI_MODEL` | for example `azure/gpt-4o`, with `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` | empty: advisory AI runs on rules |
@@ -137,6 +144,8 @@ Expected load, from `loadtest/README.md` (one laptop, everything on one machine)
 | Core will not start: `needs ... issuer-uri and audience` | set `COVENANT_JWT_ISSUER` and `COVENANT_JWT_AUDIENCE` |
 | Core will not start: `Could not turn on READ_COMMITTED_SNAPSHOT` | a DBA runs the statement it prints, then restart |
 | DPS will not start: `needs DPS_JWT_ISSUER and DPS_JWT_AUDIENCE` | set both |
+| Core logs `Token endpoint refused client credentials: HTTP 401` (or DPS jobs retry with the same message) | check the client ID and secret, and that the secret has not expired in Entra ID |
+| Core gets 401 from DPS (or DPS from Core) with valid client credentials | the client application lacks the `SERVICE` app role, or the scope names a different API than the audience |
 | Saving a data source fails with `DATA_SOURCE_PLAINTEXT_PASSWORD` | store the password in the secret store as `COVENANT_DS_<NAME>`, set `secretRef` on the source |
 | A REST data source fails with `DATA_SOURCE_HOST_NOT_ALLOWED` | add its URL prefix to `COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS` |
 
@@ -150,7 +159,6 @@ Every ops endpoint is audited (`GET /api/v1/ops/audit`). `DELETE /api/v1/ops/cps
 
 ## 10. Known gaps before go-live
 
-- **Service-to-service tokens.** `COVENANT_DPS_SERVICE_TOKEN` and `DPS_CORE_SERVICE_TOKEN` are static bearer tokens, but Entra access tokens expire after about an hour. Production needs the client-credentials flow (each service fetches and refreshes its own token) or a managed identity. Not built yet.
 - **Metrics scraping** needs a token (section 7).
 - **Not load-tested:** a separate database host, several Core instances under load, and a burst on the heavy (Docling) pool.
 - **SQL Server data-source hosts** are not allowlisted (REST hosts are).

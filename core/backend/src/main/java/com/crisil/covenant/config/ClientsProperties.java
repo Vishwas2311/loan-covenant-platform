@@ -90,8 +90,18 @@ public class ClientsProperties {
 
     public static class Endpoint {
         private String baseUrl;
-        /** Optional bearer token for service-to-service calls (injected from a secret store). */
+        /** Optional fixed bearer token for service-to-service calls (tests, short-lived setups). */
         private String serviceToken;
+        /** OAuth 2.0 client credentials: Core fetches and refreshes its own token (production). */
+        private ClientCredentials oauth = new ClientCredentials();
+
+        public ClientCredentials getOauth() {
+            return oauth;
+        }
+
+        public void setOauth(ClientCredentials oauth) {
+            this.oauth = oauth;
+        }
 
         public String getServiceToken() {
             return serviceToken;
@@ -107,6 +117,54 @@ public class ClientsProperties {
 
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
+        }
+    }
+
+    /**
+     * Client-credentials settings, e.g. Entra ID: token URI
+     * {@code https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token} and scope
+     * {@code api://<api-app>/.default}. Configured when the token URI is set.
+     */
+    public static class ClientCredentials {
+        private String tokenUri;
+        private String clientId;
+        private String clientSecret;
+        private String scope;
+
+        public boolean isConfigured() {
+            return tokenUri != null && !tokenUri.isBlank();
+        }
+
+        public String getTokenUri() {
+            return tokenUri;
+        }
+
+        public void setTokenUri(String tokenUri) {
+            this.tokenUri = tokenUri;
+        }
+
+        public String getClientId() {
+            return clientId;
+        }
+
+        public void setClientId(String clientId) {
+            this.clientId = clientId;
+        }
+
+        public String getClientSecret() {
+            return clientSecret;
+        }
+
+        public void setClientSecret(String clientSecret) {
+            this.clientSecret = clientSecret;
+        }
+
+        public String getScope() {
+            return scope;
+        }
+
+        public void setScope(String scope) {
+            this.scope = scope;
         }
     }
 }

@@ -37,7 +37,12 @@ class Settings(BaseSettings):
     core_timeout_seconds: float = 5.0
     # Data source id under which DPS is registered in Core (sent with C5 events).
     core_data_source_id: str = ""
-    # Bearer token for DPS → Core calls (C4 reads, C5 events). Empty: dev headers X-User/X-Roles=SERVICE.
+    # DPS → Core calls (C4 reads, C5 events). Production: client credentials (token refreshed automatically,
+    # wins over core_service_token). A fixed core_service_token expires; empty both: SERVICE dev headers.
+    core_token_url: str = ""
+    core_client_id: str = ""
+    core_client_secret: str = ""
+    core_scope: str = ""
     core_service_token: str = ""
 
     # Flow A: proposals below this confidence, or with any issue, are held for review.

@@ -68,14 +68,17 @@ public class WebClientsConfig {
     }
 
     /**
-     * R1: Document Processing Service client. With a configured service token it sends
-     * {@code Authorization: Bearer}; otherwise (local dev) it identifies itself with the DPS dev headers.
+     * R1: Document Processing Service client. Production: an OAuth client-credentials token, fetched and
+     * refreshed by {@link ClientCredentialsTokenProvider}. A fixed service token is still accepted (it
+     * expires, so only for tests and short-lived setups). Otherwise (local dev) the DPS dev headers.
      */
     @Bean
-    public WebClient dpsWebClient(ClientsProperties props, WebClient.Builder builder) {
+    public WebClient dpsWebClient(ClientsProperties props, WebClient.Builder builder, Clock clock) {
         ClientsProperties.Endpoint dps = props.getDps();
         WebClient.Builder b = builder.clone().baseUrl(dps.getBaseUrl());
-        if (dps.getServiceToken() != null && !dps.getServiceToken().isBlank()) {
+        if (dps.getOauth().isConfigured()) {
+            b.filter(new ClientCredentialsTokenProvider(dps.getOauth(), builder, clock).bearerFilter());
+        } else if (dps.getServiceToken() != null && !dps.getServiceToken().isBlank()) {
             b.defaultHeader("Authorization", "Bearer " + dps.getServiceToken());
         } else {
             b.defaultHeader("X-User", "covenant-core").defaultHeader("X-Roles", "SERVICE");

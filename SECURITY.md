@@ -15,6 +15,7 @@ Both services refuse to start with an unsafe configuration, so a missing setting
 | `DPS_ENV=prod` | DPS | DPS will not start in `DEV_HEADER` mode with this set. |
 | `DPS_JWT_ISSUER`, `DPS_JWT_AUDIENCE` | DPS | Required in JWT mode, for the same reason as Core. |
 | `COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS` | Core | The only URL prefixes a REST data source may call (comma list). Empty in production by default, so every REST source with its own `baseUrl` is refused until its host is listed. |
+| `COVENANT_DPS_TOKEN_URI`, `_CLIENT_ID`, `_CLIENT_SECRET`, `_SCOPE` and `DPS_CORE_TOKEN_URL`, `_CLIENT_ID`, `_CLIENT_SECRET`, `_SCOPE` | Core, DPS | Service-to-service calls use OAuth client credentials. Each service fetches its own token and refreshes it before it expires, so no long-lived token sits in configuration. |
 | `COVENANT_DS_*` | Core | Passwords of MSSQL data sources, filled from the secret store and named by each source's `secretRef`. Plaintext passwords are refused in production. |
 
 ## What the code enforces
