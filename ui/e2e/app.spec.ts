@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { sessionAs, signIn, uniqueAgreement } from './helpers';
+import { envValue, sessionAs, signIn, uniqueAgreement } from './helpers';
 
 // The manual script in docs/local-real-testing.md (section 6), automated. Each test signs in for real.
 
@@ -127,6 +127,51 @@ test('13. only an admin sees Settings', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(page.getByLabel('Reporting currency (ISO code)')).toBeVisible();
+});
+
+test('15. a covenant opens with its trend and its schedule', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1005');
+  await page.getByRole('button', { name: 'Minimum DSCR' }).click();
+  const drawer = page.getByRole('dialog');
+  await expect(drawer.getByRole('img', { name: /Trend of \d+ results, limit [\d.]+/ })).toBeVisible();
+  await drawer.getByRole('tab', { name: 'Schedule and changes' }).click();
+  await expect(drawer.getByRole('button', { name: 'Pause monitoring' })).toBeVisible();
+});
+
+test('16. an RM records the result of a person-checked covenant', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1001');
+  const row = page.getByRole('row').filter({ hasText: 'Insurance Cover Maintained' });
+  await row.getByRole('button', { name: 'Record result' }).click();
+  await page.getByLabel('What you checked').fill('e2e: insurance policy seen, valid to March 2027');
+  await page.getByRole('button', { name: 'Save result' }).click();
+  await expect(page.getByText('Result recorded.')).toBeVisible();
+  await expect(row.getByText('COMPLIANT')).toBeVisible();
+});
+
+test('17. the library shows where a covenant is used', async ({ page }) => {
+  await signIn(page, 'author-1', '/library');
+  await page.getByRole('button', { name: 'Minimum DSCR', exact: true }).click();
+  await expect(page.getByText(/On \d+ loan\(s\), \d+ still monitored/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
+});
+
+test('18. authors see measures; admins see data sources', async ({ browser }) => {
+  const author = await sessionAs(browser, 'author-1', '/measures');
+  await expect(author.getByRole('heading', { name: 'Measures' })).toBeVisible();
+  await expect(author.getByRole('cell', { name: 'DPS_REVENUE' })).toBeVisible();
+  const admin = await sessionAs(browser, 'admin-1', '/data-sources');
+  await expect(admin.getByText('Document Processing Service (statements)')).toBeVisible();
+});
+
+test('19. support diagnoses a CP and reads the sent e-mails with the support token', async ({ page }) => {
+  await signIn(page, 'support-1', '/ops/support');
+  await page.getByLabel('Support token').fill(envValue('COVENANT_SUPPORT_TOKEN'));
+  await page.getByRole('button', { name: 'Use token' }).click();
+  await page.getByLabel('CP', { exact: true }).fill('CP-1001');
+  await page.getByRole('button', { name: 'Diagnose' }).click();
+  await expect(page.getByRole('cell', { name: /Minimum DSCR/ })).toBeVisible();
+  await page.getByRole('tab', { name: 'Sent e-mails' }).click();
+  await expect(page.getByRole('button', { name: /Send today/ })).toBeVisible();
 });
 
 test('14. sign out returns to the sign-in page', async ({ page }) => {

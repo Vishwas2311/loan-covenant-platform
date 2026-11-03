@@ -1,10 +1,14 @@
 package com.crisil.covenant.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.crisil.covenant.dto.ops.NotificationAuditView;
 import com.crisil.covenant.dto.ops.OpsAuditView;
+import com.crisil.covenant.entity.NotificationAudit;
+import com.crisil.covenant.repository.NotificationAuditRepository;
 import com.crisil.covenant.service.OpsAuditService;
 import java.time.Instant;
 import java.util.List;
@@ -22,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OpsAuditControllerTest {
 
     @Mock private OpsAuditService service;
+    @Mock private NotificationAuditRepository notifications;
     @InjectMocks private OpsAuditController controller;
 
     @Test
@@ -40,6 +45,23 @@ class OpsAuditControllerTest {
 
         assertThat(controller.auditTrail("cp", null)).isSameAs(trail);
         verify(service).trail("cp", null);
+    }
+
+    @Test
+    void sentNotificationsMapsTheLatestRows() {
+        NotificationAudit sent = mock(NotificationAudit.class);
+        when(sent.getId()).thenReturn("n1");
+        when(sent.getEmailTo()).thenReturn("rm-anil@bank.test");
+        when(sent.getOutcome()).thenReturn(NotificationAudit.Outcome.SUCCESS);
+        when(notifications.findTop100ByOrderByChangedDateDesc()).thenReturn(List.of(sent));
+
+        List<NotificationAuditView> rows = controller.sentNotifications();
+
+        assertThat(rows).singleElement().satisfies(r -> {
+            assertThat(r.id()).isEqualTo("n1");
+            assertThat(r.emailTo()).isEqualTo("rm-anil@bank.test");
+            assertThat(r.outcome()).isEqualTo("SUCCESS");
+        });
     }
 
     private static OpsAuditView view(String id) {

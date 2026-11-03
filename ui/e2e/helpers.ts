@@ -5,17 +5,22 @@ import { expect, type Browser, type Page } from '@playwright/test';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** The shared test-user password: KC_DEMO_PASSWORD in deploy/.env (never printed). */
-export function demoPassword(): string {
-  if (process.env.KC_DEMO_PASSWORD) {
-    return process.env.KC_DEMO_PASSWORD;
+/** A value from the environment, else from deploy/.env (never printed). */
+export function envValue(name: string): string {
+  if (process.env[name]) {
+    return process.env[name]!;
   }
   const env = readFileSync(resolve(here, '../../deploy/.env'), 'utf8');
-  const line = env.split(/\r?\n/).find((l) => l.startsWith('KC_DEMO_PASSWORD='));
+  const line = env.split(/\r?\n/).find((l) => l.startsWith(`${name}=`));
   if (!line) {
-    throw new Error('KC_DEMO_PASSWORD is missing from deploy/.env (docs/local-real-testing.md, step 2)');
+    throw new Error(`${name} is missing from deploy/.env (docs/local-real-testing.md, step 2)`);
   }
-  return line.slice('KC_DEMO_PASSWORD='.length).trim();
+  return line.slice(name.length + 1).trim();
+}
+
+/** The shared test-user password: KC_DEMO_PASSWORD in deploy/.env. */
+export function demoPassword(): string {
+  return envValue('KC_DEMO_PASSWORD');
 }
 
 /** Opens the app and signs in on the Keycloak page, landing on `path`. */

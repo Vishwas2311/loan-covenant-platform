@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { errorMessage } from '../api/client';
 import { dps } from '../api/endpoints';
 import { r2 } from '../api/endpoints2';
+import { r3 } from '../api/endpoints3';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
@@ -28,6 +29,10 @@ export function Certificates({ cpId }: { cpId: string }) {
     onSuccess: () => { setPeriodEnd(''); setDueDate(''); refresh(); },
     onError: fail,
   });
+  const removeRequirement = useMutation({ mutationFn: (id: string) => r3.deleteRequirement(cpId, id),
+    onSuccess: refresh, onError: fail });
+  const removeCertificate = useMutation({ mutationFn: (id: string) => r3.deleteCertificate(cpId, id),
+    onSuccess: refresh, onError: fail });
   const upload = useMutation({
     mutationFn: () => r2.uploadCertificate(cpId, file!, uploadPeriod ?? undefined),
     onSuccess: () => { setFile(null); refresh(); notifications.show({ color: 'green', message: 'Certificate uploaded.' }); },
@@ -44,7 +49,7 @@ export function Certificates({ cpId }: { cpId: string }) {
       <Table withTableBorder>
         <Table.Thead>
           <Table.Tr><Table.Th>Period end</Table.Th><Table.Th>Due</Table.Th><Table.Th>State</Table.Th>
-            <Table.Th>Files</Table.Th></Table.Tr>
+            <Table.Th>Files</Table.Th><Table.Th /></Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {(reqs.data ?? []).map((r) => (
@@ -53,11 +58,26 @@ export function Certificates({ cpId }: { cpId: string }) {
               <Table.Td>{r.dueDate}{r.overdueDays > 0 && <Text size="xs" c="red">{r.overdueDays} d overdue</Text>}</Table.Td>
               <Table.Td><StatusBadge value={r.state === 'RECEIVED' ? 'COMPLIED' : r.state === 'OVERDUE' ? 'BREACHED' : 'QUEUED'} />
                 <Text size="xs">{r.state}</Text></Table.Td>
-              <Table.Td>{r.certificates.map((c) => c.fileName).join(', ') || '—'}</Table.Td>
+              <Table.Td>
+                {r.certificates.length === 0 && '—'}
+                {r.certificates.map((c) => (
+                  <Group key={c.id} gap={4} wrap="nowrap">
+                    <Text size="sm">{c.fileName}</Text>
+                    <Button size="compact-xs" variant="subtle" color="red" aria-label={`Delete ${c.fileName}`}
+                      onClick={() => window.confirm(`Delete certificate ${c.fileName}?`) && removeCertificate.mutate(c.id)}>
+                      Delete</Button>
+                  </Group>
+                ))}
+              </Table.Td>
+              <Table.Td>
+                <Button size="xs" variant="subtle" color="red" loading={removeRequirement.isPending}
+                  onClick={() => window.confirm(`Delete the requirement for period ${r.periodEnd}?`)
+                    && removeRequirement.mutate(r.id)}>Delete</Button>
+              </Table.Td>
             </Table.Tr>
           ))}
           {(reqs.data ?? []).length === 0 && (
-            <Table.Tr><Table.Td colSpan={4}><Text c="dimmed">No certificate requirements.</Text></Table.Td></Table.Tr>
+            <Table.Tr><Table.Td colSpan={5}><Text c="dimmed">No certificate requirements.</Text></Table.Td></Table.Tr>
           )}
         </Table.Tbody>
       </Table>

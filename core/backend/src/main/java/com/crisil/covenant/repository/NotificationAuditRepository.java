@@ -12,4 +12,6 @@ public interface NotificationAuditRepository extends JpaRepository<NotificationA
     List<NotificationAudit> findByRunIdOrderByChangedDateAsc(String runId);
 
     List<NotificationAudit> findByChangedDateBetween(Instant from, Instant to);
+
+    List<NotificationAudit> findTop100ByOrderByChangedDateDesc();
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { errorMessage } from '../api/client';
 import { core } from '../api/endpoints';
 import { r2 } from '../api/endpoints2';
+import { r3 } from '../api/endpoints3';
 import type { ReportingSettings } from '../api/types';
 import { ErrorNote, Loading } from '../components/Status';
 
@@ -63,15 +64,25 @@ function FxRates() {
     onSuccess: () => { setRate(''); qc.invalidateQueries({ queryKey: ['fx'] }); },
     onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
   });
+  const remove = useMutation({
+    mutationFn: (id: string) => r3.deleteFxRate(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['fx'] }),
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
   return (
     <Stack mt="lg">
       <Title order={4}>FX rates</Title>
       <Table withTableBorder>
-        <Table.Thead><Table.Tr><Table.Th>Pair</Table.Th><Table.Th>Date</Table.Th><Table.Th>Rate</Table.Th></Table.Tr></Table.Thead>
+        <Table.Thead><Table.Tr><Table.Th>Pair</Table.Th><Table.Th>Date</Table.Th><Table.Th>Rate</Table.Th><Table.Th /></Table.Tr></Table.Thead>
         <Table.Tbody>
           {(rates.data ?? []).map((r) => (
             <Table.Tr key={r.id}><Table.Td>{r.fromCurrency}/{r.toCurrency}</Table.Td><Table.Td>{r.rateDate}</Table.Td>
-              <Table.Td>{r.rate}</Table.Td></Table.Tr>
+              <Table.Td>{r.rate}</Table.Td>
+              <Table.Td>
+                <Button size="xs" variant="subtle" color="red"
+                  onClick={() => window.confirm(`Delete the ${r.fromCurrency}/${r.toCurrency} rate for ${r.rateDate}?`)
+                    && remove.mutate(r.id)}>Delete</Button>
+              </Table.Td></Table.Tr>
           ))}
         </Table.Tbody>
       </Table>

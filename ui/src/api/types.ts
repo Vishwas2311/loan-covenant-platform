@@ -1,6 +1,7 @@
 // Shapes returned by Covenant Core (/api/v1) and the Document Processing Service (/dps/v1).
+import type { Attachment } from './types3';
 
-export type AssessmentResult = 'COMPLIANT' | 'BREACHED' | 'ERROR' | null;
+export type AssessmentResult = 'COMPLIANT' | 'BREACHED' | 'ERROR' | 'NA' | 'PENDING_REVIEW' | null;
 export type DispositionStatus = 'COMPLIED' | 'BREACHED' | 'WAIVER' | 'EXTENSION';
 export type Approval = 'REQUESTED' | 'APPROVED' | 'REJECTED';
 export type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'CUSTOM';
@@ -39,6 +40,7 @@ export interface ReviewRow {
   approvalStatus: Approval | null;
   requestedStatus: DispositionStatus | null;
   requestedBy: string | null;
+  attachments?: Attachment[];
 }
 
 export interface StatusAudit {

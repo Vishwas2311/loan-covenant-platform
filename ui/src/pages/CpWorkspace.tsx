@@ -12,6 +12,8 @@ import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { CpPicker } from '../components/CpPicker';
 import { Certificates, Comparison, ManualValue } from './CpExtras';
+import { CovenantDrawer, RecordResultDialog } from './CovenantPanel';
+import { AiSuggestions, Cycles } from './CpMore';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 import { formatValue } from '../format';
 
@@ -75,7 +77,10 @@ function DecisionButtons({ cpId, row }: { cpId: string; row: ReviewRow }) {
 function ReviewGrid({ cpId }: { cpId: string }) {
   const identity = useIdentity();
   const approver = hasRole(identity, 'APPROVER', 'ADMIN');
+  const canAct = hasRole(identity, 'RM', 'APPROVER', 'ADMIN');
   const [editing, setEditing] = useState<ReviewRow | null>(null);
+  const [recording, setRecording] = useState<ReviewRow | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const { data, isLoading, error } = useQuery({ queryKey: ['review', cpId], queryFn: () => core.review(cpId) });
   if (isLoading) {
     return <Loading />;
@@ -83,6 +88,7 @@ function ReviewGrid({ cpId }: { cpId: string }) {
   if (error) {
     return <ErrorNote error={error} />;
   }
+  const openRow = (data ?? []).find((r) => r.appliedCovenantId === openId);
   return (
     <>
       <Table striped withTableBorder>
@@ -99,7 +105,11 @@ function ReviewGrid({ cpId }: { cpId: string }) {
             const ownRequest = r.requestedBy === identity.user;
             return (
               <Table.Tr key={r.appliedCovenantId}>
-                <Table.Td>{r.covenantName}</Table.Td>
+                <Table.Td>
+                  <Anchor component="button" ta="left" onClick={() => setOpenId(r.appliedCovenantId)}>
+                    {r.covenantName}
+                  </Anchor>
+                </Table.Td>
                 <Table.Td><Text ff="monospace" size="sm">{r.conditionExpression}</Text></Table.Td>
                 <Table.Td>{formatValue(r.computedValue)}</Table.Td>
                 <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined}>{formatValue(r.headroom)}</Table.Td>
@@ -122,6 +132,9 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                   {!pending && r.dispositionable && (
                     <Button size="xs" variant="light" onClick={() => setEditing(r)}>Waive / extend</Button>
                   )}
+                  {canAct && (r.assessmentType === 'MANUAL' || r.latestResult === 'PENDING_REVIEW') && (
+                    <Button size="xs" color="yellow" variant="light" onClick={() => setRecording(r)}>Record result</Button>
+                  )}
                 </Table.Td>
               </Table.Tr>
             );
@@ -135,6 +148,8 @@ function ReviewGrid({ cpId }: { cpId: string }) {
         </Table.Tbody>
       </Table>
       {editing && <RequestDialog cpId={cpId} row={editing} onClose={() => setEditing(null)} />}
+      {recording && <RecordResultDialog cpId={cpId} row={recording} onClose={() => setRecording(null)} />}
+      {openRow && <CovenantDrawer cpId={cpId} row={openRow} canAct={canAct} onClose={() => setOpenId(null)} />}
     </>
   );
 }
@@ -184,12 +199,16 @@ export function CpWorkspace() {
             <Tabs.Tab value="compare">Period comparison</Tabs.Tab>
             <Tabs.Tab value="certificates">Certificates</Tabs.Tab>
             <Tabs.Tab value="values">Manual values</Tabs.Tab>
+            <Tabs.Tab value="ai">AI suggestions</Tabs.Tab>
+            <Tabs.Tab value="cycles">Cycles</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="covenants" pt="md"><ReviewGrid cpId={cpId} /></Tabs.Panel>
           <Tabs.Panel value="audit" pt="md"><AuditTrail cpId={cpId} /></Tabs.Panel>
           <Tabs.Panel value="compare" pt="md"><Comparison cpId={cpId} /></Tabs.Panel>
           <Tabs.Panel value="certificates" pt="md"><Certificates cpId={cpId} /></Tabs.Panel>
           <Tabs.Panel value="values" pt="md"><ManualValue cpId={cpId} /></Tabs.Panel>
+          <Tabs.Panel value="ai" pt="md"><AiSuggestions cpId={cpId} /></Tabs.Panel>
+          <Tabs.Panel value="cycles" pt="md"><Cycles cpId={cpId} /></Tabs.Panel>
         </Tabs>
       )}
     </Stack>

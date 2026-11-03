@@ -282,7 +282,7 @@ describe('Library and settings', () => {
     expect(JSON.parse(calls.find((c) => c.init.method === 'POST')!.init.body as string)).toEqual({
       name: 'Minimum Current Ratio', category: 'FINANCIAL', description: 'Stay liquid',
       conditionExpression: 'CURRENT_RATIO >= 1.2', assessmentType: 'AUTO', defaultFrequency: 'QUARTERLY',
-      businessSegments: [],
+      businessSegments: [], defaultCron: null,
     });
     expect(await screen.findByText('Minimum Current Ratio added to the library.')).toBeInTheDocument();
   });

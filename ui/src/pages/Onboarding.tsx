@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../api/client';
 import { core } from '../api/endpoints';
+import { r3 } from '../api/endpoints3';
 import type { Frequency, OnboardingRow } from '../api/types';
 import { CpPicker } from '../components/CpPicker';
 import { ErrorNote, Loading } from '../components/Status';
@@ -97,6 +98,34 @@ export function Onboarding() {
     onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
   });
 
+  const [suggested, setSuggested] = useState<Record<string, string>>({});
+  // A11: ask the threshold model for the ticked library covenants and pre-fill its rule; the RM still decides.
+  const suggest = useMutation({
+    mutationFn: () => {
+      const items = (data ?? []).map((r, i) => ({ r, key: rowKey(r, i) }))
+        .filter(({ r, key }) => r.covenantId && r.assessmentType !== 'MANUAL' && (drafts[key] ?? initialDraft(r)).selected)
+        .map(({ r, key }) => ({ covenantMasterId: r.covenantId!, covenantName: r.name,
+          currentExpression: (drafts[key] ?? initialDraft(r)).expression || null }));
+      return r3.thresholdSuggestions(cpId!, items);
+    },
+    onSuccess: (list) => {
+      const notes: Record<string, string> = {};
+      (data ?? []).forEach((r, i) => {
+        const s = list.find((x) => x.covenantMasterId === r.covenantId);
+        if (s) {
+          const key = rowKey(r, i);
+          update(key, { ...(drafts[key] ?? initialDraft(r)), expression: s.recommendedExpression });
+          notes[key] = `Suggested${s.confidence === null ? '' : ` (${Math.round(Number(s.confidence) * 100)}%)`}: `
+            + `${s.recommendedExpression}${s.rationale ? `. ${s.rationale}` : ''}`;
+        }
+      });
+      setSuggested(notes);
+      notifications.show({ color: list.length ? 'green' : 'gray',
+        message: list.length ? `${list.length} threshold(s) suggested. Check them before applying.` : 'No suggestions.' });
+    },
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
+
   const update = (key: string, patch: Partial<Draft>) =>
     setDrafts((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
   const selectedCount = Object.values(drafts).filter((d) => d.selected).length;
@@ -147,6 +176,7 @@ export function Onboarding() {
                         <TextInput aria-label={`Rule for ${r.name}`} value={d.expression} ff="monospace"
                           placeholder="Master rule" onChange={(e) => update(key, { expression: e.currentTarget.value })} />
                       )}
+                      {suggested[key] && <Text size="xs" c="grape">{suggested[key]}</Text>}
                       {r.mlRecommendedExpression && r.source === 'EXTRACTED' && (
                         <Text size="xs" c="dimmed">ML suggested {r.mlRecommendedExpression}</Text>
                       )}
@@ -169,6 +199,8 @@ export function Onboarding() {
             </Table.Tbody>
           </Table>
           <Group justify="end">
+            <Button variant="light" onClick={() => suggest.mutate()} loading={suggest.isPending}
+              disabled={selectedCount === 0}>Suggest thresholds</Button>
             <Button onClick={() => apply.mutate()} loading={apply.isPending} disabled={selectedCount === 0}>
               Apply {selectedCount} covenant(s)
             </Button>

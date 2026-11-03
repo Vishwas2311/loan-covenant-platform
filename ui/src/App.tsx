@@ -1,12 +1,16 @@
 import { AppShell, Button, Group, NavLink, Select, Text, Title } from '@mantine/core';
 import {
-  IconBooks, IconBuildingBank, IconChartBar, IconFileText, IconLayoutDashboard, IconSettings, IconSparkles, IconTool,
+  IconBooks, IconBuildingBank, IconChartBar, IconDatabase, IconFileText, IconLayoutDashboard, IconLifebuoy,
+  IconMathFunction, IconSettings, IconSparkles, IconTool,
 } from '@tabler/icons-react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { DEV_USERS, getAccessToken, hasRole, setIdentity } from './auth/identity';
 import { signedIn, signOut } from './auth/oidc';
 import { useIdentity } from './auth/useIdentity';
 import { CpWorkspace } from './pages/CpWorkspace';
+import { DataSources } from './pages/DataSources';
+import { Measures } from './pages/Measures';
+import { Support } from './pages/Support';
 import { Documents } from './pages/Documents';
 import { Library } from './pages/Library';
 import { Onboarding } from './pages/Onboarding';
@@ -69,13 +73,25 @@ export function App() {
           <NavLink key={to} component={Link} to={to} label={label} leftSection={<Icon size={18} />}
             active={location.pathname.startsWith(to)} />
         ))}
+        {hasRole(identity, 'AUTHOR', 'ADMIN') && (
+          <NavLink component={Link} to="/measures" label="Measures" leftSection={<IconMathFunction size={18} />}
+            active={location.pathname.startsWith('/measures')} />
+        )}
         {hasRole(identity, 'SUPPORT', 'ADMIN') && (
-          <NavLink component={Link} to="/ops/jobs" label="Document jobs" leftSection={<IconTool size={18} />}
-            active={location.pathname.startsWith('/ops')} />
+          <>
+            <NavLink component={Link} to="/ops/jobs" label="Document jobs" leftSection={<IconTool size={18} />}
+              active={location.pathname.startsWith('/ops/jobs')} />
+            <NavLink component={Link} to="/ops/support" label="Support tools" leftSection={<IconLifebuoy size={18} />}
+              active={location.pathname.startsWith('/ops/support')} />
+          </>
         )}
         {admin && (
-          <NavLink component={Link} to="/settings" label="Settings" leftSection={<IconSettings size={18} />}
-            active={location.pathname.startsWith('/settings')} />
+          <>
+            <NavLink component={Link} to="/data-sources" label="Data sources" leftSection={<IconDatabase size={18} />}
+              active={location.pathname.startsWith('/data-sources')} />
+            <NavLink component={Link} to="/settings" label="Settings" leftSection={<IconSettings size={18} />}
+              active={location.pathname.startsWith('/settings')} />
+          </>
         )}
       </AppShell.Navbar>
       <AppShell.Main>
@@ -91,6 +107,9 @@ export function App() {
           <Route path="/library" element={<Library />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/ops/jobs" element={<Jobs />} />
+          <Route path="/ops/support" element={<Support />} />
+          <Route path="/measures" element={<Measures />} />
+          <Route path="/data-sources" element={<DataSources />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Text>Page not found.</Text>} />
         </Routes>

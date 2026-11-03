@@ -1,6 +1,8 @@
 package com.crisil.covenant.controller;
 
+import com.crisil.covenant.dto.ops.NotificationAuditView;
 import com.crisil.covenant.dto.ops.OpsAuditView;
+import com.crisil.covenant.repository.NotificationAuditRepository;
 import com.crisil.covenant.service.OpsAuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,9 +26,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class OpsAuditController {
 
     private final OpsAuditService service;
+    private final NotificationAuditRepository notifications;
 
-    public OpsAuditController(OpsAuditService service) {
+    public OpsAuditController(OpsAuditService service, NotificationAuditRepository notifications) {
         this.service = service;
+        this.notifications = notifications;
+    }
+
+    @GetMapping("/notifications")
+    @Operation(summary = "The latest 100 breach-summary e-mails sent, newest first",
+            description = "Each row is one e-mail Core handed to the notification service, with the request "
+                    + "it sent (the e-mail's content) and the outcome. Read-only.")
+    public List<NotificationAuditView> sentNotifications() {
+        return notifications.findTop100ByOrderByChangedDateDesc().stream()
+                .map(NotificationAuditView::from)
+                .toList();
     }
 
     @GetMapping("/audit")

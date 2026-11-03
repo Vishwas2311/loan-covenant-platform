@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../api/client';
 import { dps } from '../api/endpoints';
 import { r2 } from '../api/endpoints2';
+import { r3 } from '../api/endpoints3';
 import type { DocumentType, DpsDocument, ExtractedTerm } from '../api/types';
 import { authHeaders, hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
@@ -39,6 +40,10 @@ function Upload({ cpId }: { cpId: string }) {
   return (
     <Card withBorder>
       <Stack>
+        <Title order={4}>Upload to {cpIds.join(', ') || 'no CP'}</Title>
+        {cpIds.some((c) => c !== cpId) && (
+          <Text size="sm" c="orange">This file will also be linked to: {cpIds.filter((c) => c !== cpId).join(', ')}</Text>
+        )}
         <Group grow align="end">
           <FileInput label="File (PDF, XLSX, CSV)" value={file} onChange={(f) => {
             setFile(f);
@@ -148,6 +153,41 @@ function TermRow({ term, canReview }: { term: ExtractedTerm; canReview: boolean 
   );
 }
 
+/** A10: which CPs this document applies to; one group agreement can cover several loans. */
+function DocumentLinks({ doc, canEdit }: { doc: DpsDocument; canEdit: boolean }) {
+  const qc = useQueryClient();
+  const [saved, setSaved] = useState(doc.cpIds);
+  const [cps, setCps] = useState(doc.cpIds);
+  const added = cps.filter((c) => !saved.includes(c));
+  const removed = saved.filter((c) => !cps.includes(c));
+  const save = useMutation({
+    mutationFn: async () => {
+      if (added.length > 0) {
+        await r3.linkDocument(doc.id, added);
+      }
+      if (removed.length > 0) {
+        await r3.unlinkDocument(doc.id, removed);
+      }
+    },
+    onSuccess: () => {
+      notifications.show({ color: 'green', message: 'Linked CPs saved.' });
+      qc.invalidateQueries({ queryKey: ['documents'] });
+      setSaved(cps);
+    },
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
+  return (
+    <Group align="end">
+      <TagsInput label="Applies to CPs" value={cps} onChange={(v) => setCps(v.map((c) => c.trim().toUpperCase()))}
+        disabled={!canEdit} w={420} description="Type a CP number and press Enter to add it." />
+      {canEdit && (
+        <Button variant="light" onClick={() => save.mutate()} loading={save.isPending}
+          disabled={cps.length === 0 || (added.length === 0 && removed.length === 0)}>Save links</Button>
+      )}
+    </Group>
+  );
+}
+
 function DocumentDetail({ doc }: { doc: DpsDocument }) {
   const identity = useIdentity();
   const canReview = hasRole(identity, 'RM', 'APPROVER', 'ADMIN');
@@ -182,6 +222,7 @@ function DocumentDetail({ doc }: { doc: DpsDocument }) {
         )}
       </Group>
       {job.data?.error && <Text c="red" size="sm">{job.data.error}</Text>}
+      <DocumentLinks doc={doc} canEdit={canReview} />
       {doc.type === 'LOAN_AGREEMENT' && (terms.isLoading ? <Loading /> : (
         <Table withTableBorder>
           <Table.Thead>
@@ -232,7 +273,8 @@ export function Documents() {
         <Title order={2}>{cpId ? `Documents for ${cpId}` : 'Documents'}</Title>
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)} />
       </Group>
-      {cpId && <Upload cpId={cpId} />}
+      {/* Keyed by CP: switching CP must reset the card, or the old CP stays in "Linked credit proposals". */}
+      {cpId && <Upload key={cpId} cpId={cpId} />}
       {docs.isLoading && cpId && <Loading />}
       {docs.error && <ErrorNote error={docs.error} />}
       {docs.data && (

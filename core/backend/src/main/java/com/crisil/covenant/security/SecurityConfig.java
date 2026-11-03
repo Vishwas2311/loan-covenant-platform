@@ -80,6 +80,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(a -> {
             a.requestMatchers(PUBLIC).permitAll();
             a.requestMatchers(managementPort::matches).permitAll(); // internal port only, see ManagementPort
+            if (environment.acceptsProfiles(Profiles.of("dev", "local-stack"))) {
+                // Core calls its own in-app ML stand-in without a user token; it only exists in these profiles.
+                a.requestMatchers("/internal/mock-ml/**").permitAll();
+            }
             a.requestMatchers("/api/v1/ops/**").hasAnyRole(Roles.SUPPORT, Roles.ADMIN);
             a.requestMatchers("/api/v1/data-events/**").hasRole(Roles.SERVICE);
             // Portfolio-wide breach sweep + e-mails: operators and the scheduler only, not individual RMs.
