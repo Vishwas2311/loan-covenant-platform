@@ -1,6 +1,6 @@
 import { AppShell, Button, Group, NavLink, Select, Text, Title } from '@mantine/core';
 import {
-  IconBooks, IconBuildingBank, IconChartBar, IconDatabase, IconFileText, IconLayoutDashboard, IconLifebuoy,
+  IconBooks, IconBuildingBank, IconChartBar, IconChecklist, IconDatabase, IconFileText, IconLayoutDashboard, IconLifebuoy,
   IconMathFunction, IconSettings, IconSparkles, IconTool,
 } from '@tabler/icons-react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { useIdentity } from './auth/useIdentity';
 import { CpWorkspace } from './pages/CpWorkspace';
 import { DataSources } from './pages/DataSources';
 import { Measures } from './pages/Measures';
+import { MyTasks } from './pages/MyTasks';
 import { Support } from './pages/Support';
 import { Documents } from './pages/Documents';
 import { Library } from './pages/Library';
@@ -22,6 +23,7 @@ import { Settings } from './pages/Settings';
 
 const NAV = [
   { to: '/portfolio', label: 'Portfolio', icon: IconLayoutDashboard },
+  { to: '/tasks', label: 'My tasks', icon: IconChecklist },
   { to: '/cp', label: 'CP workspace', icon: IconBuildingBank },
   { to: '/onboarding', label: 'Onboarding', icon: IconSparkles },
   { to: '/documents', label: 'Documents', icon: IconFileText },
@@ -102,6 +104,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/portfolio" replace />} />
           <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/tasks" element={<MyTasks />} />
           <Route path="/cp" element={<CpWorkspace />} />
           <Route path="/cp/:cpId" element={<CpWorkspace />} />
           <Route path="/onboarding" element={<Onboarding />} />

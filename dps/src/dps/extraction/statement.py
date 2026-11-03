@@ -33,6 +33,46 @@ LINE_ALIASES: dict[str, list[str]] = {
     "INVENTORY": ["inventories", "inventory"],
     "RECEIVABLES": ["trade receivables", "receivables", "debtors"],
     "CAPEX": ["capital expenditure", "capex", "purchase of property, plant and equipment"],
+    # C6: the rest of a full spread (balance sheet, profit and loss, cash flow).
+    "OTHER_INCOME": ["other income"],
+    "TOTAL_INCOME": ["total income"],
+    "MATERIAL_COST": ["cost of materials consumed", "cost of goods sold", "cost of sales", "raw materials consumed"],
+    "EMPLOYEE_COST": ["employee benefits expense", "employee benefit expense", "employee costs", "staff costs"],
+    "OTHER_EXPENSES": ["other expenses"],
+    "TOTAL_EXPENSES": ["total expenses"],
+    "PBT": ["profit before tax", "profit before income tax", "pbt"],
+    "TAX": ["total tax expense", "tax expense", "income tax expense", "provision for tax"],
+    "FIXED_ASSETS": ["property, plant and equipment", "property plant and equipment", "net fixed assets",
+                     "fixed assets"],
+    "CWIP": ["capital work-in-progress", "capital work in progress", "cwip"],
+    "INTANGIBLES": ["intangible assets", "goodwill and intangible assets"],
+    "INVESTMENTS": ["non-current investments", "investments"],
+    "TOTAL_ASSETS": ["total assets"],
+    "SHARE_CAPITAL": ["equity share capital", "share capital"],
+    "RESERVES": ["other equity", "reserves and surplus"],
+    "TRADE_PAYABLES": ["trade payables", "creditors"],
+    "PROVISIONS": ["provisions"],
+    "LEASE_LIABILITIES": ["lease liabilities"],
+    "TOTAL_EQUITY_AND_LIABILITIES": ["total equity and liabilities", "total liabilities and equity"],
+    "CFO": ["net cash from operating activities", "net cash generated from operating activities",
+            "net cash flow from operating activities", "cash generated from operations"],
+    "CFI": ["net cash used in investing activities", "net cash from investing activities",
+            "net cash flow from investing activities"],
+    "CFF": ["net cash used in financing activities", "net cash from financing activities",
+            "net cash flow from financing activities"],
+    "DIVIDENDS_PAID": ["dividends paid", "dividend paid"],
+}
+
+# C6: which statement each standard line belongs to, in the order a spread shows them.
+SECTIONS: dict[str, list[str]] = {
+    "PROFIT_AND_LOSS": ["REVENUE", "OTHER_INCOME", "TOTAL_INCOME", "MATERIAL_COST", "EMPLOYEE_COST",
+                        "OTHER_EXPENSES", "TOTAL_EXPENSES", "EBITDA", "DEPRECIATION", "EBIT", "INTEREST_PAID", "PBT",
+                        "TAX", "PAT"],
+    "BALANCE_SHEET": ["FIXED_ASSETS", "CWIP", "INTANGIBLES", "INVESTMENTS", "INVENTORY", "RECEIVABLES", "CASH",
+                      "CURRENT_ASSETS", "TOTAL_ASSETS", "SHARE_CAPITAL", "RESERVES", "NET_WORTH",
+                      "TANGIBLE_NET_WORTH", "LT_DEBT", "ST_DEBT", "TOTAL_DEBT", "NET_DEBT", "LEASE_LIABILITIES",
+                      "TRADE_PAYABLES", "PROVISIONS", "CURRENT_LIABILITIES", "TOTAL_EQUITY_AND_LIABILITIES"],
+    "CASH_FLOW": ["CFO", "CAPEX", "CFI", "PRINCIPAL_PAID", "EMI_AMOUNT", "DIVIDENDS_PAID", "CFF"],
 }
 # Lines that contain an alias but mean something else.
 _EXCLUDE = re.compile(r"\b(ratio|margin|%|per\s+share|growth|cover)\b", re.I)

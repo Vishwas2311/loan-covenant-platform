@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from dps import __version__, services
 from dps.access import CpAccessChecker, require_cp
 from dps.auth import ADMIN, APPROVER, RM, SERVICE, SUPPORT, Principal, require_roles
+from dps.catalog import LINE_ITEMS
 from dps.catalog import catalog as line_item_catalog
 from dps.errors import ApiError, not_found
 from dps.models import Document, DocumentCpLink, ExtractedTerm, Job, StatementValue, utcnow
@@ -409,6 +410,75 @@ def review_term(term_id: str, body: TermReview, db: DB, user: User, checker: Che
 MEDIA_TYPES = {".pdf": "application/pdf", ".csv": "text/csv",
                ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                ".xls": "application/vnd.ms-excel"}
+
+
+def line_item_catalog_keys() -> list[str]:
+    return list(LINE_ITEMS)
+
+
+class SpreadCorrection(BaseModel):
+    standardKey: str = Field(min_length=1, max_length=64)  # noqa: N815 - contract field name
+    value: float
+
+
+class SpreadRequest(BaseModel):
+    lines: list[SpreadCorrection] = Field(min_length=1, max_length=60)
+    note: str = Field(default="Corrected in spread review", max_length=500)
+
+
+@router.get("/dps/v1/documents/{document_id}/spread")
+def document_spread(document_id: str, db: DB, user: User, checker: Checker) -> list[dict]:
+    """C6: every standard line of a full spread with what this statement gave it (or nothing)."""
+    doc = load_document(db, document_id)
+    require_document_access(checker, user, doc, read_only=True)
+    if doc.type != "FINANCIAL_STATEMENT":
+        raise ApiError(400, "NOT_A_STATEMENT", "Only a financial statement has a spread")
+    return services.spread(db, doc)
+
+
+@router.put("/dps/v1/documents/{document_id}/spread")
+def correct_spread(document_id: str, body: SpreadRequest, request: Request, db: DB, user: User,
+                   checker: Checker) -> list[dict]:
+    """C6: a reviewer corrects or fills spread lines; each becomes the value Core uses for that period."""
+    require_roles(user, RM, APPROVER, ADMIN)
+    doc = load_document(db, document_id)
+    require_document_access(checker, user, doc, read_only=False)
+    if doc.type != "FINANCIAL_STATEMENT" or doc.as_of_date is None or doc.status == "REMOVED":
+        raise ApiError(400, "NOT_A_STATEMENT", "Only a statement in use can be corrected")
+    unknown = sorted({c.standardKey for c in body.lines} - set(line_item_catalog_keys()))
+    if unknown:
+        raise ApiError(400, "UNKNOWN_LINE", "Not a spread line: " + ", ".join(unknown))
+    services.correct_spread(db, doc, {c.standardKey: c.value for c in body.lines}, user=user.user,
+                            note=body.note, data_source_id=request.app.state.settings.core_data_source_id)
+    db.commit()
+    return services.spread(db, doc)
+
+
+class AgreementQuestion(BaseModel):
+    question: str = Field(min_length=3, max_length=500)
+
+
+@router.post("/dps/v1/documents/{document_id}/ask")
+def ask_agreement(document_id: str, body: AgreementQuestion, request: Request, db: DB, user: User,
+                  checker: Checker) -> dict:
+    """C10: a question about one loan agreement, answered from its own pages with page citations."""
+    from dps.agreement_qa import answer
+    from dps.parsing import ParseError, ParserEngine
+
+    doc = load_document(db, document_id)
+    require_document_access(checker, user, doc, read_only=True)
+    if doc.type != "LOAN_AGREEMENT" or doc.status == "REMOVED":
+        raise ApiError(400, "NOT_AN_AGREEMENT", "Questions can only be asked about a loan agreement in use")
+    path = request.app.state.store.path(doc.storage_path)
+    if not path.exists():
+        raise not_found("File")
+    try:
+        pages = ParserEngine().parse(path.read_bytes())
+    except ParseError as ex:
+        raise ApiError(422, "UNREADABLE_PDF", "This agreement's text cannot be read") from ex
+    services.audit(db, user.user, "ASK_AGREEMENT", "document", doc.id, question=body.question)
+    db.commit()
+    return answer(body.question, pages, request.app.state.advisor.completion)
 
 
 @router.get("/dps/v1/documents/{document_id}/file")

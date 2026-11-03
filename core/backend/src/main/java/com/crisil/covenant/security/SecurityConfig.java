@@ -94,7 +94,8 @@ public class SecurityConfig {
             // FR-12 maker-checker: only approvers decide Waiver/Extension requests.
             a.requestMatchers(HttpMethod.POST, "/api/v1/monitoring/cp/*/covenants/*/status/decision")
                     .hasAnyRole(Roles.APPROVER, Roles.ADMIN);
-            a.requestMatchers(HttpMethod.POST, "/api/v1/monitoring/notification-runs")
+            a.requestMatchers(HttpMethod.POST, "/api/v1/monitoring/notification-runs", "/api/v1/monitoring/reminder-runs",
+                            "/api/v1/reports/scheduled-runs")
                     .hasAnyRole(Roles.ADMIN, Roles.SUPPORT, Roles.SERVICE);
             for (HttpMethod method : List.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE)) {
                 a.requestMatchers(method, LIBRARY_WRITE_PATHS).hasAnyRole(Roles.AUTHOR, Roles.ADMIN);

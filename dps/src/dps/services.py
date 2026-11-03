@@ -116,6 +116,56 @@ def remove_document(db: Session, doc: Document, *, user: str, reason: str, data_
     audit(db, user, "REMOVE", "document", doc.id, reason=reason, values=len(touched))
 
 
+def spread(db: Session, doc: Document) -> list[dict]:
+    """C6: the full spread for a statement, section by section, from the values it currently serves.
+
+    A line the reader found has status MAPPED (confidence 1.0, or 0.8 when it was worked out from other
+    lines); one a reviewer typed in is CONFIRMED; one with no figure is UNMAPPED.
+    """
+    from dps.catalog import LINE_ITEMS
+    from dps.extraction.statement import SECTIONS
+
+    cps = doc.active_cp_ids()
+    rows = list(db.scalars(select(StatementValue).where(
+        StatementValue.document_id == doc.id, StatementValue.superseded == false(),
+        StatementValue.cp_id == (cps[0] if cps else "")).order_by(StatementValue.created_at)))
+    by_key = {r.key: r for r in rows}
+    out = []
+    for section, keys in SECTIONS.items():
+        for key in keys:
+            r = by_key.get(key)
+            if r is None:
+                status, confidence = "UNMAPPED", 0.0
+            elif r.source_type == "USER":
+                status, confidence = "CONFIRMED", 1.0
+            else:
+                status, confidence = "MAPPED", 0.8 if r.derived else 1.0
+            out.append({"section": section, "standardKey": key, "standardLabel": LINE_ITEMS[key],
+                        "sourceLabel": "worked out from other lines" if r is not None and r.derived else None,
+                        "value": r.value if r else None, "unit": r.unit if r else None,
+                        "cell": r.cell if r else None, "page": r.page if r else None,
+                        "confidence": confidence, "status": status})
+    return out
+
+
+def correct_spread(db: Session, doc: Document, values: dict[str, float], *, user: str, note: str,
+                   data_source_id: str) -> None:
+    """C6: store reviewer values for a statement, for every CP it applies to, and tell Core about them."""
+    for cp in doc.active_cp_ids():
+        for key, value in values.items():
+            for old in db.scalars(select(StatementValue).where(
+                    StatementValue.cp_id == cp, StatementValue.key == key, StatementValue.as_of_date == doc.as_of_date,
+                    StatementValue.superseded == false())):
+                old.superseded = True
+            db.add(StatementValue(cp_id=cp, key=key, value=value, unit="INR_CR", currency="INR",
+                                  as_of_date=doc.as_of_date, source_type="USER", document_id=doc.id, note=note,
+                                  entered_by=user))
+        db.add(EventOutbox(type="DATA_EVENT", payload_json=json.dumps({
+            "dataSourceId": data_source_id, "entityKey": cp, "entityKeyLevel": "CP_ID",
+            "asOfDate": doc.as_of_date.isoformat(), "changedAt": utcnow().isoformat(), "documentId": doc.id})))
+    audit(db, user, "SPREAD_CORRECTED", "document", doc.id, keys=sorted(values), note=note)
+
+
 def store_manual_value(db: Session, *, cp_id: str, key: str, value: float, unit: str, currency: str | None,
                        as_of: date, note: str, user: str, data_source_id: str) -> StatementValue:
     """FR-20: approver-entered value. Supersedes the current value for the same key/period and queues C5."""

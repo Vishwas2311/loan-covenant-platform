@@ -9,6 +9,7 @@ import { errorMessage } from '../api/client';
 import { dps } from '../api/endpoints';
 import { r2 } from '../api/endpoints2';
 import { r3 } from '../api/endpoints3';
+import { AskAgreement, SpreadReview } from './Phase3';
 import type { DocumentType, DpsDocument, ExtractedTerm } from '../api/types';
 import { authHeaders, hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
@@ -279,14 +280,12 @@ function AmendmentChanges({ doc, terms }: { doc: DpsDocument; terms: ExtractedTe
 }
 
 function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => void }) {
+  const [cited, setCited] = useState<{ page: number; quote: string } | null>(null);
   const identity = useIdentity();
   const canReview = hasRole(identity, 'RM', 'APPROVER', 'ADMIN');
   const qc = useQueryClient();
   const terms = useQuery({
     queryKey: ['terms', doc.id], queryFn: () => dps.terms(doc.id), enabled: doc.type === 'LOAN_AGREEMENT',
-  });
-  const values = useQuery({
-    queryKey: ['values', doc.id], queryFn: () => dps.values(doc.id), enabled: doc.type === 'FINANCIAL_STATEMENT',
   });
   const narrative = useQuery({
     queryKey: ['narrative', doc.id], queryFn: () => r2.narrative(doc.id),
@@ -314,6 +313,10 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
       </Group>
       {doc.amendsDocumentId && <Text size="sm" c="dimmed">This is an amendment of an earlier agreement.</Text>}
       {terms.data && <AmendmentChanges doc={doc} terms={terms.data} />}
+      {doc.type === 'LOAN_AGREEMENT' && doc.status !== 'REMOVED' && (
+        <AskAgreement documentId={doc.id} onPage={(page, quote) => setCited({ page, quote })} />
+      )}
+      {cited && <SourcePage documentId={doc.id} page={cited.page} quote={cited.quote} onClose={() => setCited(null)} />}
       {job.data?.error && <Text c="red" size="sm">{job.data.error}</Text>}
       <DocumentLinks doc={doc} canEdit={canReview} />
       {doc.type === 'LOAN_AGREEMENT' && (terms.isLoading ? <Loading /> : (
@@ -335,21 +338,9 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
           <Text size="xs" c="dimmed">{narrative.data.advisory}</Text>
         </Card>
       )}
-      {doc.type === 'FINANCIAL_STATEMENT' && (values.isLoading ? <Loading /> : (
-        <Table withTableBorder>
-          <Table.Thead>
-            <Table.Tr><Table.Th>Line item</Table.Th><Table.Th>Value</Table.Th><Table.Th>Unit</Table.Th><Table.Th>Derived</Table.Th></Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {(values.data ?? []).map((v) => (
-              <Table.Tr key={`${v.key}-${v.asOfDate}`}>
-                <Table.Td>{v.key}</Table.Td><Table.Td>{v.value}</Table.Td><Table.Td>{v.unit}</Table.Td>
-                <Table.Td>{v.derived ? 'yes' : ''}</Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      ))}
+      {doc.type === 'FINANCIAL_STATEMENT' && doc.status !== 'QUEUED' && (
+        <SpreadReview documentId={doc.id} canEdit={canReview && doc.status !== 'REMOVED'} />
+      )}
     </Stack>
   );
 }

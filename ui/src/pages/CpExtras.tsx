@@ -8,6 +8,7 @@ import { errorMessage } from '../api/client';
 import { dps } from '../api/endpoints';
 import { r2 } from '../api/endpoints2';
 import { r3 } from '../api/endpoints3';
+import { BorrowerReminders } from './Phase3';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
@@ -18,6 +19,7 @@ const fail = (e: unknown) => notifications.show({ color: 'red', message: errorMe
 /** FR-22: certificate requirements per period, with upload against a period. */
 export function Certificates({ cpId }: { cpId: string }) {
   const qc = useQueryClient();
+  const canEdit = hasRole(useIdentity(), 'RM', 'APPROVER', 'ADMIN');
   const reqs = useQuery({ queryKey: ['requirements', cpId], queryFn: () => r2.requirements(cpId) });
   const [periodEnd, setPeriodEnd] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -46,6 +48,7 @@ export function Certificates({ cpId }: { cpId: string }) {
   }
   return (
     <Stack>
+      <BorrowerReminders cpId={cpId} canEdit={canEdit} />
       <Table withTableBorder>
         <Table.Thead>
           <Table.Tr><Table.Th>Period end</Table.Th><Table.Th>Due</Table.Th><Table.Th>State</Table.Th>

@@ -229,6 +229,65 @@ test('23. an RM removes a wrongly uploaded document', async ({ page }) => {
   await expect(page.getByRole('row').filter({ hasText: name }).getByText('REMOVED')).toBeVisible();
 });
 
+test('24. My tasks lists the RM\'s work, and the approver sees requests to decide', async ({ browser }) => {
+  const rm = await sessionAs(browser, 'rm-anil', '/tasks');
+  await expect(rm.getByRole('heading', { name: 'My tasks' })).toBeVisible();
+  await rm.getByText('All on my CPs').click();
+  await expect(rm.getByRole('row').nth(1)).toBeVisible();
+  const approver = await sessionAs(browser, 'wrm-meera', '/tasks');
+  await expect(approver.getByRole('heading', { name: 'My tasks' })).toBeVisible();
+});
+
+test('25. an RM sets the borrower contact for certificate reminders', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1003');
+  await page.getByRole('tab', { name: 'Certificates' }).click();
+  await page.getByLabel('Contact name').fill('Ms Rao, CFO');
+  await page.getByLabel('E-mail').fill('cfo@borrower.test');
+  await page.getByRole('button', { name: 'Save' }).first().click();
+  await expect(page.getByText('Borrower contact saved.')).toBeVisible();
+});
+
+test('26. an RM asks a question about an agreement', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/documents/CP-1003');
+  await page.getByRole('row').filter({ hasText: /e2e-agreement-|AGR-003/ }).first().click();
+  await page.getByLabel('Question about this agreement').fill('What is the minimum debt service coverage ratio?');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.getByText('Advisory only (AI); the covenant status is decided in Core.').last())
+    .toBeVisible({ timeout: 120_000 });
+});
+
+test('27. a breach notice downloads as a Word file', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1005');
+  await page.getByRole('button', { name: 'Maximum Net Leverage' }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('dialog').getByRole('button', { name: 'Breach notice' }).click();
+  expect((await download).suggestedFilename()).toMatch(/breach_notice-CP-1005\.docx$/);
+});
+
+test('28. a custom report runs, saves, downloads and is deleted', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/reports');
+  await page.getByRole('button', { name: 'Run' }).click();
+  await expect(page.getByRole('cell', { name: /CP-10\d\d/ }).first()).toBeVisible();
+  const name = `e2e report ${Date.now()}`;
+  await page.getByLabel('Report name').fill(name);
+  await page.getByRole('button', { name: 'Save report' }).click();
+  await expect(page.getByText(`${name} saved.`)).toBeVisible();
+  const row = page.getByRole('row').filter({ hasText: name });
+  const download = page.waitForEvent('download');
+  await row.getByRole('button', { name: 'Excel' }).click();
+  expect((await download).suggestedFilename()).toMatch(/\.xlsx$/);
+  page.once('dialog', (d) => void d.accept());
+  await row.getByRole('button', { name: 'Delete' }).click();
+  await expect(row).toHaveCount(0);
+});
+
+test('29. a statement shows its full spread', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/documents/CP-1001');
+  await page.getByRole('row').filter({ hasText: 'e2e-statement-' }).getByText('PUBLISHED').first().click();
+  await expect(page.getByText(/\d+ of 43 standard lines found/)).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'EBITDA', exact: true })).toBeVisible();
+});
+
 test('14. sign out returns to the sign-in page', async ({ page }) => {
   await signIn(page, 'rm-anil');
   await page.getByRole('button', { name: 'Sign out' }).click();

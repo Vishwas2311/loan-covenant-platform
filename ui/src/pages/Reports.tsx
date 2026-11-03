@@ -7,6 +7,7 @@ import { errorMessage } from '../api/client';
 import { r2 } from '../api/endpoints2';
 import type { AnalyticsGroup } from '../api/types2';
 import { Charts } from './Charts';
+import { CustomReports } from './Phase3';
 import { AskAi } from './Ops';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 
@@ -42,6 +43,7 @@ export function Reports() {
     <Stack>
       <Title order={2}>Reports</Title>
       <Charts />
+      <CustomReports />
       <AskAi />
       {analytics.isLoading && <Loading />}
       {analytics.error && <ErrorNote error={analytics.error} />}

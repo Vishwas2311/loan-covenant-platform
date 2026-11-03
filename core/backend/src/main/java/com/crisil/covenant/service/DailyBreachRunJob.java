@@ -29,6 +29,12 @@ public class DailyBreachRunJob extends QuartzJobBean {
     @Autowired
     private BreachNotificationService breachNotificationService;
 
+    @Autowired
+    private ReminderService reminderService;
+
+    @Autowired
+    private ScheduledReportService scheduledReportService;
+
     @Override
     protected void executeInternal(JobExecutionContext context) {
         LOG.info("Running daily breach-assessment sweep");
@@ -45,6 +51,17 @@ public class DailyBreachRunJob extends QuartzJobBean {
             String safe = ex.getMessage() == null ? "null"
                     : ex.getMessage().replace('\n', '_').replace('\r', '_');
             LOG.error("Daily breach run failed: {}", safe);
+        }
+        // C2 and C11 ride the same daily sweep; each is isolated so one failing cannot stop the other.
+        try {
+            reminderService.run(AuditingConfig.SYSTEM_USER);
+        } catch (RuntimeException ex) {
+            LOG.error("Daily borrower reminders failed: {}", ex.getClass().getSimpleName());
+        }
+        try {
+            scheduledReportService.sendDue(AuditingConfig.SYSTEM_USER);
+        } catch (RuntimeException ex) {
+            LOG.error("Daily scheduled reports failed: {}", ex.getClass().getSimpleName());
         }
     }
 }

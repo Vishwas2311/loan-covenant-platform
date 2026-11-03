@@ -11,6 +11,7 @@ import type { Frequency, ReviewRow } from '../api/types';
 import type { Assessment } from '../api/types3';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 import { formatValue } from '../format';
+import { LetterButtons } from './Phase3';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
 
@@ -370,7 +371,10 @@ export function CovenantDrawer({ cpId, row, canAct, onClose }: {
             <StatusBadge value={row.latestResult} />
             {row.assessmentType === 'MANUAL' && <Badge variant="outline" size="sm">checked by a person</Badge>}
           </Group>
-          {canAct && <Button size="xs" onClick={() => check.mutate()} loading={check.isPending}>Check now</Button>}
+          <Group gap="xs">
+            {canAct && <LetterButtons cpId={cpId} row={row} />}
+            {canAct && <Button size="xs" onClick={() => check.mutate()} loading={check.isPending}>Check now</Button>}
+          </Group>
         </Group>
         <Tabs defaultValue="trend" keepMounted={false}>
           <Tabs.List>
