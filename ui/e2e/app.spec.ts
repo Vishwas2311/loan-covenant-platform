@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { envValue, sessionAs, signIn, uniqueAgreement } from './helpers';
+import { demoPassword, envValue, sessionAs, signIn, uniqueAgreement } from './helpers';
 
 // The manual script in docs/local-real-testing.md (section 6), automated. Each test signs in for real.
 
@@ -41,7 +41,8 @@ test('5. a financial statement becomes values with cell references', async ({ pa
   await signIn(page, 'rm-anil', '/documents/CP-1001');
   const name = `e2e-statement-${Date.now()}.csv`;
   const csv = `Amounts in INR lakhs,\nEBITDA,${500 + (Date.now() % 97)}\nShort-term borrowings,300\n`
-    + 'Long-term borrowings,700\nTotal equity,2000\nCash and cash equivalents,100\n';
+    + 'Long-term borrowings,700\nTotal equity,2000\nCash and cash equivalents,100\n'
+    + `Prepared,${Date.now()}\n`; // unique bytes: DPS treats an identical file as a re-upload
   await page.locator('input[type=file]').setInputFiles({ name, mimeType: 'text/csv', buffer: Buffer.from(csv) });
   await page.getByRole('textbox', { name: 'Type' }).click();
   await page.getByRole('option', { name: 'Financial statement' }).click();
@@ -243,6 +244,7 @@ test('25. an RM sets the borrower contact for certificate reminders', async ({ p
   await page.getByRole('tab', { name: 'Certificates' }).click();
   await page.getByLabel('Contact name').fill('Ms Rao, CFO');
   await page.getByLabel('E-mail').fill('cfo@borrower.test');
+  await page.getByLabel('Days before due').fill(String(5 + (Date.now() % 20))); // always a change to save
   await page.getByRole('button', { name: 'Save' }).first().click();
   await expect(page.getByText('Borrower contact saved.')).toBeVisible();
 });
@@ -286,6 +288,54 @@ test('29. a statement shows its full spread', async ({ page }) => {
   await page.getByRole('row').filter({ hasText: 'e2e-statement-' }).getByText('PUBLISHED').first().click();
   await expect(page.getByText(/\d+ of 43 standard lines found/)).toBeVisible();
   await expect(page.getByRole('cell', { name: 'EBITDA', exact: true })).toBeVisible();
+});
+
+test('30. the RM gives a borrower portal access and asks for a certificate', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp/CP-1003');
+  await page.getByRole('tab', { name: 'Certificates' }).click();
+  const card = page.locator('div').filter({ has: page.getByRole('heading', { name: 'Borrower portal access' }) }).last();
+  if (await card.getByText('borrower-reliance').count() === 0) {
+    await page.getByLabel("Borrower's user id").fill('borrower-reliance');
+    await page.getByRole('button', { name: 'Give access' }).click();
+    await expect(page.getByText('Portal access given.')).toBeVisible();
+  }
+  await expect(card.getByText('borrower-reliance')).toBeVisible();
+  await page.getByLabel('Require period end').fill('2026-12-31');
+  await page.getByLabel('Due by').fill('2027-02-14');
+  await page.getByRole('button', { name: 'Add requirement' }).click();
+  await expect(page.getByRole('cell', { name: '2026-12-31' })).toBeVisible();
+});
+
+test('31. a borrower sees only the portal, and sends a signed certificate', async ({ page }) => {
+  await signIn(page, 'borrower-reliance', '/portfolio');
+  await expect(page.getByRole('heading', { name: 'Borrower portal' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Portfolio' })).toHaveCount(0);
+  await expect(page.getByText(/What the bank is waiting for/)).toBeVisible();
+  const waiting = page.getByText('No compliance certificate is waiting.');
+  if (await waiting.count() === 0) {
+    await page.locator('input[type=file]').first()
+      .setInputFiles({ name: 'cert-q4.pdf', mimeType: 'application/pdf', buffer: uniqueAgreement() });
+    await page.getByLabel(/Signed by/).fill('Priya Rao, Chief Financial Officer');
+    await page.getByLabel(/I confirm this certificate/).check();
+    await page.getByRole('button', { name: 'Send to the bank' }).click();
+    await expect(page.getByText('Certificate sent to the bank. Thank you.')).toBeVisible();
+  }
+  const token = await page.request.post('http://localhost:8180/realms/covenant/protocol/openid-connect/token', {
+    form: { grant_type: 'password', client_id: 'covenant-cli', username: 'borrower-reliance', password: demoPassword() },
+  });
+  const auth = { Authorization: `Bearer ${(await token.json()).access_token}` };
+  expect((await page.request.get('/api/v1/monitoring/summary', { headers: auth })).status()).toBe(403);
+  expect((await page.request.get('/api/v1/portal/cps', { headers: auth })).status()).toBe(200);
+});
+
+test('32. support runs the loan-system sync', async ({ page }) => {
+  await signIn(page, 'support-1', '/ops/support');
+  await page.getByLabel('Support token').fill(envValue('COVENANT_SUPPORT_TOKEN'));
+  await page.getByRole('button', { name: 'Use token' }).click();
+  await page.getByRole('tab', { name: 'Loan system sync' }).click();
+  page.once('dialog', (d) => void d.accept());
+  await page.getByRole('button', { name: 'Run the sync now' }).click();
+  await expect(page.getByText(/\d+ CP\(s\) checked, \d+ changed, \d+ closed/)).toBeVisible();
 });
 
 test('14. sign out returns to the sign-in page', async ({ page }) => {

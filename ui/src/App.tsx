@@ -4,7 +4,7 @@ import {
   IconMathFunction, IconSettings, IconSparkles, IconTool,
 } from '@tabler/icons-react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { DEV_USERS, getAccessToken, hasRole, setIdentity } from './auth/identity';
+import { DEV_USERS, getAccessToken, hasRole, isBorrowerOnly, setIdentity } from './auth/identity';
 import { AlertBell } from './components/AlertBell';
 import { signedIn, signOut } from './auth/oidc';
 import { useIdentity } from './auth/useIdentity';
@@ -12,6 +12,7 @@ import { CpWorkspace } from './pages/CpWorkspace';
 import { DataSources } from './pages/DataSources';
 import { Measures } from './pages/Measures';
 import { MyTasks } from './pages/MyTasks';
+import { PortalApp } from './pages/Portal';
 import { Support } from './pages/Support';
 import { Documents } from './pages/Documents';
 import { Library } from './pages/Library';
@@ -63,6 +64,9 @@ export function App() {
   const identity = useIdentity();
   const location = useLocation();
   const admin = hasRole(identity, 'ADMIN');
+  if (isBorrowerOnly(identity)) {
+    return <PortalApp user={identity.user} onSignOut={signedIn() ? () => void signOut() : undefined} />;
+  }
   return (
     <AppShell header={{ height: 56 }} navbar={{ width: 230, breakpoint: 'sm' }} padding="md">
       <AppShell.Header>

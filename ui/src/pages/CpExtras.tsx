@@ -9,6 +9,7 @@ import { dps } from '../api/endpoints';
 import { r2 } from '../api/endpoints2';
 import { r3 } from '../api/endpoints3';
 import { BorrowerReminders } from './Phase3';
+import { PortalAccessCard } from './Phase4';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
@@ -49,6 +50,7 @@ export function Certificates({ cpId }: { cpId: string }) {
   return (
     <Stack>
       <BorrowerReminders cpId={cpId} canEdit={canEdit} />
+      <PortalAccessCard cpId={cpId} canEdit={canEdit} />
       <Table withTableBorder>
         <Table.Thead>
           <Table.Tr><Table.Th>Period end</Table.Th><Table.Th>Due</Table.Th><Table.Th>State</Table.Th>

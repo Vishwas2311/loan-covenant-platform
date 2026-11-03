@@ -70,6 +70,7 @@ Every test user has the same password: the `KC_DEMO_PASSWORD` value in `deploy/.
 | `admin-1` | Admin | everything, plus settings |
 | `auditor-1` | Auditor | everything, read-only |
 | `support-1` | Support | everything, plus document jobs and the support toolkit |
+| `borrower-reliance` | Borrower | only the borrower portal, for the CPs an RM shares (try CP-1003) |
 
 The header shows who you are and your roles; **Sign out** ends the Keycloak session.
 

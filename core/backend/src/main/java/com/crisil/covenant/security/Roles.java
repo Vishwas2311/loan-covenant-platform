@@ -10,6 +10,8 @@ public final class Roles {
     public static final String AUDITOR = "AUDITOR";
     public static final String SERVICE = "SERVICE";
     public static final String ADMIN = "ADMIN";
+    /** C1: someone at the borrower; with no other role they may only use /api/v1/portal/**. */
+    public static final String BORROWER = "BORROWER";
 
     private Roles() {
     }

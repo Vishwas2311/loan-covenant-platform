@@ -9,7 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -100,13 +104,32 @@ public class SecurityConfig {
             for (HttpMethod method : List.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE)) {
                 a.requestMatchers(method, LIBRARY_WRITE_PATHS).hasAnyRole(Roles.AUTHOR, Roles.ADMIN);
             }
-            a.anyRequest().authenticated();
+            // C1: the portal is for borrowers only, and a borrower with no bank role reaches nothing else.
+            a.requestMatchers("/api/v1/portal/**").hasRole(Roles.BORROWER);
+            a.anyRequest().access((auth, ctx) -> new AuthorizationDecision(bankUser(auth.get())));
         }).oauth2ResourceServer(o -> o.jwt(j -> {
             j.jwtAuthenticationConverter(new JwtAuthConverter(jwt.getPrincipalClaim(), jwt.getRolesClaim()));
             JwtDecoder decoder = jwtDecoder.getIfAvailable(() -> buildDecoder(jwt));
             j.decoder(decoder);
         }));
         return http.build();
+    }
+
+    /** Signed in, and not a borrower-only user (who may use the portal but no bank screen or API). */
+    static boolean bankUser(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            return false;
+        }
+        boolean borrower = false;
+        boolean other = false;
+        for (GrantedAuthority a : auth.getAuthorities()) {
+            if (("ROLE_" + Roles.BORROWER).equals(a.getAuthority())) {
+                borrower = true;
+            } else if (a.getAuthority().startsWith("ROLE_")) {
+                other = true;
+            }
+        }
+        return !borrower || other;
     }
 
     /** Builds a validating decoder from configuration; fails fast when nothing is configured. */

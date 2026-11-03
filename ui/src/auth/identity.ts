@@ -3,7 +3,7 @@
  * sent as a Bearer header to Core and DPS. Development: a chosen user and roles sent as X-User / X-Roles,
  * which both services accept only in their DEV_HEADER mode.
  */
-export type Role = 'RM' | 'APPROVER' | 'AUTHOR' | 'SUPPORT' | 'AUDITOR' | 'ADMIN';
+export type Role = 'RM' | 'APPROVER' | 'AUTHOR' | 'SUPPORT' | 'AUDITOR' | 'ADMIN' | 'BORROWER';
 
 export interface Identity {
   user: string;
@@ -25,9 +25,15 @@ export const DEV_USERS: Identity[] = [
   { user: 'admin-1', roles: ['ADMIN'] },
   { user: 'auditor-1', roles: ['AUDITOR'] },
   { user: 'support-1', roles: ['SUPPORT'] },
+  { user: 'borrower-reliance', roles: ['BORROWER'] },
 ];
 
-const ROLES: Role[] = ['RM', 'APPROVER', 'AUTHOR', 'SUPPORT', 'AUDITOR', 'ADMIN'];
+const ROLES: Role[] = ['RM', 'APPROVER', 'AUTHOR', 'SUPPORT', 'AUDITOR', 'ADMIN', 'BORROWER'];
+
+/** C1: someone from the borrower, with no bank role: they only ever see the borrower portal. */
+export function isBorrowerOnly(identity: Identity): boolean {
+  return identity.roles.includes('BORROWER') && identity.roles.every((r) => r === 'BORROWER');
+}
 let tokenIdentity: Identity | null = null;
 
 /**

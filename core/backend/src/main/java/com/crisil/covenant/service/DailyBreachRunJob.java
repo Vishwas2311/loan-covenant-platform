@@ -33,11 +33,20 @@ public class DailyBreachRunJob extends QuartzJobBean {
     private ReminderService reminderService;
 
     @Autowired
+    private LoanSyncService loanSyncService;
+
+    @Autowired
     private ScheduledReportService scheduledReportService;
 
     @Override
     protected void executeInternal(JobExecutionContext context) {
         LOG.info("Running daily breach-assessment sweep");
+        // C8 first, so owners and closed loans are up to date before covenants are checked and e-mailed.
+        try {
+            loanSyncService.run(AuditingConfig.SYSTEM_USER);
+        } catch (RuntimeException ex) {
+            LOG.error("Nightly loan-system sync failed: {}", ex.getClass().getSimpleName());
+        }
         try {
             RunResult result = breachNotificationService.run(
                     LocalDate.now(ZoneId.systemDefault()), AuditingConfig.SYSTEM_USER);

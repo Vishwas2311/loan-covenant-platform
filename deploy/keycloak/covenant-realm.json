@@ -29,6 +29,10 @@
       },
       {
         "name": "SERVICE"
+      },
+      {
+        "name": "BORROWER",
+        "description": "C1: a person at the borrower; sees only the portal for the loans the bank has given them"
       }
     ]
   },
@@ -364,6 +368,24 @@
       "serviceAccountClientId": "dps-service",
       "realmRoles": [
         "SERVICE"
+      ]
+    },
+    {
+      "username": "borrower-reliance",
+      "enabled": true,
+      "firstName": "Priya",
+      "lastName": "Rao",
+      "email": "borrower-reliance@borrower.local",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "BORROWER"
       ]
     }
   ]

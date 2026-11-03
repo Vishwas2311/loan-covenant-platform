@@ -8,6 +8,7 @@ import { errorMessage } from '../api/client';
 import { r3, setSupportToken } from '../api/endpoints3';
 import type { SentNotification } from '../api/types3';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+import { LoanSyncPanel } from './Phase4';
 
 const fail = (e: unknown) => notifications.show({ color: 'red', message: errorMessage(e) });
 const when = (v: string | null | undefined) => (v ? new Date(v).toLocaleString() : '—');
@@ -215,11 +216,13 @@ export function Support() {
             <Tabs.Tab value="emails">Sent e-mails</Tabs.Tab>
             <Tabs.Tab value="health">Data source health</Tabs.Tab>
             <Tabs.Tab value="audit">Audit log</Tabs.Tab>
+            <Tabs.Tab value="sync">Loan system sync</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="diagnostics" pt="md"><Diagnostics /></Tabs.Panel>
           <Tabs.Panel value="emails" pt="md"><Emails /></Tabs.Panel>
           <Tabs.Panel value="health" pt="md"><Health /></Tabs.Panel>
           <Tabs.Panel value="audit" pt="md"><AuditLog /></Tabs.Panel>
+          <Tabs.Panel value="sync" pt="md"><LoanSyncPanel token={token.trim()} /></Tabs.Panel>
         </Tabs>
       )}
     </Stack>
