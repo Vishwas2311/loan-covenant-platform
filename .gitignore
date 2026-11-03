@@ -32,3 +32,4 @@ deploy/.env
 
 # local install logs
 *.log
+*.egg-info/
