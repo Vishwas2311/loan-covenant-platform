@@ -82,5 +82,6 @@ jobs:
         run: |
           cp deploy/.env.example deploy/.env
           docker compose -f deploy/docker-compose.yml --env-file deploy/.env config -q
-      - name: Build images (the heavy worker image is skipped: 4 GB, built on release only)
+      # The 4 GB heavy worker image is not built here.
+      - name: Build images
         run: docker compose -f deploy/docker-compose.yml --env-file deploy/.env build core dps-api ui
