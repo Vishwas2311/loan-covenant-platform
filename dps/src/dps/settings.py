@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import socket
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
@@ -42,7 +43,8 @@ class Settings(BaseSettings):
     # Flow A: proposals below this confidence, or with any issue, are held for review.
     review_confidence: float = 0.8
     # Workers
-    worker_id: str = "dps-worker"
+    # Defaults to the host name, so scaled replicas (docker compose --scale, Kubernetes) are told apart.
+    worker_id: str = socket.gethostname() or "dps-worker"
     worker_pool: str = "STANDARD"  # STANDARD | HEAVY
     worker_lease_seconds: int = 900
     worker_max_attempts: int = 3

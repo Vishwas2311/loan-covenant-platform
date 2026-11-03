@@ -82,13 +82,14 @@ services:
     volumes: [dpsdata:/data]
     ports: ["9400:9400"]
 
+  # One worker handles about 23 agreements a minute; add more with --scale dps-worker=N (each is named
+  # after its container host name, and jobs are claimed with a compare-and-set, so they never clash).
   dps-worker:
     build: ../dps
     command: ["python", "-m", "dps.worker"]
     depends_on: [dps-api]
     environment:
       <<: *dps-env
-      DPS_WORKER_ID: dps-worker-1
       DPS_WORKER_POOL: STANDARD
     volumes: [dpsdata:/data]
     restart: on-failure
@@ -104,7 +105,6 @@ services:
     depends_on: [dps-api]
     environment:
       <<: *dps-env
-      DPS_WORKER_ID: dps-worker-heavy-1
       DPS_WORKER_POOL: HEAVY
     volumes: [dpsdata:/data, doclingcache:/home/dps/.cache]
     restart: on-failure
