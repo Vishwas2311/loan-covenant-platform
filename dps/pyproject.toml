@@ -50,6 +50,7 @@ addopts = "-q --cov=dps --cov-report=term-missing --cov-fail-under=90"
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+extend-exclude = ["migrations"]  # Alembic-generated
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "S", "UP"]
