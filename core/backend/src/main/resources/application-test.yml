@@ -4,6 +4,12 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  quartz:
+    properties:
+      # Quartz registers its database connection JVM-wide under the scheduler name. Test contexts
+      # sharing one name overwrite each other's entry, so a context used after another context's
+      # pool closed failed with "Connection is closed" (flaky, test-order dependent). One name each.
+      org.quartz.scheduler.instanceName: covenant-scheduler-${random.uuid}
 
 covenant:
   # Local only: trust the X-User / X-Roles headers (never in production).
