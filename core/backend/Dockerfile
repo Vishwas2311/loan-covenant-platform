@@ -11,6 +11,6 @@ RUN useradd --system --uid 10001 covenant
 WORKDIR /app
 COPY --from=build /src/target/covenant-service-*.jar app.jar
 USER 10001
-EXPOSE 9310
+EXPOSE 9310 9320
 ENV SPRING_PROFILES_ACTIVE=prod JAVA_OPTS="-XX:MaxRAMPercentage=75"
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

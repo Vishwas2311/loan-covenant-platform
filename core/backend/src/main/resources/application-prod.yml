@@ -35,8 +35,14 @@ covenant:
     allow-h2: false
     # No default host in production: list the bank's data APIs explicitly.
     allowed-rest-base-urls: ${COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS:}
+    # No default either: list the bank's SQL Server hosts that hold data-source tables.
+    allowed-jdbc-hosts: ${COVENANT_DATA_SOURCES_ALLOWED_JDBC_HOSTS:}
 
 management:
+  # The actuator (metrics, Prometheus) moves to this internal port, readable without a token
+  # (ManagementPort). Never route it through the load balancer; /livez and /readyz stay on 9310.
+  server:
+    port: ${COVENANT_MANAGEMENT_PORT:9320}
   endpoint:
     health:
       show-details: never

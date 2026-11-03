@@ -33,6 +33,10 @@ public class DataSourceService {
     @Value("${covenant.data-sources.allow-h2:true}")
     private boolean allowH2 = true;
 
+    /** SQL Server hosts data sources may name; {@code *} (the default outside prod) allows any. */
+    @Value("${covenant.data-sources.allowed-jdbc-hosts:*}")
+    private java.util.List<String> allowedJdbcHosts = java.util.List.of("*");
+
     public DataSourceService(DataSourceRepository repository, ColumnDiscoveryService columnDiscovery) {
         this.repository = repository;
         this.columnDiscovery = columnDiscovery;
@@ -90,6 +94,7 @@ public class DataSourceService {
         String jdbcUrl = config.get("jdbcUrl");
         if (jdbcUrl != null && !jdbcUrl.isBlank()) {
             JdbcUrlPolicy.requireAllowed(jdbcUrl, allowH2);
+            JdbcUrlPolicy.requireAllowedHost(jdbcUrl, allowedJdbcHosts);
         }
         String ref = config.get("secretRef");
         if (ref != null && !ref.isBlank()) {

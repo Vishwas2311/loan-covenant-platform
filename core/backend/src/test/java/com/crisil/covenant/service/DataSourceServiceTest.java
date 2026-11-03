@@ -180,6 +180,17 @@ class DataSourceServiceTest {
     }
 
     @Test
+    void jdbcHostCheckedOnSave() {
+        ReflectionTestUtils.setField(service, "allowedJdbcHosts", List.of("db.bank.internal"));
+        when(repository.existsByNameIgnoreCase(any())).thenReturn(false);
+
+        assertThatThrownBy(() -> service.create(new CreateDataSourceRequest("X", DataSourceType.MSSQL, null,
+                Map.of("jdbcUrl", "jdbc:sqlserver://attacker.example:1433"))))
+                .isInstanceOf(ApiException.class)
+                .extracting("code").isEqualTo("DATA_SOURCE_HOST_NOT_ALLOWED");
+    }
+
+    @Test
     void jdbcUrlCheckedOnSave() {
         ReflectionTestUtils.setField(service, "allowH2", false);
         when(repository.existsByNameIgnoreCase(any())).thenReturn(false);

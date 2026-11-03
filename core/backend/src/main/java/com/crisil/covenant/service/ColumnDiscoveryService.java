@@ -6,6 +6,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -32,6 +33,10 @@ import com.crisil.covenant.util.SqlIdentifiers;
 public class ColumnDiscoveryService {
 
     private final DataCatalogClient catalogClient;
+
+    /** SQL Server hosts data sources may connect to; {@code *} (the default outside prod) allows any. */
+    @Value("${covenant.data-sources.allowed-jdbc-hosts:*}")
+    private List<String> allowedJdbcHosts = List.of("*");
 
     public ColumnDiscoveryService(DataCatalogClient catalogClient) {
         this.catalogClient = catalogClient;
@@ -172,9 +177,10 @@ public class ColumnDiscoveryService {
         return filtered;
     }
 
-    private static javax.sql.DataSource buildDataSource(DataSource source) {
+    private javax.sql.DataSource buildDataSource(DataSource source) {
         String jdbcUrl = require(source, "jdbcUrl");
         JdbcUrlPolicy.requireSafe(jdbcUrl);
+        JdbcUrlPolicy.requireAllowedHost(jdbcUrl, allowedJdbcHosts);
         DriverManagerDataSource ds = new DriverManagerDataSource(jdbcUrl);
         String username = source.config("username");
         if (username != null && !username.isBlank()) {

@@ -112,6 +112,18 @@ class ColumnDiscoveryServiceTest {
     }
 
     @Test
+    void mssqlHostOutsideTheAllowlistIsRefusedBeforeConnecting() {
+        ColumnDiscoveryService svc = new ColumnDiscoveryService(catalogClient);
+        org.springframework.test.util.ReflectionTestUtils.setField(svc, "allowedJdbcHosts", List.of("db.bank.internal"));
+        Map<String, String> evil = new LinkedHashMap<>();
+        evil.put("jdbcUrl", "jdbc:sqlserver://attacker.example:1433");
+
+        assertThatThrownBy(() -> svc.discover(mssqlSource(evil)))
+                .isInstanceOf(ApiException.class)
+                .extracting("code").isEqualTo("DATA_SOURCE_HOST_NOT_ALLOWED");
+    }
+
+    @Test
     void mssqlMissingTableNameThrows() {
         ColumnDiscoveryService svc = new ColumnDiscoveryService(catalogClient);
         com.crisil.covenant.entity.DataSource ds =

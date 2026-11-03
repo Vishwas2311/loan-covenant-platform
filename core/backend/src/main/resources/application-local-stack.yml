@@ -24,6 +24,12 @@ covenant:
     allow-plaintext-password: false
     allow-h2: false
     allowed-rest-base-urls: http://localhost:9311,http://bank-stubs:8080
+    allowed-jdbc-hosts: sqlserver
   clients:
     ml:
       base-url: http://localhost:${server.port}/internal/mock-ml
+
+# Internal actuator port, as in prod (published as localhost:9320 by deploy/docker-compose.yml).
+management:
+  server:
+    port: 9320

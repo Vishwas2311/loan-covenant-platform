@@ -75,6 +75,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- /actuator/prometheus for monitoring (served on the internal management port in prod). -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
         <!-- R0/T1: authentication (Entra ID JWT resource server; dev-header mode for dev/test). -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

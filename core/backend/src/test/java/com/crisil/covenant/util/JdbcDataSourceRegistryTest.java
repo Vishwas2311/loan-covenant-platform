@@ -80,6 +80,15 @@ class JdbcDataSourceRegistryTest {
                 .hasMessageContaining("jdbcUrl");
     }
 
+    @Test
+    void refusesHostsOutsideTheAllowlistBeforeConnecting() {
+        ReflectionTestUtils.setField(registry, "allowedJdbcHosts", java.util.List.of("db.bank.internal"));
+
+        assertThatThrownBy(() -> registry.dataSourceFor(mssql("src-evil", "jdbc:sqlserver://attacker.example:1433")))
+                .isInstanceOf(ApiException.class)
+                .extracting("code").isEqualTo("DATA_SOURCE_HOST_NOT_ALLOWED");
+    }
+
     private static DataSource mssql(String id, String jdbcUrl) {
         DataSource ds = new DataSource();
         ReflectionTestUtils.setField(ds, "id", id);

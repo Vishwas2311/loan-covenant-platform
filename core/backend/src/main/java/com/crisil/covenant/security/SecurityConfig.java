@@ -36,7 +36,8 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 public class SecurityConfig {
 
     private static final String[] PUBLIC = {
-        "/actuator/health", "/actuator/health/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+        "/actuator/health", "/actuator/health/**", "/livez", "/readyz",
+        "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
     };
 
     private static final String[] LIBRARY_WRITE_PATHS = {
@@ -57,7 +58,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityProperties props,
                                             ObjectProvider<JwtDecoder> jwtDecoder,
-                                            Environment environment) throws Exception {
+                                            Environment environment,
+                                            ManagementPort managementPort) throws Exception {
         requireJwtInProduction(props.getMode(), environment);
         http.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -77,6 +79,7 @@ public class SecurityConfig {
         SecurityProperties.Jwt jwt = props.getJwt();
         http.authorizeHttpRequests(a -> {
             a.requestMatchers(PUBLIC).permitAll();
+            a.requestMatchers(managementPort::matches).permitAll(); // internal port only, see ManagementPort
             a.requestMatchers("/api/v1/ops/**").hasAnyRole(Roles.SUPPORT, Roles.ADMIN);
             a.requestMatchers("/api/v1/data-events/**").hasRole(Roles.SERVICE);
             // Portfolio-wide breach sweep + e-mails: operators and the scheduler only, not individual RMs.

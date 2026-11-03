@@ -6,7 +6,7 @@ How to deploy, configure, watch, back up and roll back the Covenant Platform. Th
 
 | Service | Image | Port | Instances | State |
 |---|---|---|---|---|
-| Core | `core/backend/Dockerfile` | 9310 | 2+ (Quartz clustering) | SQL Server database `covenant` |
+| Core | `core/backend/Dockerfile` | 9310 (API, `/livez`, `/readyz`); 9320 internal actuator | 2+ (Quartz clustering) | SQL Server database `covenant` |
 | DPS API | `dps/Dockerfile` | 9400 | 2+ | SQL Server database `dps`, document store |
 | DPS worker (standard) | `dps/Dockerfile`, command `python -m dps.worker` | none | 1 per ~1,400 agreements/hour | same as API |
 | DPS worker (heavy) | `dps/Dockerfile` built with `--build-arg INSTALL_HEAVY=1` | none | 1+ | same as API, plus a Docling model cache |
@@ -52,6 +52,8 @@ Both services refuse to start with an unsafe setting, so a mistake shows up at d
 | `COVENANT_DPS_CLIENT_ID`, `COVENANT_DPS_CLIENT_SECRET` | Core's client application | *secret* |
 | `COVENANT_DPS_SCOPE` | `api://covenant-platform/.default` | |
 | `COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS` | comma list of the bank's data API URL prefixes | empty means no REST source may set its own host |
+| `COVENANT_DATA_SOURCES_ALLOWED_JDBC_HOSTS` | comma list of the bank's SQL Server host names that hold data-source tables | empty means no MSSQL data source can connect |
+| `COVENANT_MANAGEMENT_PORT` | default `9320` | actuator port; internal only, never behind the public load balancer |
 | `COVENANT_DS_<NAME>` | password of each MSSQL data source, named by its `secretRef` | *secret* |
 | `COVENANT_CLIENTS_CREDIT_PROPOSAL_BASE_URL` | bank service | also `..._ATTRIBUTES_...`, `..._DATA_API_...`, `..._WORKFLOW_...`, `..._ML_...`, `..._NOTIFICATION_...`, `..._FILE_UPLOAD_...`, `..._AI_SUGGESTION_...` |
 | `COVENANT_AI_PROVIDER` | `external` (bank service) or `dps` | which service writes AI suggestions |
@@ -84,7 +86,7 @@ Worker IDs default to the host name; leave `DPS_WORKER_ID` unset.
 CI must be green on the commit (`master` requires the Core, DPS, UI and Docker image checks). Then, in this order:
 
 1. **Back up** both databases and snapshot the document store (section 6).
-2. **Core.** Roll out the new image. Flyway migrates the `covenant` database on start-up; with several instances, one migrates while the others wait on Flyway's lock. Check `GET /actuator/health` is `UP` on every instance.
+2. **Core.** Roll out the new image. Flyway migrates the `covenant` database on start-up; with several instances, one migrates while the others wait on Flyway's lock. Check `GET /readyz` returns 200 on every instance.
    - The first deployment that includes migration V25 turns on `READ_COMMITTED_SNAPSHOT` `WITH ROLLBACK IMMEDIATE`, which rolls back open transactions on the database. Do it in a quiet period, or have a DBA run the statement beforehand (V25 then does nothing).
 3. **DPS migrations.** Run once, before the new API and workers start:
    ```bash
@@ -97,7 +99,7 @@ CI must be green on the commit (`master` requires the Core, DPS, UI and Docker i
 
 ## 5. Smoke test after a deployment
 
-1. `GET https://<core>/actuator/health` returns `UP`, and `GET https://<dps>/health` reports the database `UP`.
+1. `GET /readyz` on Core returns 200, and `GET /health` on the DPS API reports the database `UP`.
 2. Sign in to the UI as an RM. The portfolio loads.
 3. `GET /api/v1/ops/health/data-sources` (role SUPPORT, header `X-Support-Token`) shows every data source reachable.
 4. Upload a known agreement to a test CP; the job reaches `DONE` or `NEEDS_REVIEW` within a minute.
@@ -117,7 +119,7 @@ Restore both databases and the document store to the **same point in time**: DPS
 
 | Signal | Where | Alert when |
 |---|---|---|
-| Core health | `GET /actuator/health` | not `UP` for 2 minutes |
+| Core health | `GET /readyz` (port 9310), or `GET /actuator/health` on port 9320 for details | not 200 / `UP` for 2 minutes |
 | DPS health | `GET /health` on the DPS API | database `DOWN` |
 | Daily breach run | Core log: `Daily breach run ... complete` / `Daily breach run failed` | no "complete" line by 07:00, or any "failed" |
 | Notifications | table `cov_notification_audit`, `status = 'failed'` | any for today's run |
@@ -125,9 +127,9 @@ Restore both databases and the document store to the **same point in time**: DPS
 | DPS queue | `GET /dps/v1/jobs?status=QUEUED` | more than ~30 minutes of work (one worker ≈ 23 agreements/minute) |
 | Data sources | `GET /api/v1/ops/health/data-sources` | any unreachable |
 | Deadlock retries | Core log: `Transaction lost a deadlock` | many per minute (occasional is normal) |
-| JVM and HTTP metrics | `GET /actuator/prometheus` | latency and error-rate thresholds of your choice |
+| JVM, HTTP, database pool metrics | `GET /actuator/prometheus` on port 9320 | latency and error-rate thresholds of your choice |
 
-`/actuator/prometheus` and `/actuator/metrics` need a valid token in `prod`. Scrape with a SERVICE token, or ask for a separate internal management port (not built yet).
+The actuator runs on the internal port 9320 and needs no token there; keep that port off the public load balancer and open it only to the monitoring network. Port 9310 serves just `/livez` and `/readyz` publicly.
 
 Expected load, from `loadtest/README.md` (one laptop, everything on one machine): 50 concurrent users at 127 requests/s with every page under 1.1 s at p95; the daily run at 29 covenants/s (50,000 covenants ≈ 30 minutes).
 
@@ -147,7 +149,7 @@ Expected load, from `loadtest/README.md` (one laptop, everything on one machine)
 | Core logs `Token endpoint refused client credentials: HTTP 401` (or DPS jobs retry with the same message) | check the client ID and secret, and that the secret has not expired in Entra ID |
 | Core gets 401 from DPS (or DPS from Core) with valid client credentials | the client application lacks the `SERVICE` app role, or the scope names a different API than the audience |
 | Saving a data source fails with `DATA_SOURCE_PLAINTEXT_PASSWORD` | store the password in the secret store as `COVENANT_DS_<NAME>`, set `secretRef` on the source |
-| A REST data source fails with `DATA_SOURCE_HOST_NOT_ALLOWED` | add its URL prefix to `COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS` |
+| A data source fails with `DATA_SOURCE_HOST_NOT_ALLOWED` | REST: add its URL prefix to `COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS`; MSSQL: add its server to `COVENANT_DATA_SOURCES_ALLOWED_JDBC_HOSTS` |
 
 Every ops endpoint is audited (`GET /api/v1/ops/audit`). `DELETE /api/v1/ops/cps/{cpId}/data` removes all of a CP's data and cannot be undone.
 
@@ -159,7 +161,5 @@ Every ops endpoint is audited (`GET /api/v1/ops/audit`). `DELETE /api/v1/ops/cps
 
 ## 10. Known gaps before go-live
 
-- **Metrics scraping** needs a token (section 7).
 - **Not load-tested:** a separate database host, several Core instances under load, and a burst on the heavy (Docling) pool.
-- **SQL Server data-source hosts** are not allowlisted (REST hosts are).
 - The items that need people: golden-set label verification (D13), hosting (D9), Entra ID registrations, the Azure OpenAI deployment, and the bank's production endpoints.

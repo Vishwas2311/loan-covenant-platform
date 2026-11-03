@@ -59,6 +59,8 @@ covenant:
   # URL prefixes a REST data source's baseUrl may point at (comma list); anything else is refused.
   data-sources:
     allowed-rest-base-urls: ${COVENANT_DATA_SOURCES_ALLOWED_REST_BASE_URLS:http://localhost:9311}
+    # SQL Server hosts MSSQL data sources may connect to (comma list of host names); * allows any.
+    allowed-jdbc-hosts: ${COVENANT_DATA_SOURCES_ALLOWED_JDBC_HOSTS:*}
   clients:
     credit-proposal:
       base-url: http://localhost:9311
@@ -220,6 +222,10 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      # /livez and /readyz on the application port too, for load balancers and Kubernetes probes.
+      probes:
+        enabled: true
+        add-additional-paths: true
 
 logging:
   level:
