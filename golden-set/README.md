@@ -17,7 +17,25 @@ This is the labelled set used to measure covenant extraction, and the release ga
 - `AGR-006` has 0 covenants because one of its 2 pages has no text layer (scanned). Label it by hand; it is a useful OCR test case.
 - **Missing:** at least 10 more agreements (including scanned and table-heavy ones), and at least 20 financial statements. Owner still open (decision D13).
 
-## How to label an agreement
+## Review page (recommended)
+
+A local page shows each agreement next to its draft label, so an analyst can check it quickly:
+
+```bash
+dps/.venv/Scripts/python golden-set/review.py
+```
+
+Then open http://127.0.0.1:8765. (Plain `python golden-set/review.py` works too; with the DPS virtual environment it also checks that every quote really is on its page.)
+
+1. Type your name at the top right.
+2. Pick an agreement on the left. The PDF opens at the first covenant's page; **Show page** jumps to any covenant's page.
+3. For each covenant, compare it with the agreement and fix any field. A red *not found on that page* means the page number or the quote is wrong.
+4. **Remove** entries that are not covenants; **Add a missing covenant** for any the extractor missed.
+5. Tick **Correct** on every covenant, write step-downs, cure periods or testing basis in **Notes**, then **Mark verified**. **Save draft** keeps unfinished work (status *in review*).
+
+The page writes `labels/AGR-nnn.json` and `manifest.csv` and applies the rules in the table below. It listens only on your own computer. Commit the changed labels when a batch is done.
+
+## How to label an agreement (by hand)
 
 1. Open `documents/AGR-nnn.pdf` next to `labels/AGR-nnn.json`.
 2. For every covenant in the agreement, check or fix one entry:

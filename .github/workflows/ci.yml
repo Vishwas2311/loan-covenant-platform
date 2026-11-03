@@ -51,6 +51,8 @@ jobs:
         run: ruff check .
       - name: Tests and coverage
         run: pytest
+      - name: Golden-set evaluator and review tool
+        run: pytest ../golden-set -q
 
   # Production DPS runs on SQL Server; SQLite hides dialect bugs (it accepted "IS 0" for a boolean).
   dps-sqlserver:

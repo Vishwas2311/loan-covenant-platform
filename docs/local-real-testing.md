@@ -132,7 +132,21 @@ python -c "import json,urllib.request as u,urllib.parse as p;env=dict(l.split('=
 
 **The breach emails** go to the bank's notification service, which WireMock stands in for. See what was sent at http://localhost:9311/__admin/requests (search for `/api/v1/notifications`).
 
-## 7. Load test (optional)
+## 7. Checking the sample agreements (golden set)
+
+Before go-live, a credit analyst confirms the covenants the app should find in the 10 sample agreements (decision D13). A review page makes it quick:
+
+```bash
+dps/.venv/Scripts/python golden-set/review.py
+```
+
+Open http://127.0.0.1:8765 and follow the steps in `golden-set/README.md` ("Review page"). Then measure the extractor against the verified labels:
+
+```bash
+python golden-set/evaluate.py --predictions <folder with the extractor's AGR-nnn.json output>
+```
+
+## 8. Load test (optional)
 
 ```bash
 python loadtest/seed.py --cps 700
@@ -148,7 +162,7 @@ python loadtest/uploads.py --count 50
 
 These run against the development mode (start without `docker-compose.real.yml`). Results and what they mean: `loadtest/README.md`.
 
-## 8. Where things are
+## 9. Where things are
 
 | Address | What |
 |---|---|
@@ -162,7 +176,7 @@ These run against the development mode (start without `docker-compose.real.yml`)
 
 Logs: `docker logs -f covenant-platform-core-1` (also `-dps-api-1`, `-dps-worker-1`, `-keycloak-1`, `-ui-1`).
 
-## 9. Stop and reset
+## 10. Stop and reset
 
 Stop, keeping all data:
 
@@ -176,7 +190,7 @@ Stop and delete all data (databases, uploaded documents, AI model cache), for a 
 docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml --env-file deploy/.env down -v
 ```
 
-## 10. Moving from local to real
+## 11. Moving from local to real
 
 The application code does not change; only settings do. `docs/runbook.md` has the full list.
 
@@ -192,7 +206,7 @@ The application code does not change; only settings do. `docs/runbook.md` has th
 | `SPRING_PROFILES_ACTIVE=local-stack` | `prod`, plus `DPS_ENV=prod` |
 | Docker Compose | the chosen hosting platform (decision D9) |
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
@@ -205,7 +219,7 @@ The application code does not change; only settings do. `docs/runbook.md` has th
 | Ask AI fails with `temperature` | Leave `DPS_AI_TEMPERATURE` unset: newer models allow only their default |
 | Port already in use | Stop the other program, or change the left-hand port in the compose file |
 
-## 12. Safety
+## 13. Safety
 
 - Keycloak here is for testing only: it runs in development mode, over plain HTTP, with simple test users.
 - The `covenant-cli` client allows signing in with a password from a script; it exists only for the local test scripts and must not exist in production.
