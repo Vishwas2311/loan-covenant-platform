@@ -6,7 +6,11 @@ import com.crisil.covenant.dto.CreateDataSourceRequest;
 import com.crisil.covenant.dto.DataSourceResponse;
 import com.crisil.covenant.dto.TestConnectionResult;
 import com.crisil.covenant.dto.UpdateDataSourceRequest;
+import com.crisil.covenant.exception.ApiException;
+import com.crisil.covenant.util.DataSourceSecrets;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.crisil.covenant.domain.DataColumn;
@@ -19,6 +23,10 @@ public class DataSourceService {
 
     private final DataSourceRepository repository;
     private final ColumnDiscoveryService columnDiscovery;
+
+    /** Off in production: MSSQL credentials must then come from a {@code secretRef}. */
+    @Value("${covenant.data-sources.allow-plaintext-password:true}")
+    private boolean allowPlaintextPassword = true;
 
     public DataSourceService(DataSourceRepository repository, ColumnDiscoveryService columnDiscovery) {
         this.repository = repository;
@@ -34,7 +42,7 @@ public class DataSourceService {
         entity.setName(request.name());
         entity.setType(request.type());
         entity.setDescription(request.description());
-        entity.setConnectionConfig(request.safeConnectionConfig());
+        entity.setConnectionConfig(checkCredentials(request.safeConnectionConfig()));
         entity.setActive(true);
         return DataSourceResponse.from(repository.saveAndFlush(entity));
     }
@@ -49,13 +57,14 @@ public class DataSourceService {
         entity.setName(request.name());
         entity.setType(request.type());
         entity.setDescription(request.description());
-        entity.setConnectionConfig(mergeSecrets(entity, request.safeConnectionConfig()));
+        entity.setConnectionConfig(checkCredentials(mergeSecrets(entity, request.safeConnectionConfig())));
         return DataSourceResponse.from(repository.saveAndFlush(entity));
     }
 
     /** If the client sent back the redacted password placeholder, keep the stored secret. */
     private static java.util.Map<String, String> mergeSecrets(
-            DataSource entity, java.util.Map<String, String> incoming) {
+            DataSource entity, java.util.Map<String, String> request) {
+        java.util.Map<String, String> incoming = new java.util.LinkedHashMap<>(request);
         if ("********".equals(incoming.get("password"))) {
             String stored = entity.config("password");
             if (stored != null) {
@@ -65,6 +74,27 @@ public class DataSourceService {
             }
         }
         return incoming;
+    }
+
+    /**
+     * A {@code secretRef} replaces any stored password. A non-empty plaintext password is refused when
+     * {@code covenant.data-sources.allow-plaintext-password} is off.
+     */
+    private java.util.Map<String, String> checkCredentials(java.util.Map<String, String> incoming) {
+        java.util.Map<String, String> config = new java.util.LinkedHashMap<>(incoming);
+        String ref = config.get("secretRef");
+        if (ref != null && !ref.isBlank()) {
+            DataSourceSecrets.validateRef(ref);
+            config.remove("password");
+            return config;
+        }
+        String password = config.get("password");
+        if (!allowPlaintextPassword && password != null && !password.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "DATA_SOURCE_PLAINTEXT_PASSWORD",
+                    "Store the password in the secret store and set secretRef (an environment variable "
+                            + "starting with " + DataSourceSecrets.PREFIX + ") instead of password");
+        }
+        return config;
     }
 
     public DataSourceResponse setActive(String id, boolean active) {

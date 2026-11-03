@@ -20,11 +20,11 @@ Design, PRD and decisions live in [docs/integration/](docs/integration/README.md
 
 ## Status
 
-All PRD requirements FR-01 to FR-32 are implemented. Nothing is committed yet. Open items that need people, not code, are listed at the end.
+All PRD requirements FR-01 to FR-32 are implemented. Open items that need people, not code, are listed at the end.
 
 | Area | What is built | Verified by |
 |---|---|---|
-| Security | Entra ID JWT (Core and DPS), `DEV_HEADER` for local use; roles RM, APPROVER, AUTHOR, SUPPORT, AUDITOR, SERVICE, ADMIN; `CpAccessGuard` on every CP endpoint; DPS delegates CP access to Core | Core and DPS tests |
+| Security | Entra ID JWT (Core and DPS), `DEV_HEADER` for local use; roles RM, APPROVER, AUTHOR, SUPPORT, AUDITOR, SERVICE, ADMIN; `CpAccessGuard` on every CP endpoint; DPS delegates CP access to Core; MSSQL data-source passwords come from the secret store through `secretRef` (a `COVENANT_DS_*` environment variable), and the `prod` profile refuses plaintext passwords | Core and DPS tests |
 | Flow A (agreements) | Parser (pypdf, RapidOCR for pages without text, Docling heavy pool); regex extraction ported from our app, page-aware with verbatim quotes; mapping to Core masters; citation, threshold-in-quote and formula checks; publish or hold for review; facility dates, cure periods, LTM, step-downs as review information | DPS tests; golden set (draft labels): recall 0.985, threshold accuracy 1.0 |
 | Flow B (statements) | PDF, XLSX, CSV; 20 line items; unit detection to INR crore; derived inputs; data-quality checks; versioned values; C5 event to Core | DPS tests |
 | Workers | `dps_job` queue with lease and retries, STANDARD and HEAVY pools, SQL `FlowPersistence`, C5 outbox | DPS tests |
@@ -33,7 +33,7 @@ All PRD requirements FR-01 to FR-32 are implemented. Nothing is committed yet. O
 | Certificates, currency, staleness | Certificate requirements per period (PENDING/RECEIVED/OVERDUE); reporting currency and dated FX; `max_age_days` per measure | Core tests |
 | Reports | Period comparison with trend; Excel exports (comparison, library, open breaches); open-breach PDF; escalation flag; analytics by segment and sector; Ask AI over the caller's portfolio | Core, DPS and UI tests |
 | UI | Portfolio, CP workspace, onboarding, documents with page view, library, reports, jobs, settings | 34 tests, 90% lines |
-| Deployment | Images for Core, DPS (API, worker, heavy worker) and UI; compose stack with SQL Server; Core `prod` profile with Quartz clustering | `docker compose config` |
+| Deployment | Images for Core, DPS (API, worker, heavy worker) and UI; compose stack with SQL Server; Core `prod` profile with Quartz clustering | Stack run end to end |
 
 ## Build and test
 

@@ -42,6 +42,8 @@ services:
       COVENANT_DB_USER: sa
       COVENANT_DB_PASSWORD: ${MSSQL_SA_PASSWORD}
       COVENANT_SECURITY_MODE: DEV_HEADER
+      # Demo MSSQL sources name this with secretRef (the prod profile refuses plaintext passwords).
+      COVENANT_DS_DEMO_READER_PASSWORD: ${DEMO_READER_PASSWORD:?set DEMO_READER_PASSWORD in deploy/.env}
       COVENANT_SUPPORT_TOKEN: ${COVENANT_SUPPORT_TOKEN:?set COVENANT_SUPPORT_TOKEN in deploy/.env}
       COVENANT_DPS_BASE_URL: http://dps-api:9400
       COVENANT_CLIENTS_CREDIT_PROPOSAL_BASE_URL: http://bank-stubs:8080

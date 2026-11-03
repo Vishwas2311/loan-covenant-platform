@@ -18,7 +18,8 @@ import com.crisil.covenant.enums.DataSourceType;
  * per credit proposal. Type-specific connection details live in {@link #connectionConfig}.
  *
  * <p>REST config keys: {@code catalogPath}, {@code valuesPath}.
- * <p>MSSQL config keys: {@code jdbcUrl}, {@code username}, {@code password} or {@code secretRef},
+ * <p>MSSQL config keys: {@code jdbcUrl}, {@code username}, {@code password} or {@code secretRef}
+ * (a {@code COVENANT_DS_*} environment variable, see {@link com.crisil.covenant.util.DataSourceSecrets}),
  * {@code schema} (optional), {@code tableName}, {@code cpIdColumn}, {@code asOfColumn} (optional).
  * Credentials are stored as a reference where possible — never a plaintext password in production.
  */

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.crisil.covenant.exception.ApiException;
 import com.crisil.covenant.exception.DuplicateResourceException;
 import com.crisil.covenant.exception.ResourceNotFoundException;
 import com.crisil.covenant.dto.CreateDataSourceRequest;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import com.crisil.covenant.domain.DataColumn;
 import com.crisil.covenant.entity.DataSource;
 import com.crisil.covenant.enums.DataColumnType;
@@ -138,6 +140,56 @@ class DataSourceServiceTest {
 
         service.update("1", req);
         assertThat(ds.config("password")).isNull();
+    }
+
+    @Test
+    void updateWithSecretRefDropsTheStoredPlaintextPassword() {
+        DataSource ds = existing("Old");
+        when(repository.findById("1")).thenReturn(Optional.of(ds));
+        echoSave();
+        UpdateDataSourceRequest req = new UpdateDataSourceRequest("Old", DataSourceType.MSSQL, null,
+                Map.of("jdbcUrl", "jdbc:h2:mem:x", "password", "********", "secretRef", "COVENANT_DS_FIN"));
+
+        service.update("1", req);
+        assertThat(ds.config("secretRef")).isEqualTo("COVENANT_DS_FIN");
+        assertThat(ds.config("password")).isNull();
+    }
+
+    @Test
+    void createRejectsSecretRefOutsideTheAllowedPrefix() {
+        when(repository.existsByNameIgnoreCase("S")).thenReturn(false);
+        CreateDataSourceRequest req = new CreateDataSourceRequest("S", DataSourceType.MSSQL, null,
+                Map.of("jdbcUrl", "jdbc:h2:mem:x", "secretRef", "MSSQL_SA_PASSWORD"));
+
+        assertThatThrownBy(() -> service.create(req))
+                .isInstanceOf(ApiException.class)
+                .extracting("code").isEqualTo("DATA_SOURCE_SECRET_REF_INVALID");
+    }
+
+    @Test
+    void plaintextPasswordRefusedWhenPolicyIsOff() {
+        ReflectionTestUtils.setField(service, "allowPlaintextPassword", false);
+        when(repository.existsByNameIgnoreCase("S")).thenReturn(false);
+        CreateDataSourceRequest req = new CreateDataSourceRequest("S", DataSourceType.MSSQL, null,
+                Map.of("jdbcUrl", "jdbc:h2:mem:x", "password", "plain"));
+
+        assertThatThrownBy(() -> service.create(req))
+                .isInstanceOf(ApiException.class)
+                .extracting("code").isEqualTo("DATA_SOURCE_PLAINTEXT_PASSWORD");
+    }
+
+    @Test
+    void emptyPasswordOrSecretRefAllowedWhenPolicyIsOff() {
+        ReflectionTestUtils.setField(service, "allowPlaintextPassword", false);
+        when(repository.existsByNameIgnoreCase(any())).thenReturn(false);
+        echoSave();
+
+        DataSourceResponse empty = service.create(new CreateDataSourceRequest("A", DataSourceType.MSSQL,
+                null, Map.of("jdbcUrl", "jdbc:h2:mem:x", "password", "")));
+        DataSourceResponse ref = service.create(new CreateDataSourceRequest("B", DataSourceType.MSSQL,
+                null, Map.of("jdbcUrl", "jdbc:h2:mem:x", "secretRef", "COVENANT_DS_B")));
+        assertThat(empty.connectionConfig()).containsEntry("jdbcUrl", "jdbc:h2:mem:x");
+        assertThat(ref.connectionConfig()).containsEntry("secretRef", "COVENANT_DS_B");
     }
 
     @Test

@@ -24,6 +24,9 @@ spring:
 covenant:
   security:
     mode: JWT
+  # MSSQL data sources must name their password with secretRef (COVENANT_DS_* env var).
+  data-sources:
+    allow-plaintext-password: false
 
 management:
   endpoint:

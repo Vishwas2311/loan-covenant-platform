@@ -22,7 +22,7 @@ public final class JdbcDataSourceFactory {
         if (username != null && !username.isBlank()) {
             ds.setUsername(username);
         }
-        String password = source.config("password");
+        String password = DataSourceSecrets.password(source);
         if (password != null) {
             ds.setPassword(password);
         }
