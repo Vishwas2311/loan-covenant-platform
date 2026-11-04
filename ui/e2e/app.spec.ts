@@ -34,7 +34,8 @@ test('3. an agreement upload is processed by DPS', async ({ page }) => {
 
 test('4. onboarding shows covenants extracted from agreements', async ({ page }) => {
   await signIn(page, 'rm-anil', '/onboarding/CP-1003');
-  await expect(page.getByText(/EXTRACTED/).first()).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole('button', { name: 'Show covenants: From the agreement' })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole('heading', { name: 'Proposed covenants' })).toBeVisible();
 });
 
 test('5. a financial statement becomes values with cell references', async ({ page }) => {

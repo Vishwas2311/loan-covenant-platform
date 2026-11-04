@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { r2 } from '../api/endpoints2';
 import type { CpCard } from '../api/types2';
+import { Chip } from './Board';
 import { MAGNITUDE, STATUS, SplitBar } from './charts';
 import { ErrorNote, Loading } from './Status';
 
@@ -47,19 +48,16 @@ export function useMyCps() {
 }
 
 /** Borrower name and where the CP sits, under a page title that names a CP. */
-export function CpHeader({ cpId }: { cpId: string }) {
-  const { data } = useMyCps();
-  const cp = data?.find((c) => c.cpId === cpId);
-  if (!cp) {
-    return null;
-  }
-  const parts = [humanize(cp.businessSegment), humanize(cp.sector), cp.rmUserId && `RM ${cp.rmUserId}`]
-    .filter(Boolean);
+/** The CP's context (borrower, segment, sector, RM) as chips next to a page title. */
+export function CpChips({ cpId }: { cpId: string }) {
+  const card = useMyCps().data?.find((c) => c.cpId === cpId);
   return (
-    <Group gap="xs">
-      {cp.name && <Text fw={600} size="lg">{cp.name}</Text>}
-      {parts.length > 0 && <Text c="dimmed" size="sm">{parts.join(' · ')}</Text>}
-    </Group>
+    <>
+      {card?.name && <Chip>{card.name}</Chip>}
+      {card?.businessSegment && <Chip>{humanize(card.businessSegment)}</Chip>}
+      {card?.sector && <Chip>{humanize(card.sector)}</Chip>}
+      {card?.rmUserId && <Chip>RM {card.rmUserId}</Chip>}
+    </>
   );
 }
 
@@ -100,7 +98,7 @@ function Health({ cp }: { cp: CpCard }) {
  * What a CP page shows before a CP is chosen: the user's CPs as cards they can search and filter,
  * with the free-text id box (in the page header) for CPs they do not own.
  */
-export function CpChooser({ hint, onOpen }: { hint: string; onOpen: (cpId: string) => void }) {
+export function CpChooser({ hint, onOpen }: { hint?: string; onOpen: (cpId: string) => void }) {
   const { data, isLoading, error } = useMyCps();
   const [q, setQ] = useState('');
   const [show, setShow] = useState<Show>('all');
@@ -130,7 +128,7 @@ export function CpChooser({ hint, onOpen }: { hint: string; onOpen: (cpId: strin
   }
   return (
     <Stack>
-      <Text c="dimmed">{hint}</Text>
+      {hint && <Text c="dimmed">{hint}</Text>}
       <Group>
         <TextInput placeholder="Search by borrower, CP id, segment or sector" aria-label="Search your CPs"
           leftSection={<IconSearch size={16} />} value={q} onChange={(e) => setQ(e.currentTarget.value)} w={360} />

@@ -1,6 +1,6 @@
 import {
-  Badge, Button, Card, FileInput, Group, Modal, SegmentedControl, Select, Stack, Table, TagsInput, Text, TextInput,
-  Textarea, Title,
+  Badge, Button, Card, FileInput, Grid, Group, Modal, Select, Stack, Table, TagsInput, Text, TextInput, Textarea,
+  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,7 +14,9 @@ import { AskAgreement, SpreadReview } from './Phase3';
 import type { DocumentType, DpsDocument, ExtractedTerm } from '../api/types';
 import { authHeaders, hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
-import { CpChooser, CpHeader, CpPicker } from '../components/CpPicker';
+import { Kpi, KpiStrip, PageHeader } from '../components/Board';
+import { CpChips, CpChooser, CpPicker } from '../components/CpPicker';
+import { fmtDate } from '../format';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 
 const TYPES: { value: DocumentType; label: string }[] = [
@@ -42,13 +44,16 @@ function Upload({ cpId, agreements }: { cpId: string; agreements: DpsDocument[] 
   });
   const needsDate = type === 'FINANCIAL_STATEMENT' && !asOf;
   return (
-    <Card withBorder>
-      <Stack>
-        <Title order={4}>Upload to {cpIds.join(', ') || 'no CP'}</Title>
+    <Card>
+      <Stack gap="md">
+        <Stack gap={2}>
+          <Title order={4}>Upload to {cpIds.join(', ') || 'no CP'}</Title>
+          <Text size="sm" c="dimmed">The file is read in the background; it shows in the list at once.</Text>
+        </Stack>
         {cpIds.some((c) => c !== cpId) && (
           <Text size="sm" c="orange">This file will also be linked to: {cpIds.filter((c) => c !== cpId).join(', ')}</Text>
         )}
-        <Group grow align="end">
+        <Stack gap="sm">
           <FileInput label="File (PDF, XLSX, CSV)" value={file} onChange={(f) => {
             setFile(f);
             // A spreadsheet can only be a financial statement; a loan agreement is always a PDF.
@@ -65,13 +70,11 @@ function Upload({ cpId, agreements }: { cpId: string; agreements: DpsDocument[] 
             <Select label="Amendment of (optional)" clearable value={amends} onChange={setAmends}
               placeholder="A new agreement" data={agreements.map((a) => ({ value: a.id, label: a.fileName }))} />
           )}
-        </Group>
+        </Stack>
         <TagsInput label="Linked credit proposals" value={cpIds} onChange={setCpIds}
           description="One agreement can cover several CPs." />
-        <Group justify="end">
-          <Button onClick={() => upload.mutate()} loading={upload.isPending}
-            disabled={!file || cpIds.length === 0 || needsDate}>Upload</Button>
-        </Group>
+        <Button onClick={() => upload.mutate()} loading={upload.isPending}
+          disabled={!file || cpIds.length === 0 || needsDate}>Upload</Button>
       </Stack>
     </Card>
   );
@@ -346,6 +349,8 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
   );
 }
 
+const WAITING = new Set(['QUEUED', 'RUNNING', 'PROCESSING']);
+
 /** FR-01/FR-05/FR-21: upload, processing status and extraction review for one CP's documents. */
 export function Documents() {
   const { cpId } = useParams();
@@ -354,67 +359,116 @@ export function Documents() {
   const docs = useQuery({ queryKey: ['documents', cpId], queryFn: () => dps.documents(cpId!), enabled: !!cpId });
   const canUpload = hasRole(useIdentity(), 'RM', 'APPROVER', 'ADMIN');
   const [q, setQ] = useState('');
-  const [type, setType] = useState<'ALL' | DocumentType>('ALL');
+  const [type, setType] = useState<'ALL' | 'REVIEW' | DocumentType>('ALL');
   const [showRemoved, setShowRemoved] = useState(false);
   const all = docs.data ?? [];
-  const shown = all.filter((d) => (type === 'ALL' || d.type === type) && (showRemoved || d.status !== 'REMOVED')
-    && (!q.trim() || d.fileName.toLowerCase().includes(q.trim().toLowerCase())));
-  const removed = all.filter((d) => d.status === 'REMOVED').length;
+  const live = all.filter((d) => d.status !== 'REMOVED');
+  const removed = all.length - live.length;
+  const ofType = (t: DocumentType) => live.filter((d) => d.type === t);
+  const review = live.filter((d) => d.status === 'NEEDS_REVIEW' || d.status === 'FAILED');
+  const reading = live.filter((d) => WAITING.has(d.status)).length;
+  const latest = ofType('FINANCIAL_STATEMENT').map((d) => d.asOfDate).filter((d): d is string => !!d).sort().pop();
+  const pool = showRemoved ? all : live;
+  // Files to review first, then the newest upload.
+  const rank = (d: DpsDocument) => (review.includes(d) ? 0 : d.status === 'REMOVED' ? 2 : 1);
+  const shown = pool.filter((d) => (type === 'ALL' || (type === 'REVIEW' ? review.includes(d) : d.type === type))
+    && (!q.trim() || d.fileName.toLowerCase().includes(q.trim().toLowerCase())))
+    .sort((a, b) => rank(a) - rank(b) || b.uploadedAt.localeCompare(a.uploadedAt));
+  const pick = (t: typeof type) => setType((v) => (v === t ? 'ALL' : t));
+  const go = (cp: string) => navigate(`/documents/${encodeURIComponent(cp)}`);
+  let finding: string | undefined;
+  if (!cpId) {
+    finding = 'Pick a credit proposal to upload its loan agreement, financial statements or certificates, and check what was read from them.';
+  } else if (docs.data) {
+    finding = live.length === 0 ? 'No documents yet. Upload the loan agreement first; its covenants are read for onboarding.'
+      : `${live.length} document${live.length === 1 ? '' : 's'} in use`
+        + (review.length ? `, ${review.length} waiting for your review` : ', none waiting for review')
+        + (reading ? `, ${reading} still being read` : '')
+        + (latest ? `. Latest statement period ends ${fmtDate(latest)}.` : '.');
+  }
   return (
-    <Stack>
-      <Group justify="space-between" align="end">
-        <Stack gap={2}>
-          <Title order={1}>{cpId ? `Documents for ${cpId}` : 'Documents'}</Title>
-          {cpId && <CpHeader cpId={cpId} />}
-        </Stack>
-        <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)} />
-      </Group>
-      {!cpId && <CpChooser onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)}
-        hint="Pick a credit proposal to upload its loan agreement, financial statements or certificates, and check what was read from them." />}
-      {/* Keyed by CP: switching CP must reset the card, or the old CP stays in "Linked credit proposals". */}
-      {cpId && canUpload && <Upload key={cpId} cpId={cpId} agreements={(docs.data ?? [])
-        .filter((d) => d.type === 'LOAN_AGREEMENT' && d.status !== 'REMOVED')} />}
-      {docs.isLoading && cpId && <Loading />}
+    <Stack gap="lg">
+      <PageHeader title={cpId ? `Documents for ${cpId}` : 'Documents'} finding={finding}
+        chips={cpId ? <CpChips cpId={cpId} /> : undefined}
+        actions={<CpPicker key={cpId} initial={cpId} onOpen={go} />} />
+      {!cpId && <CpChooser onOpen={go} />}
+      {cpId && docs.isLoading && <Loading />}
       {docs.error && <ErrorNote error={docs.error} />}
-      {docs.data && docs.data.length > 0 && (
-        <Group>
-          <TextInput placeholder="Search file name" aria-label="Search documents" value={q} w={260}
-            onChange={(e) => setQ(e.currentTarget.value)} />
-          <SegmentedControl aria-label="Document type" value={type} onChange={(v) => setType(v as 'ALL' | DocumentType)}
-            data={[{ value: 'ALL', label: `All (${all.length - (showRemoved ? 0 : removed)})` },
-              ...TYPES.map((t) => ({ value: t.value, label: t.label }))]} />
-          {removed > 0 && (
-            <Button variant="subtle" size="xs" onClick={() => setShowRemoved((v) => !v)}>
-              {showRemoved ? 'Hide removed' : `Show removed (${removed})`}
-            </Button>
-          )}
-        </Group>
+      {cpId && docs.data && live.length > 0 && (
+        <KpiStrip ariaLabel="Documents by type">
+          <Kpi label="Documents in use" value={live.length} onClick={() => setType('ALL')} selected={type === 'ALL'}
+            ariaLabel="Show documents: All" note={removed ? `${removed} removed` : 'None removed'} />
+          <Kpi label="Loan agreements" value={ofType('LOAN_AGREEMENT').length} onClick={() => pick('LOAN_AGREEMENT')}
+            selected={type === 'LOAN_AGREEMENT'} ariaLabel="Show documents: Loan agreements" note="Covenants are read from these" />
+          <Kpi label="Financial statements" value={ofType('FINANCIAL_STATEMENT').length} onClick={() => pick('FINANCIAL_STATEMENT')}
+            selected={type === 'FINANCIAL_STATEMENT'} ariaLabel="Show documents: Financial statements"
+            note={latest ? `Latest period ${fmtDate(latest)}` : 'No period yet'} />
+          <Kpi label="Evidence" value={ofType('EVIDENCE').length} onClick={() => pick('EVIDENCE')} selected={type === 'EVIDENCE'}
+            ariaLabel="Show documents: Evidence" note="Certificates and other proof" />
+          <Kpi label="Waiting for review" value={review.length} lead tone={review.length ? 'warn' : 'neutral'}
+            onClick={() => pick('REVIEW')} selected={type === 'REVIEW'} ariaLabel="Show documents: Waiting for review"
+            note={review.length ? 'Check what was read, then approve' : 'Nothing to check'} />
+        </KpiStrip>
       )}
-      {docs.data && (
-        <Table withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr><Table.Th>File</Table.Th><Table.Th>Type</Table.Th><Table.Th>Period</Table.Th>
-              <Table.Th>Status</Table.Th><Table.Th>Uploaded</Table.Th><Table.Th>CPs</Table.Th></Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {shown.map((d) => (
-              <Table.Tr key={d.id} onClick={() => setOpen(d)} style={{ cursor: 'pointer' }}>
-                <Table.Td>{d.fileName}</Table.Td>
-                <Table.Td>{TYPES.find((t) => t.value === d.type)?.label}</Table.Td>
-                <Table.Td>{d.asOfDate ?? '—'}</Table.Td>
-                <Table.Td><StatusBadge value={d.status} /></Table.Td>
-                <Table.Td>{new Date(d.uploadedAt).toLocaleDateString()} · {d.uploadedBy}</Table.Td>
-                <Table.Td>{d.cpIds.join(', ')}</Table.Td>
-              </Table.Tr>
-            ))}
-            {docs.data.length === 0 && (
-              <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">No documents yet.</Text></Table.Td></Table.Tr>
-            )}
-            {docs.data.length > 0 && shown.length === 0 && (
-              <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">No document matches.</Text></Table.Td></Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
+      {cpId && docs.data && (
+        <Grid gutter="lg" align="flex-start">
+          <Grid.Col span={{ base: 12, lg: canUpload ? 8 : 12 }}>
+            <Card padding={0}>
+              <Group justify="space-between" align="flex-end" p="lg" pb="md" wrap="wrap">
+                <Stack gap={2}>
+                  <Title order={4}>Files</Title>
+                  <Text size="sm" c="dimmed">Click a file to see what was read from it.</Text>
+                </Stack>
+                {all.length > 0 && (
+                  <Group gap="sm">
+                    <TextInput placeholder="Search file name" aria-label="Search documents" value={q} w={220}
+                      onChange={(e) => setQ(e.currentTarget.value)} />
+                    {removed > 0 && (
+                      <Button variant="light" size="xs" onClick={() => setShowRemoved((v) => !v)}>
+                        {showRemoved ? 'Hide removed' : `Show removed (${removed})`}
+                      </Button>
+                    )}
+                  </Group>
+                )}
+              </Group>
+              <Table.ScrollContainer minWidth={600}>
+                <Table highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr><Table.Th>File</Table.Th><Table.Th>Type</Table.Th><Table.Th>Period</Table.Th>
+                      <Table.Th>Status</Table.Th><Table.Th>Uploaded</Table.Th></Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {shown.map((d) => (
+                      <Table.Tr key={d.id} onClick={() => setOpen(d)} style={{ cursor: 'pointer' }}>
+                        <Table.Td fw={550} style={{ wordBreak: 'break-word' }}>{d.fileName}
+                          {d.cpIds.some((x) => x !== cpId) && (
+                            <Text size="xs" c="dimmed" fw={400}>Also {d.cpIds.filter((x) => x !== cpId).join(', ')}</Text>
+                          )}</Table.Td>
+                        <Table.Td c="dimmed" style={{ whiteSpace: 'nowrap' }}>{TYPES.find((t) => t.value === d.type)?.label}</Table.Td>
+                        <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(d.asOfDate)}</Table.Td>
+                        <Table.Td style={{ whiteSpace: 'nowrap' }}><StatusBadge value={d.status} /></Table.Td>
+                        <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(d.uploadedAt)}
+                          <Text size="xs" c="dimmed">{d.uploadedBy}</Text></Table.Td>
+                      </Table.Tr>
+                    ))}
+                    {all.length === 0 && (
+                      <Table.Tr><Table.Td colSpan={5}><Text c="dimmed" size="sm">No documents yet.</Text></Table.Td></Table.Tr>
+                    )}
+                    {all.length > 0 && shown.length === 0 && (
+                      <Table.Tr><Table.Td colSpan={5}><Text c="dimmed" size="sm">No document matches.</Text></Table.Td></Table.Tr>
+                    )}
+                  </Table.Tbody>
+                </Table>
+              </Table.ScrollContainer>
+            </Card>
+          </Grid.Col>
+          {/* Keyed by CP: switching CP must reset the card, or the old CP stays in "Linked credit proposals". */}
+          {canUpload && (
+            <Grid.Col span={{ base: 12, lg: 4 }}>
+              <Upload key={cpId} cpId={cpId} agreements={live.filter((d) => d.type === 'LOAN_AGREEMENT')} />
+            </Grid.Col>
+          )}
+        </Grid>
       )}
       <Modal opened={!!open} onClose={() => setOpen(null)} size="90%" title="Document">
         {open && <DocumentDetail doc={open} onClose={() => setOpen(null)} />}

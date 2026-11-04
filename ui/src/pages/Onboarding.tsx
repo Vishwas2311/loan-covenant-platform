@@ -1,5 +1,5 @@
 import {
-  Alert, Badge, Button, Checkbox, Group, SegmentedControl, Select, Stack, Table, Text, TextInput, Title, Tooltip,
+  Badge, Button, Card, Checkbox, Group, Select, Stack, Table, Text, TextInput, Title, Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -11,12 +11,15 @@ import { r3 } from '../api/endpoints3';
 import type { Frequency, OnboardingRow } from '../api/types';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
-import { CpChooser, CpHeader, CpPicker } from '../components/CpPicker';
+import { Kpi, KpiStrip, PageHeader } from '../components/Board';
+import { CpChips, CpChooser, CpPicker, humanize } from '../components/CpPicker';
+import { useMeasures } from '../components/useMeasures';
+import { describeRule } from '../format';
 import { ErrorNote, Loading } from '../components/Status';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
 const SOURCE_COLOR: Record<OnboardingRow['source'], string> = {
-  RECOMMENDED: 'gray', ML: 'grape', EXTRACTED: 'teal', EXTRACTED_CUSTOM: 'cyan',
+  RECOMMENDED: 'gray', ML: 'gray', EXTRACTED: 'brand', EXTRACTED_CUSTOM: 'brand',
 };
 const SOURCE_LABEL: Record<OnboardingRow['source'], string> = {
   RECOMMENDED: 'Library match', ML: 'ML suggested', EXTRACTED: 'From agreement', EXTRACTED_CUSTOM: 'New, from agreement',
@@ -74,6 +77,7 @@ export function Onboarding() {
   });
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const canApply = hasRole(useIdentity(), 'RM', 'APPROVER', 'ADMIN');
+  const measures = useMeasures();
   useEffect(() => {
     const next: Record<string, Draft> = {};
     (data ?? []).forEach((r, i) => { next[rowKey(r, i)] = initialDraft(r); });
@@ -148,110 +152,138 @@ export function Onboarding() {
   const [show, setShow] = useState<Show>('all');
   const view = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    // Read from the agreement first, then ML and library suggestions; already applied last.
+    const rank = (r: OnboardingRow) => (r.alreadyApplied ? 3 : SHOW.agreement(r, false) ? 0 : r.source === 'ML' ? 1 : 2);
     return (data ?? []).map((r, i) => ({ r, i })).filter(({ r, i }) => {
       const d = drafts[rowKey(r, i)] ?? initialDraft(r);
       return SHOW[show](r, d.selected) && (!needle || r.name.toLowerCase().includes(needle)
         || (r.conditionOverride ?? '').toLowerCase().includes(needle));
-    });
+    }).sort((a, b) => rank(a.r) - rank(b.r) || a.r.name.localeCompare(b.r.name));
   }, [data, drafts, q, show]);
   const count = (s: Show) => (data ?? []).filter((r, i) => SHOW[s](r, (drafts[rowKey(r, i)] ?? initialDraft(r)).selected)).length;
 
+  const go = (cp: string) => navigate(`/onboarding/${encodeURIComponent(cp)}`);
+  const pick = (s: Show) => setShow((v) => (v === s ? 'all' : s));
+  const fromAgreement = count('agreement');
+  const applied = count('applied');
+  let finding: string | undefined;
+  if (!cpId) {
+    finding = 'Pick a credit proposal to choose which covenants to monitor. CPs with no covenants yet are the ones to start with.';
+  } else if (data) {
+    finding = data.length === 0 ? 'No covenants proposed yet. Upload the loan agreement on Documents to have its covenants read.'
+      : `${data.length} covenant${data.length === 1 ? '' : 's'} proposed, ${fromAgreement} read from the loan agreement. `
+        + `${selectedCount} ticked to apply; nothing is monitored until you apply it.`;
+  }
   return (
-    <Stack>
-      <Group justify="space-between" align="end">
-        <Stack gap={2}>
-          <Title order={1}>{cpId ? `Onboard CP ${cpId}` : 'Onboarding'}</Title>
-          {cpId && <CpHeader cpId={cpId} />}
-        </Stack>
-        <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/onboarding/${encodeURIComponent(cp)}`)} />
-      </Group>
-      {!cpId && <CpChooser onOpen={(cp) => navigate(`/onboarding/${encodeURIComponent(cp)}`)}
-        hint="Pick a credit proposal to choose which covenants to monitor. CPs with no covenants yet are the ones to start with." />}
+    <Stack gap="lg">
+      <PageHeader title={cpId ? `Onboard ${cpId}` : 'Onboarding'} finding={finding}
+        chips={cpId ? <CpChips cpId={cpId} /> : undefined}
+        actions={<CpPicker key={cpId} initial={cpId} onOpen={go} />} />
+      {!cpId && <CpChooser onOpen={go} />}
       {cpId && isLoading && <Loading />}
       {error && <ErrorNote error={error} />}
+      {data && data.length > 0 && (
+        <KpiStrip ariaLabel="Proposed covenants">
+          <Kpi label="Proposed" value={data.length} onClick={() => setShow('all')} selected={show === 'all'}
+            ariaLabel="Show covenants: All" note="Library, ML and agreement" />
+          <Kpi label="From the agreement" value={fromAgreement} onClick={() => pick('agreement')} selected={show === 'agreement'}
+            ariaLabel="Show covenants: From the agreement" note="With the page they came from" />
+          <Kpi label="Library matches" value={count('library')} onClick={() => pick('library')} selected={show === 'library'}
+            ariaLabel="Show covenants: Library matches" note="Suggested for this segment and sector" />
+          <Kpi label="Already applied" value={applied} onClick={() => pick('applied')} selected={show === 'applied'}
+            ariaLabel="Show covenants: Already applied" note={applied ? 'Monitored now' : 'None yet'} />
+          <Kpi label="Ticked to apply" value={selectedCount} lead tone={selectedCount ? 'info' : 'neutral'}
+            onClick={() => pick('chosen')} selected={show === 'chosen'} ariaLabel="Show covenants: Ticked"
+            note={selectedCount ? 'Check rule and frequency, then apply' : 'Tick the covenants to monitor'} />
+        </KpiStrip>
+      )}
       {data && (
-        <>
-          <Alert color="blue" variant="light">
-            Rows from the loan agreement (EXTRACTED) show the page they came from. Nothing is monitored until you
-            apply it here.
-          </Alert>
-          <Group>
-            <TextInput placeholder="Search covenants" aria-label="Search covenants" value={q} w={280}
+        <Card padding={0}>
+          <Group justify="space-between" align="flex-end" p="lg" pb="md" wrap="wrap">
+            <Stack gap={2}>
+              <Title order={4}>Proposed covenants</Title>
+              <Text size="sm" c="dimmed">Leave a rule empty to use the library rule.</Text>
+            </Stack>
+            <TextInput placeholder="Search covenants" aria-label="Search covenants" value={q} w={260}
               onChange={(e) => setQ(e.currentTarget.value)} />
-            <SegmentedControl aria-label="Which covenants" value={show} onChange={(v) => setShow(v as Show)} data={[
-              { value: 'all', label: `All (${data.length})` },
-              { value: 'agreement', label: `From the agreement (${count('agreement')})` },
-              { value: 'chosen', label: `Ticked (${selectedCount})` },
-              { value: 'library', label: `Library matches (${count('library')})` },
-              { value: 'applied', label: `Already applied (${count('applied')})` }]} />
           </Group>
-          <Table withTableBorder striped>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Apply</Table.Th><Table.Th>Covenant</Table.Th><Table.Th>Source</Table.Th>
-                <Table.Th>Rule</Table.Th><Table.Th>Frequency</Table.Th><Table.Th>Why</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {view.map(({ r, i }) => {
-                const key = rowKey(r, i);
-                const d = drafts[key] ?? initialDraft(r);
-                return (
-                  <Table.Tr key={key}>
-                    <Table.Td>
-                      <Checkbox aria-label={`Apply ${r.name}`} checked={d.selected} disabled={r.alreadyApplied}
-                        onChange={(e) => update(key, { selected: e.currentTarget.checked })} />
-                    </Table.Td>
-                    <Table.Td>
-                      <Text>{r.name}</Text>
-                      {r.alreadyApplied && <Badge size="xs" color="gray">already applied</Badge>}
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge color={SOURCE_COLOR[r.source]} variant="light" style={{ whiteSpace: 'nowrap', overflow: 'visible' }}>
-                        {SOURCE_LABEL[r.source]}
-                      </Badge>
-                      {r.extractionConfidence !== null && (
-                        <Text size="xs" c="dimmed">{Math.round(r.extractionConfidence * 100)}% confidence</Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      {r.assessmentType === 'MANUAL' && r.covenantId ? <Text size="sm" c="dimmed">Manual check</Text> : (
-                        <TextInput aria-label={`Rule for ${r.name}`} value={d.expression} ff="monospace"
-                          placeholder="Master rule" onChange={(e) => update(key, { expression: e.currentTarget.value })} />
-                      )}
-                      {suggested[key] && <Text size="xs" c="grape">{suggested[key]}</Text>}
-                      {r.mlRecommendedExpression && r.source === 'EXTRACTED' && (
-                        <Text size="xs" c="dimmed">ML suggested {r.mlRecommendedExpression}</Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Select aria-label={`Frequency for ${r.name}`} w={130} value={d.frequency} allowDeselect={false}
-                        data={FREQUENCIES} onChange={(v) => v && update(key, { frequency: v as Frequency })} />
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{r.matchReason}</Text>
-                      {r.evidence?.quote && (
-                        <Tooltip label={r.evidence.quote} multiline w={360}>
-                          <Text size="xs" c="teal" td="underline">“{r.evidence.quote.slice(0, 60)}…”</Text>
-                        </Tooltip>
-                      )}
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-              {view.length === 0 && (
-                <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">No covenant matches.</Text></Table.Td></Table.Tr>
-              )}
-            </Table.Tbody>
-          </Table>
-          {canApply && <Group justify="end">
-            <Button variant="light" onClick={() => suggest.mutate()} loading={suggest.isPending}
-              disabled={selectedCount === 0}>Suggest thresholds</Button>
-            <Button onClick={() => apply.mutate()} loading={apply.isPending} disabled={selectedCount === 0}>
-              Apply {selectedCount} covenant(s)
-            </Button>
-          </Group>}
-        </>
+          <Table.ScrollContainer minWidth={900}>
+            <Table verticalSpacing="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th w={56}>Apply</Table.Th><Table.Th>Covenant</Table.Th><Table.Th>Source</Table.Th>
+                  <Table.Th>Rule</Table.Th><Table.Th>Frequency</Table.Th><Table.Th>Why</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {view.map(({ r, i }) => {
+                  const key = rowKey(r, i);
+                  const d = drafts[key] ?? initialDraft(r);
+                  const words = describeRule(d.expression || r.conditionOverride, measures)?.text;
+                  return (
+                    <Table.Tr key={key} bg={d.selected ? 'var(--app-raised)' : undefined}>
+                      <Table.Td>
+                        <Checkbox aria-label={`Apply ${r.name}`} checked={d.selected} disabled={r.alreadyApplied}
+                          onChange={(e) => update(key, { selected: e.currentTarget.checked })} />
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" fw={550}>{r.name}</Text>
+                        {r.alreadyApplied && <Text size="xs" c="dimmed">Already applied</Text>}
+                      </Table.Td>
+                      <Table.Td style={{ whiteSpace: 'nowrap' }}>
+                        <Badge color={SOURCE_COLOR[r.source]} variant="light">{SOURCE_LABEL[r.source]}</Badge>
+                        {r.extractionConfidence !== null && (
+                          <Text size="xs" c="dimmed" mt={2}>{Math.round(r.extractionConfidence * 100)}% confidence</Text>
+                        )}
+                      </Table.Td>
+                      <Table.Td miw={240}>
+                        {r.assessmentType === 'MANUAL' && r.covenantId ? <Text size="sm" c="dimmed">Manual check</Text> : (
+                          <TextInput aria-label={`Rule for ${r.name}`} value={d.expression} ff="monospace" size="sm"
+                            placeholder="Library rule" onChange={(e) => update(key, { expression: e.currentTarget.value })} />
+                        )}
+                        {words && <Text size="xs" c="dimmed" mt={4}>{words}</Text>}
+                        {suggested[key] && <Text size="xs" c="var(--data-hue)" mt={2}>{suggested[key]}</Text>}
+                        {r.mlRecommendedExpression && r.source === 'EXTRACTED' && (
+                          <Text size="xs" c="dimmed" mt={2}>ML suggested {r.mlRecommendedExpression}</Text>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Select aria-label={`Frequency for ${r.name}`} w={140} size="sm" value={d.frequency} allowDeselect={false}
+                          data={FREQUENCIES.map((f) => ({ value: f, label: humanize(f) }))}
+                          onChange={(v) => v && update(key, { frequency: v as Frequency })} />
+                      </Table.Td>
+                      <Table.Td maw={320}>
+                        <Text size="sm">{r.matchReason}</Text>
+                        {r.evidence?.quote && (
+                          <Tooltip label={r.evidence.quote} multiline w={360}>
+                            <Text size="xs" c="dimmed" fs="italic" lineClamp={2}>“{r.evidence.quote}”</Text>
+                          </Tooltip>
+                        )}
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+                {view.length === 0 && (
+                  <Table.Tr><Table.Td colSpan={6}><Text c="dimmed" size="sm">No covenant matches.</Text></Table.Td></Table.Tr>
+                )}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+          {canApply && (
+            <Group justify="space-between" p="md" px="lg" className="action-bar">
+              <Text size="sm" c="dimmed">
+                {selectedCount ? `${selectedCount} ticked. They are checked from the next due date.` : 'Tick covenants to apply them.'}
+              </Text>
+              <Group gap="sm">
+                <Button variant="light" onClick={() => suggest.mutate()} loading={suggest.isPending}
+                  disabled={selectedCount === 0}>Suggest thresholds</Button>
+                <Button onClick={() => apply.mutate()} loading={apply.isPending} disabled={selectedCount === 0}>
+                  Apply {selectedCount} covenant(s)
+                </Button>
+              </Group>
+            </Group>
+          )}
+        </Card>
       )}
     </Stack>
   );

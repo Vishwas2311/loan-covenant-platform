@@ -32,13 +32,15 @@ const ICONS: Record<string, typeof IconBooks> = {
 };
 
 /** The product name with a small chart mark, as on the GenBI-style boards. */
-export function BrandMark({ label = 'Covenant Platform' }: { label?: string }) {
+/** The Covenexa mark (same drawing as public/covenexa.svg) and the product name. */
+export function BrandMark({ label = 'Covenexa' }: { label?: string }) {
   return (
     <Group gap={10} wrap="nowrap">
-      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-        <rect x="1" y="12" width="5" height="9" rx="1.5" fill="var(--mantine-color-brand-4)" />
-        <rect x="8.5" y="7" width="5" height="14" rx="1.5" fill="var(--mantine-color-brand-6)" />
-        <rect x="16" y="1" width="5" height="20" rx="1.5" fill="var(--mantine-color-brand-8)" />
+      <svg width="28" height="28" viewBox="0 0 160 160" aria-hidden="true">
+        <rect width="160" height="160" rx="32" fill="#0b0b12" />
+        <path d="M62 34 100 16v62L82 87v31l-60 28V100l40-19z" fill="#ffffff" />
+        <path d="M86 92 104 82 140 101v42L86 119z" fill="#7353ea" />
+        <path d="M86 92 104 82 140 101 122 111z" fill="#9a82f5" />
       </svg>
       <Text component="span" className="app-brand">{label}</Text>
     </Group>

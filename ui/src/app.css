@@ -74,6 +74,16 @@ body {
   font-size: 0.875rem;
 }
 
+/* A status in a table cell is read whole, never cut to "NEEDS RE…". */
+.mantine-Table-td .mantine-Badge-root {
+  max-width: none;
+  overflow: visible;
+}
+
+.mantine-Table-td .mantine-Badge-label {
+  overflow: visible;
+}
+
 /* Shell: the top bar and the labelled sidebar sit on the surface, split from the ground by one rule. */
 .app-header {
   background: var(--app-surface);
@@ -223,6 +233,15 @@ button:focus-visible > .cp-card {
 
 .ladder-item + .ladder-item {
   border-top: 1px solid var(--app-rule);
+}
+
+/* A card's own actions stay in reach at the foot of a long list. */
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
+  border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
 }
 
 @media print {

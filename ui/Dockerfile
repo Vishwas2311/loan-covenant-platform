@@ -1,4 +1,4 @@
-# Covenant Platform UI: static build served by nginx, which also proxies /api (Core) and /dps (DPS).
+# Covenexa UI: static build served by nginx, which also proxies /api (Core) and /dps (DPS).
 FROM node:24-alpine AS build
 WORKDIR /src
 COPY package.json package-lock.json ./

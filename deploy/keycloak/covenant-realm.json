@@ -1,7 +1,7 @@
 {
   "realm": "covenant",
   "enabled": true,
-  "displayName": "Covenant Platform (local)",
+  "displayName": "Covenexa (local)",
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": false,

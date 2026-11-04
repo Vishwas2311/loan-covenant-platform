@@ -354,7 +354,7 @@ describe('portfolio, documents and onboarding additions', () => {
       latestJobId: null, uploadedAt: '2026-11-01T00:00:00Z', uploadedBy: 'rm-anil', asOfDate: null };
     const calls = mockFetch((url) => (url.startsWith('/dps/v1/documents?') ? { body: [doc] } : { body: doc }));
     renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
-    expect(screen.getByRole('heading', { name: 'Upload to CP-1' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Upload to CP-1' })).toBeInTheDocument();
     fireEvent.click(await screen.findByText('agreement.pdf'));
     const input = await screen.findByRole('textbox', { name: 'Applies to CPs' });
     fireEvent.change(input, { target: { value: 'cp-2' } });

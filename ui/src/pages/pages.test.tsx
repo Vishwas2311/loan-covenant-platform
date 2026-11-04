@@ -247,7 +247,7 @@ describe('Documents', () => {
       return undefined;
     });
     renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
-    fireEvent.click(await screen.findByRole('cell', { name: 'agreement.pdf' }));
+    fireEvent.click(await screen.findByRole('cell', { name: /^agreement.pdf/ }));
     expect(await screen.findByText('LOW_CONFIDENCE')).toBeInTheDocument();
     fireEvent.click(screen.getAllByText('Approve')[0]);
     await waitFor(() => expect(calls.some((c) => c.init.method === 'PATCH')).toBe(true));

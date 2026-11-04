@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import { useNavigate } from 'react-router-dom';
 import type { CpCard } from '../api/types2';
 import { mockFetch, renderAt } from '../test-utils';
-import { CpChooser, CpHeader, humanize } from './CpPicker';
+import { CpChips, CpChooser, humanize } from './CpPicker';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -64,17 +64,19 @@ describe('CpChooser', () => {
   });
 });
 
-describe('CpHeader', () => {
+describe('CpChips', () => {
   it('names the borrower and where the CP sits', async () => {
     mockFetch(() => ({ body: CARDS }));
-    renderAt('/cp/CP-1', '/cp/:cpId', <CpHeader cpId="CP-1" />);
+    renderAt('/cp/CP-1', '/cp/:cpId', <CpChips cpId="CP-1" />);
     expect(await screen.findByText('Tata Steel')).toBeInTheDocument();
-    expect(screen.getByText('Corporate · Metals mining · RM rm-anil')).toBeInTheDocument();
+    expect(screen.getByText('Corporate')).toBeInTheDocument();
+    expect(screen.getByText('Metals mining')).toBeInTheDocument();
+    expect(screen.getByText('RM rm-anil')).toBeInTheDocument();
   });
 
   it('shows nothing for a CP that is not the user own', async () => {
     const calls = mockFetch(() => ({ body: CARDS }));
-    renderAt('/cp/CP-9', '/cp/:cpId', <CpHeader cpId="CP-9" />);
+    renderAt('/cp/CP-9', '/cp/:cpId', <CpChips cpId="CP-9" />);
     await vi.waitFor(() => expect(calls.length).toBe(1));
     expect(screen.queryByText(/RM rm-anil/)).not.toBeInTheDocument();
   });

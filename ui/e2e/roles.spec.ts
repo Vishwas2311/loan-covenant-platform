@@ -153,7 +153,7 @@ test('a page outside the role explains itself, and bank-wide roles see the whole
 
 test('pages opened without a CP list the user CPs to choose from', async ({ page }) => {
   await signIn(page, 'rm-anil', '/cp');
-  for (const [path, heading] of [['/cp', /^Tata Steel Ltd$/], ['/onboarding', /^Onboard CP CP-/], ['/documents', /^Documents for CP-/]] as const) {
+  for (const [path, heading] of [['/cp', /^Tata Steel Ltd$/], ['/onboarding', /^Onboard CP-/], ['/documents', /^Documents for CP-/]] as const) {
     await page.goto(path);
     const cards = page.getByRole('button', { name: /^Open CP-/ });
     await expect(cards.first()).toBeVisible();
