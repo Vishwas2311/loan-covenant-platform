@@ -54,7 +54,7 @@ class AlertAndTrendServiceTest {
     void alertsAreSortedApprovalsFirstAndSkipOwnRequests() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 "wrm-meera", null, List.of(new SimpleGrantedAuthority("ROLE_APPROVER"))));
-        when(monitoringService.summary("wrm-meera")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 4, 1, 2, 0, 1, 0)));
+        when(monitoringService.ownedSummary("wrm-meera")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 4, 1, 2, 0, 1, 0)));
         when(reviewService.reviewRows("CP-1")).thenReturn(List.of(
                 row("1", AssessmentResult.COMPLIANT, false, null, null, TimingStatus.UP_TO_DATE, true),
                 row("2", AssessmentResult.BREACHED, true, null, null, TimingStatus.OVERDUE, false),

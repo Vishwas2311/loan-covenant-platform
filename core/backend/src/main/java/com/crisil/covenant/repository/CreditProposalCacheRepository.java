@@ -24,4 +24,8 @@ public interface CreditProposalCacheRepository extends JpaRepository<CreditPropo
      */
     @Query("select e.cpId from CreditProposalCacheEntry e where e.rmUserId = :u or e.wrmUserId = :u")
     List<String> findCpIdsOwnedBy(@Param("u") String user);
+
+    /** Every cached CP id: the portfolio of a bank-wide role (admin, auditor, support). */
+    @Query("select e.cpId from CreditProposalCacheEntry e")
+    List<String> findAllCpIds();
 }

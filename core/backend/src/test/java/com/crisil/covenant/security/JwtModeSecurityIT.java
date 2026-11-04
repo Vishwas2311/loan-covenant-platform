@@ -129,6 +129,17 @@ class JwtModeSecurityIT {
     }
 
     @Test
+    void dataSourceWriteNeedsAdmin() throws Exception {
+        String body = "{}";
+        mvc.perform(post("/api/v1/data-sources").contentType(MediaType.APPLICATION_JSON).content(body)
+                        .header("Authorization", token("author-1", List.of("AUTHOR"), ISSUER, AUD)))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/data-sources").contentType(MediaType.APPLICATION_JSON).content(body)
+                        .header("Authorization", token("admin-1", List.of("ADMIN"), ISSUER, AUD)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void opsNeedsSupportRole() throws Exception {
         mvc.perform(get("/api/v1/ops/health/data-sources")
                         .header("Authorization", token("rm-anil", List.of("RM"), ISSUER, AUD)))

@@ -31,7 +31,7 @@ export async function signIn(page: Page, user: string, path = '/portfolio'): Pro
   await page.locator('#password').fill(demoPassword());
   await page.locator('#kc-login').click();
   await page.waitForURL((url) => url.port === '8080' && !url.pathname.startsWith('/auth/'));
-  await expect(page.getByText(`${user} (`)).toBeVisible();
+  await expect(page.getByText(`${user} (`).first()).toBeVisible();
 }
 
 /** A fresh browser session (own cookies), signed in as `user`. */

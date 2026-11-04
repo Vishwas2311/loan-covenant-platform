@@ -45,7 +45,7 @@ public class SecurityConfig {
     };
 
     private static final String[] LIBRARY_WRITE_PATHS = {
-        "/api/v1/covenants/**", "/api/v1/measures/**", "/api/v1/data-sources/**", "/api/v1/settings/**"
+        "/api/v1/covenants/**", "/api/v1/measures/**", "/api/v1/settings/**"
     };
 
     /**
@@ -102,6 +102,8 @@ public class SecurityConfig {
                             "/api/v1/reports/scheduled-runs")
                     .hasAnyRole(Roles.ADMIN, Roles.SUPPORT, Roles.SERVICE);
             for (HttpMethod method : List.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE)) {
+                // Connections to bank systems (hosts, accounts) are an administrator's job, not an author's.
+                a.requestMatchers(method, "/api/v1/data-sources/**").hasRole(Roles.ADMIN);
                 a.requestMatchers(method, LIBRARY_WRITE_PATHS).hasAnyRole(Roles.AUTHOR, Roles.ADMIN);
             }
             // C1: the portal is for borrowers only, and a borrower with no bank role reaches nothing else.

@@ -32,7 +32,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -137,6 +141,40 @@ class MonitoringServiceTest {
         assertThat(service.summary("  ")).isEmpty();
         verify(cacheRepo, never()).findCpIdsOwnedBy(any());
         verify(appliedRepo, never()).findByCpIdInOrderByIdAsc(anyCollection());
+    }
+
+    @AfterEach
+    void clearCaller() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private static void signIn(String user, String role) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                user, null, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
+    }
+
+    @Test
+    void bankWideRolesSeeEveryCpButOnlyForThemselves() {
+        when(cacheRepo.findAllCpIds()).thenReturn(List.of("CP-2", "CP-1"));
+        signIn("auditor-1", "AUDITOR");
+        assertThat(service.visibleCpIds("auditor-1")).containsExactly("CP-1", "CP-2");
+        // An admin's request that works out an RM's portfolio still gets the RM's own CPs.
+        signIn("admin-1", "ADMIN");
+        when(cacheRepo.findCpIdsOwnedBy(USER)).thenReturn(List.of("CP-9"));
+        assertThat(service.visibleCpIds(USER)).containsExactly("CP-9");
+        // An RM is never bank-wide.
+        signIn(USER, "RM");
+        assertThat(service.visibleCpIds(USER)).containsExactly("CP-9");
+    }
+
+    @Test
+    void ownedSummaryIgnoresBankWideRole() {
+        signIn(USER, "SUPPORT");
+        when(cacheRepo.findCpIdsOwnedBy(USER)).thenReturn(List.of());
+        assertThat(service.ownedSummary(USER)).isEmpty();
+        assertThat(service.ownedSummary(null)).isEmpty();
+        assertThat(service.ownedSummary(" ")).isEmpty();
+        verify(cacheRepo, never()).findAllCpIds();
     }
 
     @Test

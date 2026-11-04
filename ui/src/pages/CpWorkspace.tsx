@@ -171,8 +171,8 @@ function ReviewGrid({ cpId }: { cpId: string }) {
           })}
           {(data ?? []).length === 0 && (
             <Table.Tr><Table.Td colSpan={8}>
-              <Text c="dimmed">No covenants on this CP yet. <Anchor component={Link}
-                to={`/onboarding/${encodeURIComponent(cpId)}`}>Onboard covenants</Anchor></Text>
+              <Text c="dimmed">No covenants on this CP yet.{canAct ? ' ' : ' Its RM onboards them.'}{canAct && <Anchor
+                component={Link} to={`/onboarding/${encodeURIComponent(cpId)}`}>Onboard covenants</Anchor>}</Text>
             </Table.Td></Table.Tr>
           )}
         </Table.Tbody>

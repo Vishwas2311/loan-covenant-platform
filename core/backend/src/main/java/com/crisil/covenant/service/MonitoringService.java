@@ -36,6 +36,8 @@ import com.crisil.covenant.domain.MonitoringTiming;
 import com.crisil.covenant.enums.TimingStatus;
 import com.crisil.covenant.util.DispositionRules;
 import com.crisil.covenant.util.MonitoringTimingCalculator;
+import com.crisil.covenant.config.CurrentUserContext;
+import com.crisil.covenant.security.Roles;
 
 @Service
 @Transactional(readOnly = true)
@@ -71,11 +73,40 @@ public class MonitoringService {
         if (user == null || user.isBlank()) {
             return Set.of();
         }
+        if (bankWide(user)) {
+            return new HashSet<>(cacheRepo.findAllCpIds());
+        }
         return new HashSet<>(cacheRepo.findCpIdsOwnedBy(user));
     }
 
+    /**
+     * Admin, auditor and support may open any CP (see CpAccessGuard), so their portfolio is every CP.
+     * Only when {@code user} is the signed-in caller: a job or an admin request working out another
+     * user's portfolio (an RM's breach e-mail, say) still gets that user's own CPs.
+     */
+    private static boolean bankWide(String user) {
+        return CurrentUserContext.currentUser().filter(user::equals).isPresent()
+                && CurrentUserContext.hasAnyRole(Roles.ADMIN, Roles.AUDITOR, Roles.SUPPORT);
+    }
+
+    /** The CP ids {@code user} sees in their portfolio, sorted. */
+    public List<String> visibleCpIds(String user) {
+        return ownedCpIds(user).stream().sorted().toList();
+    }
+
+    /** The CPs {@code user} is RM or WRM on, whatever their role: for things that wait on that person. */
+    public List<CpMonitoringSummary> ownedSummary(String user) {
+        if (user == null || user.isBlank()) {
+            return List.of();
+        }
+        return summaryOf(new HashSet<>(cacheRepo.findCpIdsOwnedBy(user)));
+    }
+
     public List<CpMonitoringSummary> summary(String user) {
-        Set<String> owned = ownedCpIds(user);
+        return summaryOf(ownedCpIds(user));
+    }
+
+    private List<CpMonitoringSummary> summaryOf(Set<String> owned) {
         if (owned.isEmpty()) {
             return List.of();
         }

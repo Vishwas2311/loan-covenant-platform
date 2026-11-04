@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { envValue, signIn } from './helpers';
+import { envValue, sessionAs, signIn } from './helpers';
 
 // Every page, as every role: no error box, no failed API call, no console error, and the right menus.
 // A page that calls an endpoint its own role may not use shows up here as a 401/403.
@@ -17,19 +17,24 @@ const STAFF_PAGES = (cp: string) => [
 ];
 const ALL_MENUS = ['Portfolio', 'My tasks', 'CP workspace', 'Onboarding', 'Documents', 'Covenant library', 'Reports'];
 
+const READ_PAGES = (cp: string) => ['/portfolio', `/cp/${cp}`, `/documents/${cp}`, '/library'];
 const ROLES: Role[] = [
   { user: 'rm-anil', cp: 'CP-1001', menus: ALL_MENUS, hidden: ['Measures', 'Data sources', 'Settings', 'Support tools'],
     pages: STAFF_PAGES('CP-1001') },
   { user: 'wrm-meera', cp: 'CP-1001', menus: ALL_MENUS, hidden: ['Measures', 'Settings', 'Support tools'],
     pages: STAFF_PAGES('CP-1001') },
-  { user: 'author-1', cp: '', menus: [...ALL_MENUS, 'Measures'], hidden: ['Settings', 'Support tools', 'Data sources'],
-    pages: ['/portfolio', '/tasks', '/library', '/measures', '/reports'] },
+  { user: 'author-1', cp: '', menus: ['Covenant library', 'Measures'],
+    hidden: ['Portfolio', 'My tasks', 'CP workspace', 'Onboarding', 'Documents', 'Reports', 'Settings', 'Support tools',
+      'Data sources'],
+    pages: ['/library', '/measures'] },
   { user: 'admin-1', cp: 'CP-1001', menus: [...ALL_MENUS, 'Measures', 'Data sources', 'Settings', 'Support tools'],
     hidden: [], pages: [...STAFF_PAGES('CP-1001'), '/measures', '/data-sources', '/settings', '/ops/jobs', '/ops/support'] },
-  { user: 'auditor-1', cp: 'CP-1008', menus: ALL_MENUS, hidden: ['Measures', 'Settings', 'Support tools'],
-    pages: STAFF_PAGES('CP-1008') },
-  { user: 'support-1', cp: 'CP-1001', menus: [...ALL_MENUS, 'Support tools', 'Document jobs'], hidden: ['Settings', 'Measures'],
-    pages: [...STAFF_PAGES('CP-1001'), '/ops/jobs', '/ops/support'] },
+  { user: 'auditor-1', cp: 'CP-1008', menus: ['Portfolio', 'CP workspace', 'Documents', 'Covenant library', 'Reports'],
+    hidden: ['My tasks', 'Onboarding', 'Measures', 'Settings', 'Support tools'],
+    pages: [...READ_PAGES('CP-1008'), '/reports'] },
+  { user: 'support-1', cp: 'CP-1001', menus: ['Portfolio', 'CP workspace', 'Documents', 'Covenant library',
+    'Support tools', 'Document jobs'], hidden: ['My tasks', 'Onboarding', 'Reports', 'Settings', 'Measures'],
+    pages: [...READ_PAGES('CP-1001'), '/ops/jobs', '/ops/support'] },
 ];
 
 const CP_TABS = ['Covenants', 'Status history', 'Period comparison', 'Certificates', 'Manual values', 'AI suggestions', 'Cycles'];
@@ -129,10 +134,22 @@ for (const user of ['auditor-1', 'support-1']) {
     await expect(page.getByRole('heading', { name: 'Documents for CP-1005' })).toBeVisible();
     await expect(page.getByRole('heading', { name: /^Upload to/ })).toHaveCount(0);
     await page.goto('/onboarding/CP-1005');
-    await expect(page.getByRole('heading', { name: 'Onboard CP CP-1005' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Apply \d+ covenant/ })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Onboarding is not part of your role' })).toBeVisible();
+    await expect(page.getByText('Read-only on loans')).toBeVisible();
   });
 }
+
+test('a page outside the role explains itself, and bank-wide roles see the whole portfolio', async ({ page, browser }) => {
+  await signIn(page, 'author-1', '/settings');
+  await expect(page.getByRole('heading', { name: 'Settings is not part of your role' })).toBeVisible();
+  await page.getByRole('link', { name: 'Go to your start page' }).click();
+  await expect(page.getByRole('heading', { name: 'Covenant library' })).toBeVisible();
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/library$/);
+  const auditor = await sessionAs(browser, 'auditor-1', '/cp');
+  await expect(auditor.getByRole('button', { name: /^Open CP-/ }).first()).toBeVisible();
+  expect(await auditor.getByRole('button', { name: /^Open CP-/ }).count()).toBeGreaterThan(12);
+});
 
 test('pages opened without a CP list the user CPs to choose from', async ({ page }) => {
   await signIn(page, 'rm-anil', '/cp');

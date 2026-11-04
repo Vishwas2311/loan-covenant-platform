@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * The CPs the caller looks after (RM or WRM), with the borrower name and covenant counts, so a page
+ * The CPs the caller looks after (RM or WRM; every CP for admin, auditor and support), with the borrower name and covenant counts, so a page
  * opened without a CP can offer a list instead of an empty id box. Borrower names come from the CP
  * service and are kept in memory: they do not change while the app runs, and a failed lookup is
  * retried next time rather than remembered.
@@ -43,7 +43,7 @@ public class CpDirectoryService {
         if (user == null || user.isBlank()) {
             return List.of();
         }
-        List<String> owned = cacheRepo.findCpIdsOwnedBy(user);
+        List<String> owned = monitoringService.visibleCpIds(user);
         if (owned.isEmpty()) {
             return List.of();
         }

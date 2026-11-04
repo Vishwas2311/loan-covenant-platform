@@ -12,6 +12,7 @@ import { r2 } from '../api/endpoints2';
 import { r3 } from '../api/endpoints3';
 import type { Frequency, NewCovenant } from '../api/types';
 import type { CovenantDetail } from '../api/types3';
+import { canOpen, pageFor } from '../auth/access';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading } from '../components/Status';
@@ -120,6 +121,7 @@ function CovenantForm({ existing, onClose }: { existing?: CovenantDetail; onClos
 
 /** A2: one library covenant: its details, where it is used, its change history, and edit / switch off. */
 function CovenantDetails({ id, canAuthor, onClose }: { id: string; canAuthor: boolean; onClose: () => void }) {
+  const opensCps = canOpen(useIdentity(), pageFor('/cp')!);
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const detail = useQuery({ queryKey: ['covenant', id], queryFn: () => r3.covenant(id) });
@@ -171,7 +173,8 @@ function CovenantDetails({ id, canAuthor, onClose }: { id: string; canAuthor: bo
               On {usage.data.totalApplied} loan(s), {usage.data.activelyApplied} still monitored
               {usage.data.sampleCpIds.length > 0 && ': '}
               {usage.data.sampleCpIds.map((cp, i) => (
-                <span key={cp}>{i > 0 && ', '}<Anchor component={Link} to={`/cp/${encodeURIComponent(cp)}`}>{cp}</Anchor></span>
+                <span key={cp}>{i > 0 && ', '}{opensCps
+                  ? <Anchor component={Link} to={`/cp/${encodeURIComponent(cp)}`}>{cp}</Anchor> : cp}</span>
               ))}
             </Text>
           )}

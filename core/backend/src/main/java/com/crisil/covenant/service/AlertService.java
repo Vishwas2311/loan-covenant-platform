@@ -39,7 +39,7 @@ public class AlertService {
     public List<AlertView> alertsFor(String user) {
         boolean approver = CurrentUserContext.hasAnyRole(Roles.APPROVER, Roles.ADMIN);
         List<AlertView> alerts = new ArrayList<>();
-        for (CpMonitoringSummary cp : monitoringService.summary(user)) {
+        for (CpMonitoringSummary cp : monitoringService.ownedSummary(user)) {
             for (CpReviewRow r : reviewService.reviewRows(cp.cpId())) {
                 alerts.addAll(alertsForRow(cp.cpId(), r, user, approver));
             }

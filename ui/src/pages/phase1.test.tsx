@@ -189,7 +189,9 @@ describe('library detail', () => {
     renderAt('/library', '/library', <Library />);
     fireEvent.click(await screen.findByRole('button', { name: 'Minimum DSCR' }));
     expect(await screen.findByText(/On 3 loan\(s\), 2 still monitored/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'CP-1001' })).toBeInTheDocument();
+    // An author cannot open CPs, so the CP is named but not linked.
+    expect(screen.getByText(/CP-1001/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'CP-1001' })).not.toBeInTheDocument();
     expect(await screen.findByText('DSCR >= 1.25 → DSCR >= 1.5')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));

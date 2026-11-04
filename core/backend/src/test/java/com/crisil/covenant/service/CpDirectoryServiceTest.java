@@ -43,7 +43,7 @@ class CpDirectoryServiceTest {
 
     @Test
     void listsOwnedCpsWithNamesAndCountsSortedById() throws Exception {
-        when(cacheRepo.findCpIdsOwnedBy("rm")).thenReturn(List.of("CP-2", "CP-1"));
+        when(monitoringService.visibleCpIds("rm")).thenReturn(List.of("CP-2", "CP-1"));
         when(cacheRepo.findAllById(any())).thenReturn(List.of(entry("CP-2", "CORPORATE"), entry("CP-1", "SME")));
         when(monitoringService.summary("rm")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 5, 3, 1, 1, 0, 1)));
         when(creditProposals.lookup("CP-1")).thenReturn(details("CP-1", "Tata Steel"));
@@ -65,7 +65,7 @@ class CpDirectoryServiceTest {
 
     @Test
     void unknownNameIsNotKept() throws Exception {
-        when(cacheRepo.findCpIdsOwnedBy("rm")).thenReturn(List.of("CP-1"));
+        when(monitoringService.visibleCpIds("rm")).thenReturn(List.of("CP-1"));
         when(cacheRepo.findAllById(any())).thenReturn(List.of(entry("CP-1", null)));
         when(monitoringService.summary("rm")).thenReturn(List.of());
         when(creditProposals.lookup("CP-1")).thenReturn(null).thenReturn(details("CP-1", null));
@@ -80,8 +80,8 @@ class CpDirectoryServiceTest {
         CpDirectoryService svc = new CpDirectoryService(cacheRepo, monitoringService, creditProposals);
         assertThat(svc.cps(null)).isEmpty();
         assertThat(svc.cps(" ")).isEmpty();
-        when(cacheRepo.findCpIdsOwnedBy("x")).thenReturn(List.of());
+        when(monitoringService.visibleCpIds("x")).thenReturn(List.of());
         assertThat(svc.cps("x")).isEmpty();
-        verifyNoInteractions(monitoringService, creditProposals);
+        verifyNoInteractions(creditProposals);
     }
 }
