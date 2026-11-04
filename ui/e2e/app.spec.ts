@@ -168,7 +168,7 @@ test('19. support diagnoses a CP and reads the sent e-mails with the support tok
   await signIn(page, 'support-1', '/ops/support');
   await page.getByLabel('Support token').fill(envValue('COVENANT_SUPPORT_TOKEN'));
   await page.getByRole('button', { name: 'Use token' }).click();
-  await page.getByLabel('CP', { exact: true }).fill('CP-1001');
+  await page.getByPlaceholder('CP id or borrower name').fill('CP-1001');
   await page.getByRole('button', { name: 'Diagnose' }).click();
   await expect(page.getByRole('cell', { name: /Minimum DSCR/ })).toBeVisible();
   await page.getByRole('tab', { name: 'Sent e-mails' }).click();
@@ -315,7 +315,7 @@ test('31. a borrower sees only the portal, and sends a signed certificate', asyn
   await expect(page.getByRole('heading', { name: 'Borrower portal' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Portfolio' })).toHaveCount(0);
   await expect(page.getByText(/What the bank is waiting for/)).toBeVisible();
-  const waiting = page.getByText('No compliance certificate is waiting.');
+  const waiting = page.getByText('You are up to date');
   if (await waiting.count() === 0) {
     await page.locator('input[type=file]').first()
       .setInputFiles({ name: 'cert-q4.pdf', mimeType: 'application/pdf', buffer: uniqueAgreement() });

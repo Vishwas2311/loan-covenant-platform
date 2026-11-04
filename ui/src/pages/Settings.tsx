@@ -1,4 +1,5 @@
-import { Button, Group, NumberInput, Stack, Switch, Table, TextInput, Title } from '@mantine/core';
+import { Button, Card, Group, NumberInput, SimpleGrid, Stack, Switch, Table, Text, TextInput, Title } from '@mantine/core';
+import type { ReactNode } from 'react';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -8,6 +9,20 @@ import { r2 } from '../api/endpoints2';
 import { r3 } from '../api/endpoints3';
 import type { ReportingSettings } from '../api/types';
 import { ErrorNote, Loading } from '../components/Status';
+
+function Section({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+  return (
+    <Card withBorder padding="lg">
+      <Stack gap="sm">
+        <div>
+          <Title order={4}>{title}</Title>
+          <Text size="sm" c="dimmed">{hint}</Text>
+        </div>
+        {children}
+      </Stack>
+    </Card>
+  );
+}
 
 /** Organisation settings (ADMIN): reporting calendar, schedule windows, disposition maker-checker. */
 export function Settings() {
@@ -31,26 +46,41 @@ export function Settings() {
   }
   const set = (patch: Partial<ReportingSettings>) => setForm({ ...form!, ...patch });
   return (
-    <Stack maw={420}>
+    <Stack maw={960}>
       <Title order={2}>Settings</Title>
-      <NumberInput label="Fiscal year starts in month" min={1} max={12} value={form!.fiscalYearStartMonth}
-        onChange={(v) => set({ fiscalYearStartMonth: Number(v) })} />
-      <Switch label="Periodic windows include the current period" checked={form!.periodicIncludesCurrentPeriod}
-        onChange={(e) => set({ periodicIncludesCurrentPeriod: e.currentTarget.checked })} />
-      <NumberInput label="'Due soon' window (days)" min={1} max={365} value={form!.dueSoonDays}
-        onChange={(v) => set({ dueSoonDays: Number(v) })} />
-      <NumberInput label="Upcoming window (days)" min={1} max={365} value={form!.upcomingWindowDays}
-        onChange={(v) => set({ upcomingWindowDays: Number(v) })} />
-      <NumberInput label="'At risk' warning: headroom below this % of the limit" min={0} max={100}
-        value={form!.atRiskHeadroomPercent ?? 10} onChange={(v) => set({ atRiskHeadroomPercent: Number(v) })}
-        description="For example 10: a DSCR of 1.60 against a floor of 1.50 is at risk. 0 switches it off." />
-      <Switch label="Waivers and extensions need an approver (maker-checker)"
-        checked={form!.dispositionApprovalRequired}
-        onChange={(e) => set({ dispositionApprovalRequired: e.currentTarget.checked })} />
-      <TextInput label="Reporting currency (ISO code)" maxLength={3} value={form!.reportingCurrency}
-        onChange={(e) => set({ reportingCurrency: e.currentTarget.value.toUpperCase() })} />
-      <Button onClick={() => save.mutate()} loading={save.isPending}>Save</Button>
-      <FxRates />
+      <Text c="dimmed">These apply to the whole bank. Changes take effect on the next check.</Text>
+      <SimpleGrid cols={{ base: 1, md: 2 }}>
+        <Section title="Reporting calendar" hint="How periods such as 'last 4 quarters' are counted.">
+          <NumberInput label="Fiscal year starts in month" min={1} max={12} value={form!.fiscalYearStartMonth}
+            onChange={(v) => set({ fiscalYearStartMonth: Number(v) })} description="4 means April to March." />
+          <Switch label="Periodic windows include the current period" checked={form!.periodicIncludesCurrentPeriod}
+            onChange={(e) => set({ periodicIncludesCurrentPeriod: e.currentTarget.checked })} />
+        </Section>
+        <Section title="Monitoring" hint="When checks count as due soon or at risk.">
+          <NumberInput label="'Due soon' window (days)" min={1} max={365} value={form!.dueSoonDays}
+            onChange={(v) => set({ dueSoonDays: Number(v) })} />
+          <NumberInput label="Upcoming window (days)" min={1} max={365} value={form!.upcomingWindowDays}
+            onChange={(v) => set({ upcomingWindowDays: Number(v) })} />
+          <NumberInput label="'At risk' warning: headroom below this % of the limit" min={0} max={100}
+            value={form!.atRiskHeadroomPercent ?? 10} onChange={(v) => set({ atRiskHeadroomPercent: Number(v) })}
+            description="For example 10: a DSCR of 1.60 against a floor of 1.50 is at risk. 0 switches it off." />
+        </Section>
+        <Section title="Approvals" hint="Who must agree before a breach is waived or extended.">
+          <Switch label="Waivers and extensions need an approver (maker-checker)"
+            checked={form!.dispositionApprovalRequired}
+            onChange={(e) => set({ dispositionApprovalRequired: e.currentTarget.checked })} />
+        </Section>
+        <Section title="Currency" hint="Figures in other currencies are converted with the FX rates below.">
+          <TextInput label="Reporting currency (ISO code)" maxLength={3} value={form!.reportingCurrency}
+            onChange={(e) => set({ reportingCurrency: e.currentTarget.value.toUpperCase() })} />
+        </Section>
+      </SimpleGrid>
+      <Group justify="end">
+        <Button onClick={() => save.mutate()} loading={save.isPending}>Save settings</Button>
+      </Group>
+      <Section title="FX rates" hint="One rate per currency pair and date; the latest rate on or before a date is used.">
+        <FxRates />
+      </Section>
     </Stack>
   );
 }
@@ -73,8 +103,7 @@ function FxRates() {
     onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
   });
   return (
-    <Stack mt="lg">
-      <Title order={4}>FX rates</Title>
+    <Stack>
       <Table withTableBorder>
         <Table.Thead><Table.Tr><Table.Th>Pair</Table.Th><Table.Th>Date</Table.Th><Table.Th>Rate</Table.Th><Table.Th /></Table.Tr></Table.Thead>
         <Table.Tbody>
@@ -87,6 +116,9 @@ function FxRates() {
                     && remove.mutate(r.id)}>Delete</Button>
               </Table.Td></Table.Tr>
           ))}
+          {rates.data && rates.data.length === 0 && (
+            <Table.Tr><Table.Td colSpan={4}><Text c="dimmed" size="sm">No rates yet. Add one below.</Text></Table.Td></Table.Tr>
+          )}
         </Table.Tbody>
       </Table>
       <Group align="end">

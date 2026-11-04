@@ -67,14 +67,14 @@ public class CovenantMasterController {
             description = "Updates a covenant template; changes to the condition expression are "
                     + "recorded in the expression change log. When an automatic rule changes, every "
                     + "active CP that follows it (no threshold of its own) is checked again at once and "
-                    + "the counts are returned in `recheck`.")
+                    + "the number queued is returned in `recheck`; they run in the background.")
     public CovenantResponse update(@Parameter(description = "Covenant id") @PathVariable String id,
                                    @Valid @RequestBody UpdateCovenantRequest request) {
         String before = service.get(id).conditionExpression();
         // The update commits on return, so the checks below read the new rule.
         CovenantResponse saved = service.update(id, request);
         if (saved.assessmentType() == AssessmentType.AUTO && !Objects.equals(before, saved.conditionExpression())) {
-            return saved.withRecheck(recheck.recheck(id,
+            return saved.withRecheck(recheck.start(id,
                     CurrentUserContext.currentUser().orElse(AuditingConfig.SYSTEM_USER)));
         }
         return saved;

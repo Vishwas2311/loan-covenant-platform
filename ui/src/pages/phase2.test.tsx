@@ -183,7 +183,7 @@ describe('alerts, charts and settings', () => {
       atRiskHeadroomPercent: 10 } }));
     renderAt('/settings', '/settings', <Settings />);
     fireEvent.change(await screen.findByLabelText(/At risk/), { target: { value: '15' } });
-    fireEvent.click(screen.getByText('Save'));
+    fireEvent.click(screen.getByText('Save settings'));
     await waitFor(() => expect(sent(calls, 'PUT', '/settings/reporting')).toBeTruthy());
     expect(JSON.parse(sent(calls, 'PUT', '/settings/reporting')!.init.body as string).atRiskHeadroomPercent).toBe(15);
   });

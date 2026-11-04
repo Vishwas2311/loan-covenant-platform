@@ -1,5 +1,6 @@
 import {
-  Alert, Badge, Button, Code, Group, Modal, PasswordInput, Select, Stack, Table, Tabs, Text, TextInput, Title,
+  Alert, Autocomplete, Badge, Button, Code, Group, Modal, PasswordInput, Select, Stack, Table, Tabs, Text, TextInput,
+  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ import { useState } from 'react';
 import { errorMessage } from '../api/client';
 import { r3, setSupportToken } from '../api/endpoints3';
 import type { SentNotification } from '../api/types3';
+import { useMyCps } from '../components/CpPicker';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 import { LoanSyncPanel } from './Phase4';
 
@@ -17,6 +19,12 @@ const when = (v: string | null | undefined) => (v ? new Date(v).toLocaleString()
 function Diagnostics() {
   const [cp, setCp] = useState('');
   const [asked, setAsked] = useState('');
+  const cards = useMyCps().data ?? [];
+  const label = (c: { cpId: string; name: string | null }) => (c.name ? `${c.cpId} · ${c.name}` : c.cpId);
+  // "CP-1005 · Tata Steel Ltd" or a typed id: the id is the part before the first space.
+  const idOf = (v: string) => v.trim().split(/\s/)[0].toUpperCase();
+  const go = (v: string) => { setCp(v); setAsked(idOf(v)); };
+  const withErrors = cards.filter((c) => c.error > 0).sort((a, b) => b.error - a.error).slice(0, 8);
   const diag = useQuery({ queryKey: ['diagnostics', asked], queryFn: () => r3.cpDiagnostics(asked), enabled: !!asked });
   const reingest = useMutation({
     mutationFn: () => r3.reingest(asked),
@@ -36,10 +44,24 @@ function Diagnostics() {
   return (
     <Stack>
       <Group align="end">
-        <TextInput label="CP" value={cp} onChange={(e) => setCp(e.currentTarget.value.toUpperCase())} placeholder="CP-1001" />
-        <Button onClick={() => setAsked(cp.trim())} disabled={!cp.trim()}>Diagnose</Button>
+        <Autocomplete label="CP" value={cp} onChange={setCp} onOptionSubmit={go} w={360} limit={20}
+          placeholder="CP id or borrower name" data={cards.map(label)}
+          onKeyDown={(e) => e.key === 'Enter' && cp.trim() && go(cp)} />
+        <Button onClick={() => go(cp)} disabled={!cp.trim()}>Diagnose</Button>
         {asked && <Button variant="light" onClick={() => reingest.mutate()} loading={reingest.isPending}>Reload data</Button>}
       </Group>
+      {!asked && withErrors.length > 0 && (
+        <Stack gap={6}>
+          <Text size="sm" c="dimmed">CPs with data errors, most first:</Text>
+          <Group gap="xs">
+            {withErrors.map((c) => (
+              <Button key={c.cpId} size="xs" variant="light" color="orange" onClick={() => go(label(c))}>
+                {label(c)} · {c.error} error{c.error === 1 ? '' : 's'}
+              </Button>
+            ))}
+          </Group>
+        </Stack>
+      )}
       {diag.isLoading && <Loading />}
       {diag.error && <ErrorNote error={diag.error} />}
       {diag.data && (

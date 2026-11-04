@@ -2,9 +2,10 @@ import { test } from '@playwright/test';
 import { envValue, signIn } from './helpers';
 
 // Not a test: a screenshot of every screen, per role, for a visual review. Skipped unless SHOTS names a
-// folder:  SHOTS=../screens npx playwright test e2e/screens.spec.ts
+// folder:  SHOTS=../screens npx playwright test e2e/screens.spec.ts   (add DARK=1 for dark mode)
 const OUT = process.env.SHOTS ?? '';
 test.skip(!OUT, 'set SHOTS to a folder to take the review screenshots');
+test.use({ colorScheme: process.env.DARK ? 'dark' : 'light' });
 
 const SHOTS: { user: string; pages: { name: string; path: string; tab?: string; click?: string }[] }[] = [
   { user: 'rm-anil', pages: [

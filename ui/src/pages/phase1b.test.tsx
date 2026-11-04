@@ -16,6 +16,33 @@ const sent = (calls: { url: string; init: RequestInit }[], method: string, part:
   calls.find((c) => (c.init.method ?? 'GET') === method && c.url.includes(part));
 
 describe('support tools, the rest', () => {
+  it('offers the CPs with data errors as one-click diagnoses', async () => {
+    const calls = mockFetch((url) => {
+      if (url.includes('/analytics/cps')) {
+        return { body: [
+          { cpId: 'CP-7', name: 'Vedanta Ltd', businessSegment: null, sector: null, rmUserId: null, applied: 3,
+            compliant: 0, breached: 0, error: 3, pendingReview: 0, dispositioned: 0 },
+          { cpId: 'CP-8', name: null, businessSegment: null, sector: null, rmUserId: null, applied: 1,
+            compliant: 0, breached: 0, error: 1, pendingReview: 0, dispositioned: 0 },
+          { cpId: 'CP-9', name: 'Fine Ltd', businessSegment: null, sector: null, rmUserId: null, applied: 1,
+            compliant: 1, breached: 0, error: 0, pendingReview: 0, dispositioned: 0 }] };
+      }
+      if (url.includes('/diagnostics')) {
+        return { body: { cpId: 'CP-7', obligorId: null, covenantCount: 0, covenants: [] } };
+      }
+      return { body: [] };
+    });
+    renderAt('/ops/support', '/ops/support', <Support />);
+    fireEvent.change(screen.getByLabelText('Support token'), { target: { value: 't' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Use token' }));
+    expect(await screen.findByRole('button', { name: 'CP-7 · Vedanta Ltd · 3 errors' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'CP-8 · 1 error' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Fine Ltd/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'CP-7 · Vedanta Ltd · 3 errors' }));
+    await waitFor(() => expect(sent(calls, 'GET', 'CP-7')).toBeTruthy());
+    expect(screen.getByPlaceholderText('CP id or borrower name')).toHaveValue('CP-7 · Vedanta Ltd');
+  });
+
   it('reloads data, re-checks, reads the audit log and health, and sends the e-mails', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const calls = mockFetch((url, init) => {
@@ -49,7 +76,7 @@ describe('support tools, the rest', () => {
     renderAt('/ops/support', '/ops/support', <Support />);
     fireEvent.change(screen.getByLabelText('Support token'), { target: { value: 't' } });
     fireEvent.click(screen.getByRole('button', { name: 'Use token' }));
-    fireEvent.change(screen.getByLabelText('CP'), { target: { value: 'CP-1' } });
+    fireEvent.change(screen.getByPlaceholderText('CP id or borrower name'), { target: { value: 'CP-1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Diagnose' }));
     expect(await screen.findByText('Unknown measure X')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Reload data' }));

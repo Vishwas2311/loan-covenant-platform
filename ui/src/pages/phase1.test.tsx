@@ -180,7 +180,7 @@ describe('library detail', () => {
       }
       if (url.endsWith('/covenants/cov1')) {
         return { body: init.method === 'DELETE' ? { ...LIB, active: false }
-          : init.method === 'PUT' ? { ...LIB, recheck: { checked: 2, breached: 1, errors: 0 } } : LIB };
+          : init.method === 'PUT' ? { ...LIB, recheck: { queued: 2 } } : LIB };
       }
       if (url.startsWith('/api/v1/measures')) {
         return { body: [] };
@@ -202,7 +202,7 @@ describe('library detail', () => {
     const put = JSON.parse(sent(calls, 'PUT', '/covenants/cov1')!.init.body as string);
     expect(put).toMatchObject({ name: 'Minimum DSCR', conditionExpression: 'DSCR >= 1.4', industries: ['ALL'],
       businessSegments: [], defaultCron: null });
-    expect(await screen.findByText(/The new rule was checked on 2 CP covenant\(s\): 1 breached\./)).toBeInTheDocument();
+    expect(await screen.findByText(/Checking the new rule on 2 CP covenant\(s\) now\./)).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Switch off' }));
     expect(await screen.findByText(/switched off/)).toBeInTheDocument();
@@ -316,7 +316,7 @@ describe('support tools', () => {
     renderAt('/ops/support', '/ops/support', <Support />);
     fireEvent.change(screen.getByLabelText('Support token'), { target: { value: ' s3cret ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Use token' }));
-    fireEvent.change(screen.getByLabelText('CP'), { target: { value: 'cp-1' } });
+    fireEvent.change(screen.getByPlaceholderText('CP id or borrower name'), { target: { value: 'cp-1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Diagnose' }));
     expect(await screen.findByText('missing')).toBeInTheDocument();
     const diag = sent(calls, 'GET', '/api/v1/ops/cps/CP-1/diagnostics')!;

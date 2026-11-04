@@ -109,7 +109,7 @@ export function MyTasks() {
             {rows.map((t, i) => (
               <Fragment key={t.id}>
               {byCp && (i === 0 || rows[i - 1].cpId !== t.cpId) && (
-                <Table.Tr bg="var(--mantine-color-gray-1)">
+                <Table.Tr bg="var(--mantine-color-default-hover)">
                   <Table.Td colSpan={6}>
                     <Text fw={600} size="sm">{borrower.get(t.cpId) ?? t.cpId} · {t.cpId}
                       {' '}<Text span c="dimmed" size="xs">{rows.filter((x) => x.cpId === t.cpId).length} task(s)</Text></Text>

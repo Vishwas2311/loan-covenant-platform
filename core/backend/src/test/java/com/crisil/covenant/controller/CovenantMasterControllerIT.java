@@ -122,7 +122,7 @@ class CovenantMasterControllerIT {
                 .andExpect(jsonPath("$.businessSegments.length()").value(2))
                 .andExpect(jsonPath("$.modifiedBy").value("bob"))
                 // The rule changed but no CP follows this new covenant yet: nothing to re-check.
-                .andExpect(jsonPath("$.recheck.checked").value(0));
+                .andExpect(jsonPath("$.recheck.queued").value(0));
 
         // Same rule again: no re-check, so no recheck field.
         mockMvc.perform(put("/api/v1/covenants/" + id)

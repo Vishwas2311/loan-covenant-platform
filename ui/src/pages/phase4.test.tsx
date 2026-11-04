@@ -59,6 +59,15 @@ describe('borrower portal', () => {
     expect(form.get('confirm')).toBe('true');
   });
 
+  it('tells a borrower who is up to date what was received and when the next check is', async () => {
+    mockFetch((url) => (url === '/api/v1/portal/cps' ? { body: [{ cpId: 'CP-1003', name: null }] }
+      : { body: { ...VIEW, requirements: [VIEW.requirements[1]] } }));
+    renderAt('/', '/', <PortalApp user="borrower-reliance" />);
+    expect(await screen.findByText(/The bank has your certificate for the period ending 2026-06-30\. Its next check is on 2026-12-31/))
+      .toBeInTheDocument();
+    expect(screen.getByText('What the bank checks, and when next')).toBeInTheDocument();
+  });
+
   it('sends a statement and lists what was sent', async () => {
     const calls = mockFetch((url, init) => {
       if (url === '/api/v1/portal/cps') {
@@ -67,7 +76,8 @@ describe('borrower portal', () => {
       return { body: init.method === 'POST' ? VIEW : { ...VIEW, requirements: [] } };
     });
     renderAt('/', '/', <PortalApp user="borrower-reliance" onSignOut={() => undefined} />);
-    expect(await screen.findByText('No compliance certificate is waiting.')).toBeInTheDocument();
+    expect(await screen.findByText('You are up to date')).toBeInTheDocument();
+    expect(screen.getByText(/No certificate is due yet./)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Other' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Send a financial statement' }));
     fireEvent.change(document.querySelector('input[type=file]')!, {

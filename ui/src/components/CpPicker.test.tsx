@@ -84,3 +84,14 @@ describe('CpHeader', () => {
     expect(humanize(null)).toBe('');
   });
 });
+
+describe('ColorSchemeToggle', () => {
+  it('switches between light and dark', async () => {
+    const { ColorSchemeToggle } = await import('./ColorSchemeToggle');
+    renderAt('/', '/', <ColorSchemeToggle />);
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }));
+    expect(await screen.findByRole('button', { name: 'Switch to light mode' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }));
+    expect(await screen.findByRole('button', { name: 'Switch to dark mode' })).toBeInTheDocument();
+  });
+});

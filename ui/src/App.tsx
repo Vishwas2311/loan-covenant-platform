@@ -8,6 +8,7 @@ import { canOpen, homeFor, PAGES, pageFor, readOnlyOnLoans } from './auth/access
 import { DEV_USERS, getAccessToken, isBorrowerOnly, setIdentity } from './auth/identity';
 import type { Identity } from './auth/identity';
 import { AlertBell } from './components/AlertBell';
+import { ColorSchemeToggle } from './components/ColorSchemeToggle';
 import { signedIn, signOut } from './auth/oidc';
 import { useIdentity } from './auth/useIdentity';
 import { CpWorkspace } from './pages/CpWorkspace';
@@ -103,6 +104,7 @@ export function App() {
               </Tooltip>
             )}
             <AlertBell />
+            <ColorSchemeToggle />
             <IdentitySwitcher />
           </Group>
         </Group>

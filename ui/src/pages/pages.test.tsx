@@ -333,7 +333,7 @@ describe('Library and settings', () => {
       modifiedDate: null, modifiedBy: null } }));
     renderAt('/settings', '/settings', <Settings />);
     fireEvent.click(await screen.findByLabelText(/maker-checker/));
-    fireEvent.click(screen.getByText('Save'));
+    fireEvent.click(screen.getByText('Save settings'));
     await waitFor(() => expect(calls.some((c) => c.init.method === 'PUT')).toBe(true));
     expect(JSON.parse(calls.find((c) => c.init.method === 'PUT')!.init.body as string).dispositionApprovalRequired)
       .toBe(false);

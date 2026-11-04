@@ -185,6 +185,12 @@ Stop, keeping all data:
 docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml --env-file deploy/.env down
 ```
 
+Back to the seeded demo data, for a clean demo or screenshots after the browser tests have added uploads, checks and tasks. This deletes the database and DPS volumes but keeps the AI model cache, then starts the stack again and waits until it is ready (it asks you to type RESET first; `--dry-run` only prints what it would do):
+
+```bash
+scripts/reset-demo-data.sh
+```
+
 Stop and delete all data (databases, uploaded documents, AI model cache), for a clean start:
 
 ```bash

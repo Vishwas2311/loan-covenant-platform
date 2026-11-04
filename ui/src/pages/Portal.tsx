@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { errorMessage } from '../api/client';
 import { r5, type PortalView } from '../api/endpoints5';
+import { ColorSchemeToggle } from '../components/ColorSchemeToggle';
 import { ErrorNote, Loading } from '../components/Status';
 
 const fail = (e: unknown) => notifications.show({ color: 'red', message: errorMessage(e) });
@@ -29,7 +30,18 @@ function CertificateForm({ view }: { view: PortalView }) {
     onError: fail,
   });
   if (open.length === 0) {
-    return <Text c="dimmed" size="sm">No compliance certificate is waiting.</Text>;
+    const last = [...view.requirements].filter((r) => r.state === 'RECEIVED')
+      .sort((a, b) => b.periodEnd.localeCompare(a.periodEnd))[0];
+    const next = view.covenants.map((c) => c.nextDueDate).filter((d): d is string => !!d).sort()[0];
+    return (
+      <Alert color="green" variant="light" title="You are up to date">
+        <Text size="sm">
+          {last ? `The bank has your certificate for the period ending ${last.periodEnd}. ` : 'No certificate is due yet. '}
+          {next ? `Its next check is on ${next}; a new request will appear here before then. ` : ''}
+          See what you sent under &ldquo;What you sent&rdquo;.
+        </Text>
+      </Alert>
+    );
   }
   return (
     <Stack>
@@ -105,9 +117,19 @@ function LoanView({ cpId }: { cpId: string }) {
           </Table.Tbody>
         </Table>
         {v.covenants.length > 0 && (
-          <Text size="xs" c="dimmed" mt="xs">
-            Covenants the bank checks: {v.covenants.map((c) => c.name).join(', ')}.
-          </Text>
+          <>
+            <Title order={6} mt="md" mb={4}>What the bank checks, and when next</Title>
+            <Table>
+              <Table.Tbody>
+                {[...v.covenants].sort((a, b) => (a.nextDueDate ?? '9').localeCompare(b.nextDueDate ?? '9')).map((c) => (
+                  <Table.Tr key={c.name}>
+                    <Table.Td><Text size="sm">{c.name}</Text></Table.Td>
+                    <Table.Td><Text size="sm" c="dimmed">{c.nextDueDate ?? 'not scheduled'}</Text></Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </>
         )}
       </Card>
       <Tabs defaultValue="certificate">
@@ -151,6 +173,7 @@ export function PortalApp({ user, onSignOut }: { user: string; onSignOut?: () =>
         <Group h="100%" px="md" justify="space-between">
           <Title order={4}>Borrower portal</Title>
           <Group gap="sm">
+            <ColorSchemeToggle />
             <Text size="sm">{user} (Borrower)</Text>
             {onSignOut && <Button size="xs" variant="default" onClick={onSignOut}>Sign out</Button>}
           </Group>
