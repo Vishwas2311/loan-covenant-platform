@@ -61,6 +61,15 @@ function CovenantForm({ existing, onClose }: { existing?: CovenantDetail; onClos
     },
     onSuccess: (c) => {
       notifications.show({ color: 'green', message: existing ? `${c.name} saved.` : `${c.name} added to the library.` });
+      const rc = (c as { recheck?: { checked: number; breached: number; errors: number } }).recheck;
+      if (rc && rc.checked > 0) {
+        notifications.show({
+          color: rc.breached || rc.errors ? 'orange' : 'green', autoClose: 10_000,
+          message: `The new rule was checked on ${rc.checked} CP covenant(s): ${rc.breached} breached`
+            + `${rc.errors ? `, ${rc.errors} could not be checked` : ''}. CPs with their own threshold keep it.`,
+        });
+        qc.invalidateQueries({ queryKey: ['review'] });
+      }
       qc.invalidateQueries({ queryKey: ['covenants'] });
       qc.invalidateQueries({ queryKey: ['covenant'] });
       onClose();

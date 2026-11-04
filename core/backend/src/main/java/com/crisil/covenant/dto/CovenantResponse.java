@@ -1,5 +1,6 @@
 package com.crisil.covenant.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.enums.CovenantCategory;
 import com.crisil.covenant.enums.AssessmentType;
@@ -34,7 +35,17 @@ public record CovenantResponse(
         Instant modifiedDate,
         String modifiedBy,
         String version,
-        String policyReference) {
+        String policyReference,
+        @JsonInclude(JsonInclude.Include.NON_NULL) RuleRecheck recheck) {
+
+    /** The same covenant, with what re-checking its CPs after a rule change found. */
+    public CovenantResponse withRecheck(RuleRecheck r) {
+        return new CovenantResponse(id, name, category, description, conditionExpression, referencedMeasures,
+                islamicBanking, assessmentType, businessSegments, industries, countriesOfRisk,
+                countriesOfIncorporation, creditProposalTypes, legalEntityTypes, facilityTypes, collateralTypes,
+                defaultFrequency, defaultCron, custom, ownerCpId, active, createdDate, createdBy, modifiedDate,
+                modifiedBy, version, policyReference, r);
+    }
 
     public static CovenantResponse from(CovenantMaster entity) {
         return new CovenantResponse(
@@ -64,6 +75,7 @@ public record CovenantResponse(
                 entity.getModifiedDate(),
                 entity.getModifiedBy(),
                 entity.getVersion(),
-                entity.getPolicyReference());
+                entity.getPolicyReference(),
+                null);
     }
 }

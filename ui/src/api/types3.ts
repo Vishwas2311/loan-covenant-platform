@@ -77,6 +77,8 @@ export interface CovenantDetail {
   custom: boolean;
   /** C5: the credit policy clause or link behind it. */
   policyReference?: string | null;
+  /** Only on a save that changed an automatic rule: the CPs following it were checked again at once. */
+  recheck?: { checked: number; breached: number; errors: number };
 }
 
 export interface CovenantUsage {

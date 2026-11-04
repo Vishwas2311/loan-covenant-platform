@@ -1,5 +1,10 @@
 package com.crisil.covenant.controller;
 
+import com.crisil.covenant.service.RuleRecheckService;
+import com.crisil.covenant.enums.AssessmentType;
+import com.crisil.covenant.config.CurrentUserContext;
+import com.crisil.covenant.config.AuditingConfig;
+import java.util.Objects;
 import com.crisil.covenant.enums.CovenantCategory;
 import com.crisil.covenant.entity.ExpressionChangeLog;
 import com.crisil.covenant.dto.CovenantResponse;
@@ -36,9 +41,11 @@ import com.crisil.covenant.service.CovenantMasterService;
 public class CovenantMasterController {
 
     private final CovenantMasterService service;
+    private final RuleRecheckService recheck;
 
-    public CovenantMasterController(CovenantMasterService service) {
+    public CovenantMasterController(CovenantMasterService service, RuleRecheckService recheck) {
         this.service = service;
+        this.recheck = recheck;
     }
 
     @PostMapping
@@ -58,10 +65,19 @@ public class CovenantMasterController {
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing covenant",
             description = "Updates a covenant template; changes to the condition expression are "
-                    + "recorded in the expression change log.")
+                    + "recorded in the expression change log. When an automatic rule changes, every "
+                    + "active CP that follows it (no threshold of its own) is checked again at once and "
+                    + "the counts are returned in `recheck`.")
     public CovenantResponse update(@Parameter(description = "Covenant id") @PathVariable String id,
                                    @Valid @RequestBody UpdateCovenantRequest request) {
-        return service.update(id, request);
+        String before = service.get(id).conditionExpression();
+        // The update commits on return, so the checks below read the new rule.
+        CovenantResponse saved = service.update(id, request);
+        if (saved.assessmentType() == AssessmentType.AUTO && !Objects.equals(before, saved.conditionExpression())) {
+            return saved.withRecheck(recheck.recheck(id,
+                    CurrentUserContext.currentUser().orElse(AuditingConfig.SYSTEM_USER)));
+        }
+        return saved;
     }
 
     @DeleteMapping("/{id}")

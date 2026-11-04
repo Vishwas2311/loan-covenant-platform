@@ -47,6 +47,9 @@ public interface AppliedCovenantRepository extends JpaRepository<AppliedCovenant
 
     long countByCovenantMasterIdAndStatus(String covenantMasterId, AppliedCovenantStatus status);
 
+    List<AppliedCovenant> findByCovenantMasterIdAndStatusOrderByIdAsc(String covenantMasterId,
+                                                                    AppliedCovenantStatus status);
+
     @org.springframework.data.jpa.repository.Query(
             "select a.cpId from AppliedCovenant a where a.covenantMaster.id = :covenantMasterId order by a.cpId")
     java.util.List<String> findCpIdsByCovenantMasterId(@org.springframework.data.repository.query.Param("covenantMasterId") String covenantMasterId);

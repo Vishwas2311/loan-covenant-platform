@@ -179,7 +179,8 @@ describe('library detail', () => {
           changedDate: '2026-01-01T00:00:00Z', changedBy: 'author-1' }] };
       }
       if (url.endsWith('/covenants/cov1')) {
-        return { body: init.method === 'DELETE' ? { ...LIB, active: false } : LIB };
+        return { body: init.method === 'DELETE' ? { ...LIB, active: false }
+          : init.method === 'PUT' ? { ...LIB, recheck: { checked: 2, breached: 1, errors: 0 } } : LIB };
       }
       if (url.startsWith('/api/v1/measures')) {
         return { body: [] };
@@ -201,6 +202,7 @@ describe('library detail', () => {
     const put = JSON.parse(sent(calls, 'PUT', '/covenants/cov1')!.init.body as string);
     expect(put).toMatchObject({ name: 'Minimum DSCR', conditionExpression: 'DSCR >= 1.4', industries: ['ALL'],
       businessSegments: [], defaultCron: null });
+    expect(await screen.findByText(/The new rule was checked on 2 CP covenant\(s\): 1 breached\./)).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Switch off' }));
     expect(await screen.findByText(/switched off/)).toBeInTheDocument();
