@@ -178,7 +178,10 @@ class _Ocr:
     def ocr_page(self, pdf_bytes: bytes, page_index: int) -> tuple[str, float]:
         if self.fail:
             raise RuntimeError("model missing")
-        return "Scanned covenant text with enough words to be useful here", 0.9
+        return self.text, 0.9
+
+    text = ("Scanned covenant text: the Borrower shall maintain a Debt Service Coverage Ratio of not less "
+            "than 1.25 times, tested on each Quarter Date.")
 
 
 def _blank_pdf(pages: int = 1) -> bytes:
@@ -200,6 +203,11 @@ def test_parser_uses_ocr_only_for_pages_without_text():
     failed = ParserEngine(_Ocr(fail=True)).parse(pdf)
     assert [p.quality for p in failed] == [0.0, 0.0]
     assert needs_heavy(failed) and needs_heavy([]) and not needs_heavy(ocr)
+    # A blurred scan: OCR is confident about a few fragments, which is not a readable page.
+    garbled = _Ocr()
+    garbled.text = "TEHULEANPASLIRYLOALPUENE un.mmooom TRGmY:"
+    poor = ParserEngine(garbled).parse(pdf)
+    assert [p.quality for p in poor] == [0.3, 0.3] and needs_heavy(poor)
 
 
 def test_parser_rejects_non_pdf():

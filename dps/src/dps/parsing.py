@@ -23,6 +23,10 @@ MIN_TEXT_CHARS = 40
 # heavy (Docling) pool. A few blank pages (signature, cover) are normal and do not.
 HEAVY_THRESHOLD = 0.5
 HEAVY_POOR_SHARE = 0.25
+# An OCR'd page that yields fewer word characters than this is poor whatever OCR's confidence: a real
+# agreement page has hundreds, and a few confident fragments of a blurred scan are not readable text.
+MIN_OCR_CHARS = 80
+POOR_OCR_QUALITY = 0.3
 
 
 @dataclass
@@ -112,7 +116,10 @@ class ParserEngine:
         except Exception as ex:
             log.warning("OCR failed on page %d: %s", index + 1, type(ex).__name__)
             return Page(index + 1, native, "NONE", 0.0)
-        return Page(index + 1, text, "OCR", round(min(confidence, text_quality(text) or confidence), 3))
+        quality = round(min(confidence, text_quality(text) or confidence), 3)
+        if len(re.findall(r"\w", text)) < MIN_OCR_CHARS:
+            quality = min(quality, POOR_OCR_QUALITY)
+        return Page(index + 1, text, "OCR", quality)
 
 
 def needs_heavy(pages: list[Page]) -> bool:

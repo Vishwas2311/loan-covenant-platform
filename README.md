@@ -1,4 +1,4 @@
-# Covenant Platform
+# Covenexa (Covenant Platform)
 
 Combined product built from:
 - the other team's **covenant-monitoring** app, which becomes the Core;
@@ -26,16 +26,16 @@ All PRD requirements FR-01 to FR-32 are implemented. Open items that need people
 
 | Area | What is built | Verified by |
 |---|---|---|
-| Security | Entra ID JWT (Core and DPS), `DEV_HEADER` for local use; roles RM, APPROVER, AUTHOR, SUPPORT, AUDITOR, SERVICE, ADMIN; `CpAccessGuard` on every CP endpoint; DPS delegates CP access to Core; MSSQL data-source passwords come from the secret store through `secretRef` (a `COVENANT_DS_*` environment variable), and the `prod` profile refuses plaintext passwords | Core and DPS tests |
+| Security | Entra ID JWT (Core and DPS), `DEV_HEADER` for local use; roles RM, APPROVER, AUTHOR, SUPPORT, AUDITOR, SERVICE, ADMIN; `CpAccessGuard` on every CP endpoint (AUDITOR and SUPPORT read only); DPS delegates CP access to Core; per-user limits on AI questions and uploads; MSSQL data-source passwords come from the secret store through `secretRef` (a `COVENANT_DS_*` environment variable), and the `prod` profile refuses plaintext passwords | Core and DPS tests; live probes with real tokens (audit, 4 Nov 2026) |
 | Flow A (agreements) | Parser (pypdf, RapidOCR for pages without text, Docling heavy pool); regex extraction ported from our app, page-aware with verbatim quotes; mapping to Core masters; citation, threshold-in-quote and formula checks; publish or hold for review; facility dates, cure periods, LTM, step-downs as review information | DPS tests; golden set (draft labels): recall 0.985, threshold accuracy 1.0 |
 | Flow B (statements) | PDF, XLSX, CSV; 20 line items; unit detection to INR crore; derived inputs; data-quality checks; versioned values; C5 event to Core | DPS tests |
-| Workers | `dps_job` queue with lease and retries, STANDARD and HEAVY pools, SQL `FlowPersistence`, C5 outbox | DPS tests |
+| Workers | `dps_job` queue with a 120 s lease renewed by a heartbeat, retries, STANDARD and HEAVY pools, SQL `FlowPersistence`, C5 outbox | DPS tests |
 | Core integration | C1 extracted rows in onboarding (`EXTRACTED`, `EXTRACTED_CUSTOM`); C2 DPS as a REST data source with service credentials; C3 AI suggestions via DPS (switch); C5 data-events re-assess affected covenants | Core tests, DPS contract tests |
 | Breach handling | Waiver/extension REQUESTED → APPROVED/REJECTED by another approver; switch in settings (default on); extension date ≥ today | Core tests |
 | Certificates, currency, staleness | Certificate requirements per period (PENDING/RECEIVED/OVERDUE); reporting currency and dated FX; `max_age_days` per measure | Core tests |
 | Reports | Period comparison with trend; Excel exports (comparison, library, open breaches); open-breach PDF; escalation flag; analytics by segment and sector; Ask AI over the caller's portfolio | Core, DPS and UI tests |
-| UI | Portfolio, CP workspace, onboarding, documents with page view, library, reports, jobs, settings | 34 tests, 82% lines (vitest 4 coverage) |
-| Deployment | Images for Core, DPS (API, worker, heavy worker) and UI; compose stack with SQL Server; Core `prod` profile with Quartz clustering | Stack run end to end |
+| UI | Portfolio, CP workspace, onboarding queue, document inbox with page view, library, reports, jobs, settings; phone layout; WCAG 2.1 AA in light and dark | 122 unit tests (87% lines); 52 Playwright tests on the full stack, axe-core included |
+| Deployment | Images for Core, DPS (API, worker, heavy worker) and UI, all non-root; compose stack with SQL Server; Core `prod` profile with Quartz clustering; Core in `COVENANT_TIME_ZONE` (default Asia/Kolkata) | Stack run end to end; two clustered Core nodes; restore drill; Trivy, npm audit and pip-audit in CI (`security.yml`), nightly browser tests (`e2e.yml`) |
 
 ## Build and test
 

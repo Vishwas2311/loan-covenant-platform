@@ -44,6 +44,8 @@ import com.crisil.covenant.security.Roles;
 @Transactional(readOnly = true)
 public class MonitoringService {
 
+    static final int MAX_PAGE_SIZE = 200;
+
     private final AppliedCovenantRepository appliedRepo;
     private final AssessmentRepository assessmentRepo;
     private final MonitoringScheduleRepository scheduleRepo;
@@ -398,8 +400,10 @@ public class MonitoringService {
     }
 
     public List<Assessment> historyFor(String appliedCovenantId, int page, int size) {
+        // Same 200-row page cap as the pageable endpoints; a negative page or size reads the first page.
         List<Assessment> history = assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(
-                appliedCovenantId, PageRequest.of(page, size)).getContent();
+                appliedCovenantId, PageRequest.of(Math.max(0, page), Math.min(MAX_PAGE_SIZE, Math.max(1, size))))
+                .getContent();
         // US-ASM-21: force-init the lazy comparisons within this transaction so the read model can
         // expose them (the paginated query keeps a scalar graph to avoid in-memory pagination).
         history.forEach(a -> Hibernate.initialize(a.getComparisons()));

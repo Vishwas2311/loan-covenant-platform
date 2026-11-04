@@ -476,6 +476,8 @@ class MonitoringServiceTest {
         when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("1"), any(PageRequest.class)))
                 .thenReturn(Page.empty());
         assertThat(service.historyFor("1", 0, 25)).isEmpty();
+        assertThat(service.historyFor("1", -3, 100_000)).isEmpty();
+        verify(assessmentRepo).findByAppliedCovenantIdOrderByScheduledAtDesc("1", PageRequest.of(0, 200));
     }
 
     // ---- US-MON-20: By-CP handled (dispositioned) count -------------------------------------
