@@ -338,6 +338,13 @@ test('32. support runs the loan-system sync', async ({ page }) => {
   await expect(page.getByText(/\d+ CP\(s\) checked, \d+ changed, \d+ closed/)).toBeVisible();
 });
 
+test('33. a stale sign-in reply starts a fresh sign-in instead of an error', async ({ page }) => {
+  await page.goto('/auth/callback?state=stale-from-another-tab&code=x&iss=http%3A%2F%2Flocalhost%3A8180%2Frealms%2Fcovenant');
+  await page.waitForURL(/\/realms\/covenant\//);
+  await expect(page.locator('#username')).toBeVisible();
+  await expect(page.getByText(/Sign-in failed/)).toHaveCount(0);
+});
+
 test('14. sign out returns to the sign-in page', async ({ page }) => {
   await signIn(page, 'rm-anil');
   await page.getByRole('button', { name: 'Sign out' }).click();

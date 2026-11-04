@@ -6,6 +6,7 @@ const manager = {
   getUser: vi.fn(),
   signinRedirect: vi.fn(),
   signoutRedirect: vi.fn(),
+  clearStaleState: vi.fn(),
 };
 const settingsSeen: Record<string, unknown>[] = [];
 
@@ -98,6 +99,22 @@ describe('startAuth', () => {
     expect(getAccessToken()).toBe(token);
     expect(history.replaceState).toHaveBeenCalledWith(null, '', '/reports');
     expect(signedIn()).toBe(true);
+  });
+
+  it('a callback this tab did not start begins a fresh sign-in, but only once', async () => {
+    window.sessionStorage.clear();
+    manager.signinRedirectCallback.mockRejectedValue(new Error('No matching state found in storage'));
+    manager.clearStaleState.mockResolvedValue(undefined);
+    expect(await startAuth(CFG, loc('/auth/callback'), history)).toBe(false);
+    expect(manager.clearStaleState).toHaveBeenCalled();
+    expect(manager.signinRedirect).toHaveBeenCalledWith({ state: '/' });
+
+    await expect(startAuth(CFG, loc('/auth/callback'), history)).rejects.toThrow('No matching state');
+    expect(manager.signinRedirect).toHaveBeenCalledTimes(1);
+
+    manager.signinRedirectCallback.mockResolvedValue({ access_token: 't', expired: false, state: '/' });
+    expect(await startAuth(CFG, loc('/auth/callback'), history)).toBe(true);
+    expect(window.sessionStorage.getItem('covenant.signinRetryAt')).toBeNull();
   });
 
   it('ignores a return address that is not a local path', async () => {

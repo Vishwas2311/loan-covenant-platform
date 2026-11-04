@@ -44,6 +44,35 @@ export function createManager(cfg: AuthConfig, origin: string = window.location.
   });
 }
 
+// A failed callback is retried with a fresh sign-in at most once a minute, so a browser that cannot keep
+// the sign-in state (storage blocked) shows the error instead of bouncing between app and IdP forever.
+const RETRY_KEY = 'covenant.signinRetryAt';
+
+function retriedRecently(now: number = Date.now()): boolean {
+  try {
+    const at = Number(window.sessionStorage.getItem(RETRY_KEY));
+    return Number.isFinite(at) && at > 0 && now - at < 60_000;
+  } catch {
+    return true; // storage unavailable: do not loop
+  }
+}
+
+function markRetry(now: number = Date.now()): void {
+  try {
+    window.sessionStorage.setItem(RETRY_KEY, String(now));
+  } catch {
+    // storage blocked: retriedRecently() already reports true
+  }
+}
+
+function clearRetry(): void {
+  try {
+    window.sessionStorage.removeItem(RETRY_KEY);
+  } catch {
+    // nothing to clear
+  }
+}
+
 function use(user: User | null): void {
   setAccessToken(user && !user.expired ? user.access_token : null);
 }
@@ -61,7 +90,21 @@ export async function startAuth(cfg: AuthConfig | null, location: Location = win
   manager.events.addUserLoaded(use);
   manager.events.addUserUnloaded(() => use(null));
   if (location.pathname === CALLBACK_PATH) {
-    const user = await manager.signinRedirectCallback();
+    let user: User;
+    try {
+      user = await manager.signinRedirectCallback();
+    } catch (err) {
+      // The answer belongs to a sign-in this tab did not start (a refreshed or reopened callback page, a
+      // sign-in page left open across an identity-provider restart): start a fresh sign-in, once.
+      if (retriedRecently()) {
+        throw err;
+      }
+      markRetry();
+      await manager.clearStaleState().catch(() => undefined);
+      await manager.signinRedirect({ state: '/' });
+      return false;
+    }
+    clearRetry();
     use(user);
     const target = typeof user.state === 'string' && user.state.startsWith('/') ? user.state : '/';
     history.replaceState(null, '', target);
