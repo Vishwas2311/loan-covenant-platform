@@ -227,6 +227,10 @@ test('23. an RM removes a wrongly uploaded document', async ({ page }) => {
   await page.getByLabel('Why').fill('e2e: uploaded by mistake');
   await page.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(page.getByText('Removed. Its figures no longer count.')).toBeVisible();
+  await page.keyboard.press('Escape');
+  // Removed documents are hidden from the list until asked for.
+  await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
+  await page.getByRole('button', { name: /^Show removed/ }).click();
   await expect(page.getByRole('row').filter({ hasText: name }).getByText('REMOVED')).toBeVisible();
 });
 

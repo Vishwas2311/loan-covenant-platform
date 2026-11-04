@@ -1,5 +1,6 @@
 import {
-  Badge, Button, Card, FileInput, Group, Modal, Select, Stack, Table, TagsInput, Text, TextInput, Textarea, Title,
+  Badge, Button, Card, FileInput, Group, Modal, SegmentedControl, Select, Stack, Table, TagsInput, Text, TextInput,
+  Textarea, Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +14,7 @@ import { AskAgreement, SpreadReview } from './Phase3';
 import type { DocumentType, DpsDocument, ExtractedTerm } from '../api/types';
 import { authHeaders, hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
-import { CpPicker } from '../components/CpPicker';
+import { CpChooser, CpHeader, CpPicker } from '../components/CpPicker';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 
 const TYPES: { value: DocumentType; label: string }[] = [
@@ -352,17 +353,43 @@ export function Documents() {
   const [open, setOpen] = useState<DpsDocument | null>(null);
   const docs = useQuery({ queryKey: ['documents', cpId], queryFn: () => dps.documents(cpId!), enabled: !!cpId });
   const canUpload = hasRole(useIdentity(), 'RM', 'APPROVER', 'ADMIN');
+  const [q, setQ] = useState('');
+  const [type, setType] = useState<'ALL' | DocumentType>('ALL');
+  const [showRemoved, setShowRemoved] = useState(false);
+  const all = docs.data ?? [];
+  const shown = all.filter((d) => (type === 'ALL' || d.type === type) && (showRemoved || d.status !== 'REMOVED')
+    && (!q.trim() || d.fileName.toLowerCase().includes(q.trim().toLowerCase())));
+  const removed = all.filter((d) => d.status === 'REMOVED').length;
   return (
     <Stack>
       <Group justify="space-between" align="end">
-        <Title order={2}>{cpId ? `Documents for ${cpId}` : 'Documents'}</Title>
+        <Stack gap={2}>
+          <Title order={2}>{cpId ? `Documents for ${cpId}` : 'Documents'}</Title>
+          {cpId && <CpHeader cpId={cpId} />}
+        </Stack>
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)} />
       </Group>
+      {!cpId && <CpChooser onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)}
+        hint="Pick a credit proposal to upload its loan agreement, financial statements or certificates, and check what was read from them." />}
       {/* Keyed by CP: switching CP must reset the card, or the old CP stays in "Linked credit proposals". */}
       {cpId && canUpload && <Upload key={cpId} cpId={cpId} agreements={(docs.data ?? [])
         .filter((d) => d.type === 'LOAN_AGREEMENT' && d.status !== 'REMOVED')} />}
       {docs.isLoading && cpId && <Loading />}
       {docs.error && <ErrorNote error={docs.error} />}
+      {docs.data && docs.data.length > 0 && (
+        <Group>
+          <TextInput placeholder="Search file name" aria-label="Search documents" value={q} w={260}
+            onChange={(e) => setQ(e.currentTarget.value)} />
+          <SegmentedControl aria-label="Document type" value={type} onChange={(v) => setType(v as 'ALL' | DocumentType)}
+            data={[{ value: 'ALL', label: `All (${all.length - (showRemoved ? 0 : removed)})` },
+              ...TYPES.map((t) => ({ value: t.value, label: t.label }))]} />
+          {removed > 0 && (
+            <Button variant="subtle" size="xs" onClick={() => setShowRemoved((v) => !v)}>
+              {showRemoved ? 'Hide removed' : `Show removed (${removed})`}
+            </Button>
+          )}
+        </Group>
+      )}
       {docs.data && (
         <Table withTableBorder highlightOnHover>
           <Table.Thead>
@@ -370,7 +397,7 @@ export function Documents() {
               <Table.Th>Status</Table.Th><Table.Th>Uploaded</Table.Th><Table.Th>CPs</Table.Th></Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {docs.data.map((d) => (
+            {shown.map((d) => (
               <Table.Tr key={d.id} onClick={() => setOpen(d)} style={{ cursor: 'pointer' }}>
                 <Table.Td>{d.fileName}</Table.Td>
                 <Table.Td>{TYPES.find((t) => t.value === d.type)?.label}</Table.Td>
@@ -382,6 +409,9 @@ export function Documents() {
             ))}
             {docs.data.length === 0 && (
               <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">No documents yet.</Text></Table.Td></Table.Tr>
+            )}
+            {docs.data.length > 0 && shown.length === 0 && (
+              <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">No document matches.</Text></Table.Td></Table.Tr>
             )}
           </Table.Tbody>
         </Table>

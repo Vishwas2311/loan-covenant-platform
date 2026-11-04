@@ -77,3 +77,18 @@ export interface Narrative {
   method: 'RULES' | 'AI';
   advisory: string;
 }
+
+/** One CP the user looks after, for the CP chooser (GET /api/v1/analytics/cps). */
+export interface CpCard {
+  cpId: string;
+  name: string | null;
+  businessSegment: string | null;
+  sector: string | null;
+  rmUserId: string | null;
+  applied: number;
+  compliant: number;
+  breached: number;
+  error: number;
+  pendingReview: number;
+  dispositioned: number;
+}

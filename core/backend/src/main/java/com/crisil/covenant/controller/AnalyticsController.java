@@ -1,9 +1,11 @@
 package com.crisil.covenant.controller;
 
 import com.crisil.covenant.config.CurrentUserContext;
+import com.crisil.covenant.dto.CpCard;
 import com.crisil.covenant.dto.PortfolioAnalytics;
 import com.crisil.covenant.dto.ResultTrendPoint;
 import com.crisil.covenant.service.AnalyticsService;
+import com.crisil.covenant.service.CpDirectoryService;
 import com.crisil.covenant.service.TrendService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,10 +24,18 @@ public class AnalyticsController {
 
     private final AnalyticsService service;
     private final TrendService trendService;
+    private final CpDirectoryService directory;
 
-    public AnalyticsController(AnalyticsService service, TrendService trendService) {
+    public AnalyticsController(AnalyticsService service, TrendService trendService, CpDirectoryService directory) {
         this.service = service;
         this.trendService = trendService;
+        this.directory = directory;
+    }
+
+    @GetMapping("/cps")
+    @Operation(summary = "The caller's CPs with borrower name, segment, sector, RM and covenant counts")
+    public List<CpCard> cps() {
+        return directory.cps(CurrentUserContext.currentUser().orElse(null));
     }
 
     @GetMapping("/trend")

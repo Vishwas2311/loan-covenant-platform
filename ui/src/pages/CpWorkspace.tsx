@@ -11,7 +11,7 @@ import { r3 } from '../api/endpoints3';
 import type { ReviewRow } from '../api/types';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
-import { CpPicker } from '../components/CpPicker';
+import { CpChooser, CpHeader, CpPicker } from '../components/CpPicker';
 import { Certificates, Comparison, ManualValue } from './CpExtras';
 import { CovenantDrawer, RecordResultDialog } from './CovenantPanel';
 import { AiSuggestions, Cycles } from './CpMore';
@@ -147,8 +147,8 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                   <Stack gap={2}>
                     <StatusBadge value={r.dispositionStatus} />
                     {r.approvalStatus && r.approvalStatus !== 'APPROVED' && (
-                      <Badge size="xs" variant="outline" color={pending ? 'yellow' : 'gray'}>
-                        {r.requestedStatus} {r.approvalStatus.toLowerCase()} ({r.requestedBy})
+                      <Badge size="xs" variant="outline" color={pending ? 'yellow' : 'gray'} tt="none">
+                        {(r.requestedStatus ?? '').toLowerCase()} asked by {r.requestedBy}: {r.approvalStatus.toLowerCase()}
                       </Badge>
                     )}
                     {r.extensionDate && <Text size="xs">until {r.extensionDate}</Text>}
@@ -218,9 +218,14 @@ export function CpWorkspace() {
   return (
     <Stack>
       <Group justify="space-between" align="end">
-        <Title order={2}>{cpId ? `CP ${cpId}` : 'CP workspace'}</Title>
+        <Stack gap={2}>
+          <Title order={2}>{cpId ? `CP ${cpId}` : 'CP workspace'}</Title>
+          {cpId && <CpHeader cpId={cpId} />}
+        </Stack>
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />
       </Group>
+      {!cpId && <CpChooser onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)}
+        hint="Pick a credit proposal to see its covenant results, handle breaches and check certificates." />}
       {cpId && (
         <Tabs defaultValue="covenants" keepMounted={false}>
           <Tabs.List>

@@ -1,0 +1,10 @@
+/* Cards in the CP chooser lift on hover and show focus for keyboard users. */
+.cp-card {
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+button:hover > .cp-card,
+button:focus-visible > .cp-card {
+  border-color: var(--mantine-color-blue-5);
+  box-shadow: var(--mantine-shadow-sm);
+  transform: translateY(-1px);
+}

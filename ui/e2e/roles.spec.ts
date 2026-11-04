@@ -133,3 +133,18 @@ for (const user of ['auditor-1', 'support-1']) {
     await expect(page.getByRole('button', { name: /^Apply \d+ covenant/ })).toHaveCount(0);
   });
 }
+
+test('pages opened without a CP list the user CPs to choose from', async ({ page }) => {
+  await signIn(page, 'rm-anil', '/cp');
+  for (const [path, heading] of [['/cp', /^CP CP-/], ['/onboarding', /^Onboard CP CP-/], ['/documents', /^Documents for CP-/]] as const) {
+    await page.goto(path);
+    const cards = page.getByRole('button', { name: /^Open CP-/ });
+    await expect(cards.first()).toBeVisible();
+    expect(await cards.count()).toBeGreaterThan(1);
+    await page.getByLabel('Search your CPs').fill('CP-1005');
+    await expect(cards).toHaveCount(1);
+    await cards.first().click();
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    await expect(page.getByText(/ · RM rm-anil/)).toBeVisible();
+  }
+});

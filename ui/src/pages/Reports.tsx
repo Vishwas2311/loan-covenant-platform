@@ -5,11 +5,47 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../api/client';
 import { r2 } from '../api/endpoints2';
-import type { AnalyticsGroup } from '../api/types2';
+import type { AnalyticsGroup, BreachRow } from '../api/types2';
 import { Charts } from './Charts';
 import { CustomReports } from './Phase3';
 import { AskAi } from './Ops';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+
+/** Data errors grouped by CP: one line per CP instead of one per covenant. */
+function ErrorsByCp({ rows }: { rows: BreachRow[] }) {
+  const [open, setOpen] = useState(false);
+  const byCp = new Map<string, BreachRow[]>();
+  rows.forEach((r) => byCp.set(r.cpId, [...(byCp.get(r.cpId) ?? []), r]));
+  return (
+    <Stack gap="xs">
+      <Group justify="space-between">
+        <Text fw={600}>Data errors: {rows.length} covenant(s) on {byCp.size} CP(s) could not be checked</Text>
+        <Button variant="subtle" size="xs" onClick={() => setOpen((v) => !v)}>{open ? 'Hide' : 'Show'} data errors</Button>
+      </Group>
+      {open && (
+        <Table withTableBorder striped>
+          <Table.Thead>
+            <Table.Tr><Table.Th>CP</Table.Th><Table.Th>Covenants with an error</Table.Th><Table.Th>Open since</Table.Th>
+              <Table.Th>Days</Table.Th></Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {[...byCp.entries()].map(([cp, list]) => (
+              <Table.Tr key={cp}>
+                <Table.Td><Anchor component={Link} to={`/cp/${encodeURIComponent(cp)}`}>{cp}</Anchor></Table.Td>
+                <Table.Td>
+                  <Text size="sm">{list.length} covenant(s)</Text>
+                  <Text size="xs" c="dimmed" lineClamp={2}>{list.map((r) => r.covenantName).join(', ')}</Text>
+                </Table.Td>
+                <Table.Td>{list.map((r) => r.since).sort()[0]}</Table.Td>
+                <Table.Td>{Math.max(...list.map((r) => r.daysOpen))}</Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      )}
+    </Stack>
+  );
+}
 
 function GroupTable({ title, rows }: { title: string; rows: AnalyticsGroup[] }) {
   return (
@@ -72,7 +108,7 @@ export function Reports() {
               <Table.Th>Open since</Table.Th><Table.Th>Days</Table.Th><Table.Th>Status</Table.Th><Table.Th /></Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {breaches.data.map((b) => (
+            {breaches.data.filter((b) => b.result !== 'ERROR').map((b) => (
               <Table.Tr key={b.appliedCovenantId}>
                 <Table.Td><Anchor component={Link} to={`/cp/${encodeURIComponent(b.cpId)}`}>{b.cpId}</Anchor></Table.Td>
                 <Table.Td>{b.covenantName}</Table.Td>
@@ -84,11 +120,14 @@ export function Reports() {
                 <Table.Td>{b.escalate && <Badge color="red">Escalate</Badge>}</Table.Td>
               </Table.Tr>
             ))}
-            {breaches.data.length === 0 && (
+            {breaches.data.filter((b) => b.result !== 'ERROR').length === 0 && (
               <Table.Tr><Table.Td colSpan={7}><Text c="dimmed">No open breaches.</Text></Table.Td></Table.Tr>
             )}
           </Table.Tbody>
         </Table>
+      )}
+      {breaches.data && breaches.data.some((b) => b.result === 'ERROR') && (
+        <ErrorsByCp rows={breaches.data.filter((b) => b.result === 'ERROR')} />
       )}
     </Stack>
   );

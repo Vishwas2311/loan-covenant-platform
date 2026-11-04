@@ -1,6 +1,6 @@
 import { api, download } from './client';
 import type {
-  BreachRow, Certificate, CertificateRequirement, FxRate, Narrative, PeriodComparison, PortfolioAnalytics,
+  BreachRow, Certificate, CpCard, CertificateRequirement, FxRate, Narrative, PeriodComparison, PortfolioAnalytics,
 } from './types2';
 
 const enc = encodeURIComponent;
@@ -21,6 +21,7 @@ export const r2 = {
   comparisonXlsx: (cpId: string) => download(`${mon(cpId)}/comparison.xlsx`, `covenants-${cpId}.xlsx`),
   libraryXlsx: () => download('/api/v1/covenants/export.xlsx', 'covenant-library.xlsx'),
   analytics: () => api<PortfolioAnalytics>('/api/v1/analytics/portfolio'),
+  cps: () => api<CpCard[]>('/api/v1/analytics/cps'),
   openBreaches: (days = 14) => api<BreachRow[]>(`/api/v1/reports/open-breaches?escalationDays=${days}`),
   openBreachesXlsx: (days = 14) =>
     download(`/api/v1/reports/open-breaches.xlsx?escalationDays=${days}`, 'open-breaches.xlsx'),

@@ -83,13 +83,20 @@ describe('reports', () => {
       }
       return { body: [{ cpId: 'CP-1', appliedCovenantId: 'a1', covenantName: 'DSCR', result: 'BREACHED',
         computedValue: '0.9', since: '2026-06-30', daysOpen: 125, status: 'BREACHED', approval: 'REQUESTED',
-        escalate: true }] };
+        escalate: true }, { cpId: 'CP-2', appliedCovenantId: 'a2', covenantName: 'Current Ratio', result: 'ERROR',
+        computedValue: null, since: '2026-11-01', daysOpen: 3, status: 'BREACHED', approval: null, escalate: false },
+      { cpId: 'CP-2', appliedCovenantId: 'a3', covenantName: 'Quick Ratio', result: 'ERROR',
+        computedValue: null, since: '2026-10-30', daysOpen: 5, status: 'BREACHED', approval: null, escalate: false }] };
     });
     renderAt('/reports', '/reports', <Reports />);
     expect(await screen.findByText('STEEL')).toBeInTheDocument();
     expect(screen.getAllByText('40.0%')).toHaveLength(2);
     expect(await screen.findByText('Escalate')).toBeInTheDocument();
     expect(screen.getByText('requested')).toBeInTheDocument();
+    expect(screen.getByText('Data errors: 2 covenant(s) on 1 CP(s) could not be checked')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Show data errors'));
+    expect(screen.getByText('Current Ratio, Quick Ratio')).toBeInTheDocument();
+    expect(screen.getByText('2026-10-30')).toBeInTheDocument();
   });
 
   it('empty escalation list', async () => {

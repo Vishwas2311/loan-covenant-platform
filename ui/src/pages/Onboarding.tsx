@@ -1,9 +1,9 @@
 import {
-  Alert, Badge, Button, Checkbox, Group, Select, Stack, Table, Text, TextInput, Title, Tooltip,
+  Alert, Badge, Button, Checkbox, Group, SegmentedControl, Select, Stack, Table, Text, TextInput, Title, Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../api/client';
 import { core } from '../api/endpoints';
@@ -11,12 +11,24 @@ import { r3 } from '../api/endpoints3';
 import type { Frequency, OnboardingRow } from '../api/types';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
-import { CpPicker } from '../components/CpPicker';
+import { CpChooser, CpHeader, CpPicker } from '../components/CpPicker';
 import { ErrorNote, Loading } from '../components/Status';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
 const SOURCE_COLOR: Record<OnboardingRow['source'], string> = {
   RECOMMENDED: 'gray', ML: 'grape', EXTRACTED: 'teal', EXTRACTED_CUSTOM: 'cyan',
+};
+const SOURCE_LABEL: Record<OnboardingRow['source'], string> = {
+  RECOMMENDED: 'Library match', ML: 'ML suggested', EXTRACTED: 'From agreement', EXTRACTED_CUSTOM: 'New, from agreement',
+};
+
+type Show = 'all' | 'agreement' | 'chosen' | 'library' | 'applied';
+const SHOW: Record<Show, (r: OnboardingRow, selected: boolean) => boolean> = {
+  all: () => true,
+  agreement: (r) => r.source === 'EXTRACTED' || r.source === 'EXTRACTED_CUSTOM',
+  chosen: (_r, selected) => selected,
+  library: (r) => r.source === 'RECOMMENDED' || r.source === 'ML',
+  applied: (r) => r.alreadyApplied,
 };
 
 interface Draft {
@@ -132,13 +144,29 @@ export function Onboarding() {
   const update = (key: string, patch: Partial<Draft>) =>
     setDrafts((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
   const selectedCount = Object.values(drafts).filter((d) => d.selected).length;
+  const [q, setQ] = useState('');
+  const [show, setShow] = useState<Show>('all');
+  const view = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return (data ?? []).map((r, i) => ({ r, i })).filter(({ r, i }) => {
+      const d = drafts[rowKey(r, i)] ?? initialDraft(r);
+      return SHOW[show](r, d.selected) && (!needle || r.name.toLowerCase().includes(needle)
+        || (r.conditionOverride ?? '').toLowerCase().includes(needle));
+    });
+  }, [data, drafts, q, show]);
+  const count = (s: Show) => (data ?? []).filter((r, i) => SHOW[s](r, (drafts[rowKey(r, i)] ?? initialDraft(r)).selected)).length;
 
   return (
     <Stack>
       <Group justify="space-between" align="end">
-        <Title order={2}>{cpId ? `Onboard CP ${cpId}` : 'Onboarding'}</Title>
+        <Stack gap={2}>
+          <Title order={2}>{cpId ? `Onboard CP ${cpId}` : 'Onboarding'}</Title>
+          {cpId && <CpHeader cpId={cpId} />}
+        </Stack>
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/onboarding/${encodeURIComponent(cp)}`)} />
       </Group>
+      {!cpId && <CpChooser onOpen={(cp) => navigate(`/onboarding/${encodeURIComponent(cp)}`)}
+        hint="Pick a credit proposal to choose which covenants to monitor. CPs with no covenants yet are the ones to start with." />}
       {cpId && isLoading && <Loading />}
       {error && <ErrorNote error={error} />}
       {data && (
@@ -147,6 +175,16 @@ export function Onboarding() {
             Rows from the loan agreement (EXTRACTED) show the page they came from. Nothing is monitored until you
             apply it here.
           </Alert>
+          <Group>
+            <TextInput placeholder="Search covenants" aria-label="Search covenants" value={q} w={280}
+              onChange={(e) => setQ(e.currentTarget.value)} />
+            <SegmentedControl aria-label="Which covenants" value={show} onChange={(v) => setShow(v as Show)} data={[
+              { value: 'all', label: `All (${data.length})` },
+              { value: 'agreement', label: `From the agreement (${count('agreement')})` },
+              { value: 'chosen', label: `Ticked (${selectedCount})` },
+              { value: 'library', label: `Library matches (${count('library')})` },
+              { value: 'applied', label: `Already applied (${count('applied')})` }]} />
+          </Group>
           <Table withTableBorder striped>
             <Table.Thead>
               <Table.Tr>
@@ -155,7 +193,7 @@ export function Onboarding() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {data.map((r, i) => {
+              {view.map(({ r, i }) => {
                 const key = rowKey(r, i);
                 const d = drafts[key] ?? initialDraft(r);
                 return (
@@ -169,7 +207,9 @@ export function Onboarding() {
                       {r.alreadyApplied && <Badge size="xs" color="gray">already applied</Badge>}
                     </Table.Td>
                     <Table.Td>
-                      <Badge color={SOURCE_COLOR[r.source]} variant="light">{r.source.replace('_', ' ')}</Badge>
+                      <Badge color={SOURCE_COLOR[r.source]} variant="light" style={{ whiteSpace: 'nowrap', overflow: 'visible' }}>
+                        {SOURCE_LABEL[r.source]}
+                      </Badge>
                       {r.extractionConfidence !== null && (
                         <Text size="xs" c="dimmed">{Math.round(r.extractionConfidence * 100)}% confidence</Text>
                       )}
@@ -199,6 +239,9 @@ export function Onboarding() {
                   </Table.Tr>
                 );
               })}
+              {view.length === 0 && (
+                <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">No covenant matches.</Text></Table.Td></Table.Tr>
+              )}
             </Table.Tbody>
           </Table>
           {canApply && <Group justify="end">
