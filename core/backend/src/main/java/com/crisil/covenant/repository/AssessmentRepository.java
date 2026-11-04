@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.crisil.covenant.entity.Assessment;
+import com.crisil.covenant.enums.AssessmentResult;
 
 @Repository
 public interface AssessmentRepository extends JpaRepository<Assessment, String> {
@@ -58,6 +59,47 @@ public interface AssessmentRepository extends JpaRepository<Assessment, String> 
             + "from Assessment a where a.appliedCovenant.id in :ids group by a.appliedCovenant.id")
     List<AppliedCovenantLastExecuted> findLatestExecutedAtByAppliedCovenantIdIn(
             @Param("ids") Collection<String> ids);
+
+    /**
+     * Result and dates of every assessment of a batch of covenants, newest first per covenant: the
+     * open-breach report's history in one query instead of one entity-graph page per covenant.
+     */
+    @Query("select a.appliedCovenant.id as appliedCovenantId, a.result as result, a.scheduledAt as scheduledAt, "
+            + "a.executedAt as executedAt from Assessment a where a.appliedCovenant.id in :ids "
+            + "order by a.appliedCovenant.id, a.scheduledAt desc")
+    List<AssessmentOutcome> findOutcomesByAppliedCovenantIdIn(@Param("ids") Collection<String> ids);
+
+    /**
+     * The latest assessment (by {@code scheduledAt}, which is never null) of each covenant in a batch:
+     * the portfolio summary's per-covenant lookup in one query, read through ix_assessment_applied_scheduled.
+     */
+    // ROW_NUMBER reads each covenant's rows once in index order (a correlated max() per row cost 100+ ms
+    // for a 200-covenant batch on SQL Server). Results are stored lower case; upper() maps them to the enum.
+    @Query(value = "select t.applied_covenant_id as appliedCovenantId, t.id as id, upper(t.result) as result "
+            + "from (select a.applied_covenant_id, a.id, a.result, a.scheduled_at, "
+            + "row_number() over (partition by a.applied_covenant_id order by a.scheduled_at desc, a.id desc) as rn "
+            + "from cov_assessment a where a.applied_covenant_id in (:ids)) t where t.rn = 1", nativeQuery = true)
+    List<LatestOutcome> findLatestOutcomes(@Param("ids") Collection<String> ids);
+
+    /** A covenant's latest assessment: its id and result. */
+    interface LatestOutcome {
+        String getAppliedCovenantId();
+
+        String getId();
+
+        AssessmentResult getResult();
+    }
+
+    /** One assessment's covenant, result and dates. */
+    interface AssessmentOutcome {
+        String getAppliedCovenantId();
+
+        AssessmentResult getResult();
+
+        Instant getScheduledAt();
+
+        Instant getExecutedAt();
+    }
 
     /** Projection carrying an applied covenant id and the most recent {@code executedAt} for it. */
     interface AppliedCovenantLastExecuted {

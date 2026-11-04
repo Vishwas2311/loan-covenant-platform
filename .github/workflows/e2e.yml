@@ -1,0 +1,70 @@
+# Browser tests against the whole stack with real sign-in (Keycloak), nightly and on demand.
+# Secrets are generated per run, so nothing needs configuring. With the optional AZURE_* repository
+# secrets the AI tests run against Azure OpenAI; without them those tests are skipped.
+name: E2E
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    name: Playwright on the full stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      COMPOSE: docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml --env-file deploy/.env
+      AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Throwaway secrets
+        run: |
+          cp deploy/.env.example deploy/.env
+          python3 - <<'EOF'
+          import re, secrets
+          p = "deploy/.env"
+          s = open(p).read()
+          for k in ("MSSQL_SA_PASSWORD", "COVENANT_SUPPORT_TOKEN", "DEMO_READER_PASSWORD", "KC_ADMIN_PASSWORD",
+                    "KC_DEMO_PASSWORD", "CORE_SERVICE_CLIENT_SECRET", "DPS_SERVICE_CLIENT_SECRET"):
+              s = re.sub(rf"^{k}=.*$", f"{k}=Ci-{secrets.token_urlsafe(18)}9a", s, flags=re.M)
+          open(p, "w").write(s)
+          EOF
+          {
+            echo "AZURE_API_KEY=${{ secrets.AZURE_API_KEY }}"
+            echo "AZURE_API_BASE=${{ secrets.AZURE_API_BASE }}"
+            echo "AZURE_DEPLOYMENT=${{ secrets.AZURE_DEPLOYMENT }}"
+          } >> deploy/.env
+      # The 4 GB Docling worker is left out; scanned agreements stay queued for it, which no test needs.
+      - name: Start the stack
+        run: |
+          $COMPOSE up -d --build sqlserver bank-stubs keycloak core stack-init dps-api dps-worker ui
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:8080/ >/dev/null && curl -sf http://localhost:8180/realms/covenant >/dev/null \
+              && curl -sf http://localhost:9310/readyz >/dev/null && break
+            sleep 10
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Install browsers
+        working-directory: ui
+        run: npm ci --no-audit --no-fund && npx playwright install --with-deps chromium
+      - name: Browser tests
+        working-directory: ui
+        run: |
+          if [ -n "$AZURE_API_KEY" ]; then npx playwright test; else npx playwright test --grep-invert "Azure OpenAI"; fi
+      - name: Stack logs on failure
+        if: failure()
+        run: $COMPOSE logs --tail 200 core dps-api dps-worker ui keycloak
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: ui/test-results
+          retention-days: 7

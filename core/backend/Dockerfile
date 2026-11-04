@@ -12,5 +12,6 @@ WORKDIR /app
 COPY --from=build /src/target/covenant-service-*.jar app.jar
 USER 10001
 EXPOSE 9310 9320
-ENV SPRING_PROFILES_ACTIVE=prod JAVA_OPTS="-XX:MaxRAMPercentage=75"
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
+# The bank's time zone: the 06:00 daily run, due dates and "today" all follow it (the container clock is UTC).
+ENV SPRING_PROFILES_ACTIVE=prod JAVA_OPTS="-XX:MaxRAMPercentage=75" COVENANT_TIME_ZONE=Asia/Kolkata
+ENTRYPOINT ["sh", "-c", "exec java -Duser.timezone=$COVENANT_TIME_ZONE $JAVA_OPTS -jar /app/app.jar"]

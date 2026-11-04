@@ -13,7 +13,7 @@ from dps.settings import AuthMode, Settings
 
 
 class FakeChecker:
-    """Ownership map: user -> CPs. ADMIN/SUPPORT/SERVICE bypass, AUDITOR reads (same rule as Core)."""
+    """Ownership map: user -> CPs. ADMIN/SERVICE bypass, AUDITOR and SUPPORT read (same rule as Core)."""
 
     def __init__(self, owners: dict[str, set[str]]) -> None:
         self.owners = owners

@@ -1,0 +1,14 @@
+# Accepted image-scan findings, each with the reason it does not apply. Review when the fix version is
+# reachable (Spring Framework 7 needs Spring Boot 4) or when the code starts using the feature named.
+
+# Spring Framework, fixed only in 7.0.9. Core renders no views: every controller returns JSON, and there
+# is no XsltView, no "/**" view mapping, no Server-Sent Events with view fragments and no WebFlux
+# functional endpoints (WebFlux is on the classpath for WebClient only). Checked 4 Nov 2026.
+CVE-2026-47884
+CVE-2026-47890
+CVE-2026-47892
+
+# mssql-jdbc: Core ships 12.10.2.jre11, one of the fixed releases the advisory lists (12.8.2.jre11 and
+# 12.10.2.jre11 included). Trivy reads the jar version without the .jre11 suffix and ranks it below the
+# fix, so it reports it anyway.
+CVE-2025-59250

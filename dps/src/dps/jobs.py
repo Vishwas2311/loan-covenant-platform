@@ -50,6 +50,18 @@ def claim(db: Session, worker_id: str, pool: str, lease_seconds: int, max_attemp
     return None
 
 
+def renew_lease(db: Session, job_id: str, worker_id: str, lease_seconds: int) -> bool:
+    """Heartbeat: pushes the lease out while ``worker_id`` still holds the running job. False if it lost it."""
+    now = utcnow()
+    result = db.execute(
+        update(Job)
+        .where(Job.id == job_id, Job.status == RUNNING, Job.locked_by == worker_id)
+        .values(locked_until=now + timedelta(seconds=lease_seconds), updated_at=now)
+        .execution_options(synchronize_session=False))
+    db.commit()
+    return result.rowcount == 1
+
+
 def record_step(db: Session, job: Job, step: str, **detail) -> None:
     steps = json.loads(job.steps_json or "[]")
     steps.append({"step": step, "at": utcnow().isoformat(), **detail})

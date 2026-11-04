@@ -66,8 +66,8 @@ export function BreachRate({ bySegment, bySector }: { bySegment: AnalyticsGroup[
                   <Text size="sm" className="num" w={46} ta="right">{(g.breachRate * 100).toFixed(1)}%</Text>
                 </Group>
               </Table.Td>
-              <Table.Td ta="right" c={g.breached ? 'var(--status-bad)' : 'dimmed'} fw={g.breached ? 650 : 400}>{g.breached}</Table.Td>
-              <Table.Td ta="right" c={g.error ? 'orange.8' : 'dimmed'}>{g.error}</Table.Td>
+              <Table.Td ta="right" c={g.breached ? 'var(--text-bad)' : 'dimmed'} fw={g.breached ? 650 : 400}>{g.breached}</Table.Td>
+              <Table.Td ta="right" c={g.error ? 'var(--text-warn)' : 'dimmed'}>{g.error}</Table.Td>
               <Table.Td ta="right">{g.compliant + g.breached}</Table.Td>
             </Table.Tr>
           ))}

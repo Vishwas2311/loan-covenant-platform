@@ -1,5 +1,7 @@
 package com.crisil.covenant.entity;
 
+import jakarta.persistence.EntityListeners;
+import com.crisil.covenant.service.CpChangeListener;
 import com.crisil.covenant.entity.AuditableEntity;
 import com.crisil.covenant.enums.CovenantClassification;
 import com.crisil.covenant.enums.CovenantConditionType;
@@ -23,6 +25,7 @@ import com.crisil.covenant.enums.ThresholdSource;
 // Named so @EntityGraph finds it directly: with attributePaths alone, Spring Data first looks up a named
 // graph, gets an IllegalArgumentException on every call, then builds the graph (load test: ~10% of CPU).
 @NamedEntityGraph(name = AppliedCovenant.WITH_MASTER, attributeNodes = @NamedAttributeNode("covenantMaster"))
+@EntityListeners(CpChangeListener.class)
 @Table(name = "cov_applied_covenant")
 public class AppliedCovenant extends AuditableEntity {
 

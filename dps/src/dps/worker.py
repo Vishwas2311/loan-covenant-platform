@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import signal
+import threading
 import time
 from collections.abc import Callable
 
@@ -59,6 +60,7 @@ class Worker:
             return
         jobs.record_step(db, job, "START", attempt=job.attempts, worker=self.settings.worker_id)
         started = time.monotonic()
+        stop = self._start_heartbeat(job.id)
         try:
             outcome, state_id, error = runner(job)
         except (CoreUnavailable, httpx.HTTPError, OSError) as ex:
@@ -74,6 +76,8 @@ class Worker:
             jobs.finish(db, job, jobs.FAILED, f"{type(ex).__name__}: {str(ex)[:1900]}")
             self._sync_document(db, job)
             return
+        finally:
+            stop.set()
         db.refresh(job)
         job.flow_state_id = state_id
         jobs.record_step(db, job, "END", outcome=outcome, seconds=round(time.monotonic() - started, 2))
@@ -81,6 +85,24 @@ class Worker:
             jobs.move_to_pool(db, job, "HEAVY")
             return
         jobs.finish(db, job, OUTCOME_TO_STATUS.get(outcome, jobs.FAILED), error or None)
+
+    def _start_heartbeat(self, job_id: str) -> threading.Event:
+        """Renews the job's lease every third of its length until the returned event is set."""
+        stop = threading.Event()
+        lease = self.settings.worker_lease_seconds
+
+        def beat() -> None:
+            while not stop.wait(max(1.0, lease / 3)):
+                try:
+                    with self.session_factory() as db:
+                        if not jobs.renew_lease(db, job_id, self.settings.worker_id, lease):
+                            log.warning("Job %s: lease lost to another worker", job_id)
+                            return
+                except Exception:  # noqa: BLE001 - a missed beat only shortens the lease
+                    log.warning("Job %s: lease renewal failed", job_id, exc_info=True)
+
+        threading.Thread(target=beat, name=f"lease-{job_id[:8]}", daemon=True).start()
+        return stop
 
     def _sync_document(self, db: Session, job: Job) -> None:
         if job.status == jobs.FAILED:

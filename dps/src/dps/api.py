@@ -214,6 +214,7 @@ def upload_document(
 ) -> JSONResponse:
     settings: Settings = request.app.state.settings
     store: FileStore = request.app.state.store
+    request.app.state.limiter.check(user.user, "upload", settings.uploads_per_minute)
     cp_ids = sorted({c.strip() for c in cpIds if c and c.strip()})
     if not cp_ids:
         raise ApiError(400, "CP_REQUIRED", "At least one cpId is required")
@@ -369,6 +370,7 @@ def ask_ai(body: AskRequest, request: Request, user: User) -> dict:
     """FR-27: answers about the caller's own portfolio only (Core data fetched with the caller's identity)."""
     from dps.ask import answer
 
+    request.app.state.limiter.check(user.user, "ask", request.app.state.settings.ask_per_minute)
     advisor = request.app.state.advisor
     return answer(body.question, user, request.app.state.core_fetch, advisor.completion)
 
@@ -467,6 +469,7 @@ def ask_agreement(document_id: str, body: AgreementQuestion, request: Request, d
 
     doc = load_document(db, document_id)
     require_document_access(checker, user, doc, read_only=True)
+    request.app.state.limiter.check(user.user, "ask", request.app.state.settings.ask_per_minute)
     if doc.type != "LOAN_AGREEMENT" or doc.status == "REMOVED":
         raise ApiError(400, "NOT_AN_AGREEMENT", "Questions can only be asked about a loan agreement in use")
     path = request.app.state.store.path(doc.storage_path)

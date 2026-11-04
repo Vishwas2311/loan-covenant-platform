@@ -1,5 +1,6 @@
 import {
-  ActionIcon, Badge, Button, Card, createTheme, Modal, NavLink, Paper, SegmentedControl, Select, Table, Tabs, TextInput,
+  ActionIcon, Badge, Button, Card, createTheme, Modal, NavLink, NumberInput, Paper, Pill, SegmentedControl, Select, Table,
+  Tabs, TextInput,
   type MantineColorsTuple,
 } from '@mantine/core';
 
@@ -50,6 +51,10 @@ export const theme = createTheme({
       styles: { root: { textTransform: 'none', fontWeight: 550, letterSpacing: 0 } },
     }),
     TextInput: TextInput.extend({ defaultProps: { radius: 'sm' } }),
+    // Screen readers name every control: the tag remove buttons say what they do, and number fields drop
+    // their unlabelled stepper arrows (the keyboard arrows still step the value).
+    Pill: Pill.extend({ defaultProps: { removeButtonProps: { 'aria-label': 'Remove' } } }),
+    NumberInput: NumberInput.extend({ defaultProps: { hideControls: true } }),
     Select: Select.extend({ defaultProps: { radius: 'sm' } }),
     SegmentedControl: SegmentedControl.extend({ defaultProps: { radius: 'sm', size: 'sm' } }),
     Modal: Modal.extend({ defaultProps: { radius: 'md', centered: true } }),

@@ -86,7 +86,7 @@ export function TrendChart({ points, limit }: { points: { label: string; value: 
         <>
           <line x1={pad} x2={W - pad} y1={y(limit)} y2={y(limit)} stroke="var(--status-bad)"
             strokeDasharray="5 4" />
-          <text x={W - pad} y={y(limit) - 4} textAnchor="end" fontSize="11" fill="var(--status-bad)">
+          <text x={W - pad} y={y(limit) - 4} textAnchor="end" fontSize="11" fill="var(--text-bad)">
             limit {limit}
           </text>
         </>
@@ -355,7 +355,7 @@ export function CovenantDrawer({ cpId, row, canAct, onClose }: {
   const check = useMutation({
     mutationFn: () => r3.checkNow(row.appliedCovenantId),
     onSuccess: (a) => {
-      notifications.show({ color: a.result === 'BREACHED' ? 'red' : 'green',
+      notifications.show({ color: a.result === 'BREACHED' ? 'var(--text-bad)' : 'green',
         message: `Checked: ${(a.result ?? 'no result').replace(/_/g, ' ')}${a.computedValue ? ` (${formatValue(a.computedValue)})` : ''}` });
       qc.invalidateQueries({ queryKey: ['review', cpId] });
       qc.invalidateQueries({ queryKey: ['history', row.appliedCovenantId] });

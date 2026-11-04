@@ -64,10 +64,41 @@ class MonitoringServiceTest {
     @Mock private CovenantDispositionRepository dispositionRepo;
     @InjectMocks private MonitoringService service;
 
+    private record Outcome(String getAppliedCovenantId, String getId, AssessmentResult getResult)
+            implements AssessmentRepository.LatestOutcome { }
+
     @BeforeEach
     void stubSettings() {
         lenient().when(reportingSettingsService.current())
                 .thenReturn(ReportingSettingsResponse.defaults());
+        // The summary reads every covenant's latest assessment in one batch; answer it from the
+        // per-covenant stubs each test sets up, so the tests state their data once.
+        java.util.Map<String, Assessment> loaded = new java.util.HashMap<>();
+        lenient().when(assessmentRepo.findLatestOutcomes(anyCollection())).thenAnswer(inv -> {
+            List<AssessmentRepository.LatestOutcome> out = new java.util.ArrayList<>();
+            for (Object id : (java.util.Collection<?>) inv.getArgument(0)) {
+                Page<Assessment> page = assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(
+                        (String) id, PageRequest.of(0, 1));
+                if (page != null) {
+                    page.stream().findFirst().ifPresent(a -> {
+                        String key = a.getId() != null ? a.getId() : "latest-of-" + id;
+                        org.springframework.test.util.ReflectionTestUtils.setField(a, "id", key);
+                        loaded.put(key, a);
+                        out.add(new Outcome((String) id, key, a.getResult()));
+                    });
+                }
+            }
+            return out;
+        });
+        lenient().when(assessmentRepo.findAllById(any())).thenAnswer(inv -> {
+            List<Assessment> out = new java.util.ArrayList<>();
+            for (Object id : (Iterable<?>) inv.getArgument(0)) {
+                if (loaded.containsKey(id)) {
+                    out.add(loaded.get(id));
+                }
+            }
+            return out;
+        });
     }
 
     /** Stub {@link USER}'s portfolio to be exactly the CPs of {@code applied} (the cross-CP read path). */

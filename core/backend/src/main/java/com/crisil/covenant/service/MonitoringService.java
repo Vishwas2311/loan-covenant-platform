@@ -5,6 +5,7 @@ import com.crisil.covenant.repository.AppliedCovenantRepository;
 import com.crisil.covenant.enums.AppliedCovenantStatus;
 import com.crisil.covenant.entity.Assessment;
 import com.crisil.covenant.repository.AssessmentRepository;
+import com.crisil.covenant.repository.AssessmentRepository.LatestOutcome;
 import com.crisil.covenant.enums.AssessmentResult;
 import com.crisil.covenant.entity.CovenantDisposition;
 import com.crisil.covenant.entity.MonitoringSchedule;
@@ -112,8 +113,10 @@ public class MonitoringService {
         }
         Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(dispositionRepo.findByCpIdIn(owned));
         Map<String, long[]> byCp = new TreeMap<>();
-        for (AppliedCovenant ac : appliedRepo.findByCpIdInOrderByIdAsc(owned)) {
-            accumulate(byCp.computeIfAbsent(ac.getCpId(), k -> new long[6]), ac, dispByAc);
+        List<AppliedCovenant> applied = appliedRepo.findByCpIdInOrderByIdAsc(owned);
+        Map<String, LatestOutcome> latest = latestOutcomes(applied);
+        for (AppliedCovenant ac : applied) {
+            accumulate(byCp.computeIfAbsent(ac.getCpId(), k -> new long[6]), ac, dispByAc, latest.get(ac.getId()));
         }
         return byCp.entrySet().stream()
                 .map(e -> toSummary(e.getKey(), e.getValue()))
@@ -129,8 +132,10 @@ public class MonitoringService {
     public CpMonitoringSummary summaryFor(String cpId) {
         Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(dispositionRepo.findByCpId(cpId));
         long[] counts = new long[6];
-        for (AppliedCovenant ac : appliedRepo.findByCpIdOrderByIdAsc(cpId)) {
-            accumulate(counts, ac, dispByAc);
+        List<AppliedCovenant> applied = appliedRepo.findByCpIdOrderByIdAsc(cpId);
+        Map<String, LatestOutcome> latest = latestOutcomes(applied);
+        for (AppliedCovenant ac : applied) {
+            accumulate(counts, ac, dispByAc, latest.get(ac.getId()));
         }
         return toSummary(cpId, counts);
     }
@@ -142,9 +147,9 @@ public class MonitoringService {
      * its latest assessment (the shared {@link DispositionRules#addressesCurrentBreach} rule); it never
      * reduces {@code breached}.
      */
-    private void accumulate(long[] counts, AppliedCovenant ac, Map<String, CovenantDisposition> dispByAc) {
+    private static void accumulate(long[] counts, AppliedCovenant ac, Map<String, CovenantDisposition> dispByAc,
+                                   LatestOutcome latest) {
         counts[0]++;
-        Assessment latest = latestAssessment(ac.getId()).orElse(null);
         AssessmentResult result = latest == null ? null : latest.getResult();
         if (result != null) {
             switch (result) {
@@ -164,6 +169,19 @@ public class MonitoringService {
         } else {
             counts[4]++;
         }
+    }
+
+    /** Each covenant's latest assessment, in batches below SQL Server's 2,100-parameter limit. */
+    private Map<String, LatestOutcome> latestOutcomes(List<AppliedCovenant> applied) {
+        List<String> ids = applied.stream().map(AppliedCovenant::getId).toList();
+        Map<String, LatestOutcome> byId = new HashMap<>();
+        for (int from = 0; from < ids.size(); from += 500) {
+            for (LatestOutcome o : assessmentRepo.findLatestOutcomes(ids.subList(from, Math.min(ids.size(), from + 500)))) {
+                // Two rows only when scheduledAt ties; keep one, as the paged lookup did.
+                byId.putIfAbsent(o.getAppliedCovenantId(), o);
+            }
+        }
+        return byId;
     }
 
     private static CpMonitoringSummary toSummary(String cpId, long[] c) {
@@ -203,15 +221,34 @@ public class MonitoringService {
         // US-MON-21: batch the CP's dispositions so an active EXTENSION can defer the covenant's next
         // monitoring date consistently with the portfolio agenda (see schedule()).
         Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(dispositionRepo.findByCpId(cpId));
-        return appliedRepo.findByCpIdOrderByIdAsc(cpId).stream()
-                .map(ac -> toCovenantOnCp(ac, today, zone, dueSoonDays, dispByAc.get(ac.getId())))
+        List<AppliedCovenant> applied = appliedRepo.findByCpIdOrderByIdAsc(cpId);
+        Map<String, Assessment> latest = latestAssessments(applied);
+        return applied.stream()
+                .map(ac -> toCovenantOnCp(ac, today, zone, dueSoonDays, dispByAc.get(ac.getId()), latest.get(ac.getId())))
                 .toList();
     }
 
+    /** Each covenant's latest assessment entity: one query for the ids, one to load them. */
+    private Map<String, Assessment> latestAssessments(List<AppliedCovenant> applied) {
+        Map<String, LatestOutcome> outcomes = latestOutcomes(applied);
+        Map<String, Assessment> byId = new HashMap<>();
+        for (Assessment a : assessmentRepo.findAllById(outcomes.values().stream().map(LatestOutcome::getId).toList())) {
+            byId.put(a.getId(), a);
+        }
+        Map<String, Assessment> byApplied = new HashMap<>();
+        outcomes.forEach((appliedId, o) -> {
+            Assessment a = byId.get(o.getId());
+            if (a != null) {
+                byApplied.put(appliedId, a);
+            }
+        });
+        return byApplied;
+    }
+
     private CovenantOnCp toCovenantOnCp(AppliedCovenant ac, LocalDate today, ZoneId zone,
-                                        int dueSoonDays, CovenantDisposition disp) {
+                                        int dueSoonDays, CovenantDisposition disp, Assessment latestAssessment) {
         MonitoringSchedule schedule = scheduleRepo.findByAppliedCovenantId(ac.getId()).orElse(null);
-        Optional<Assessment> latest = latestAssessment(ac.getId());
+        Optional<Assessment> latest = Optional.ofNullable(latestAssessment);
         MonitoringTiming timing = timingFor(ac, latest.orElse(null), today, zone, dueSoonDays);
         // US-MON-21: an active EXTENSION defers the next monitoring date (grace date, or an earlier
         // upcoming frequency date). Same rule as the agenda so both surfaces agree.

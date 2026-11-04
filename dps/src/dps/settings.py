@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./dps.db"
     storage_dir: Path = Path("./storage")
     max_upload_mb: int = 50
+    # Per-user calls a minute (0 switches a limit off): AI answers cost money, uploads queue work.
+    ask_per_minute: int = 20
+    uploads_per_minute: int = 30
 
     # "prod" refuses DEV_HEADER at startup; set DPS_ENV=prod in every production deployment.
     env: str = "dev"
@@ -51,7 +54,9 @@ class Settings(BaseSettings):
     # Defaults to the host name, so scaled replicas (docker compose --scale, Kubernetes) are told apart.
     worker_id: str = socket.gethostname() or "dps-worker"
     worker_pool: str = "STANDARD"  # STANDARD | HEAVY
-    worker_lease_seconds: int = 900
+    # A running job's lease, renewed every third of it while the worker is alive: a worker that dies
+    # gives its job back within this time, and a long job is never taken over while it still runs.
+    worker_lease_seconds: int = 120
     worker_max_attempts: int = 3
     ocr_enabled: bool = True
 

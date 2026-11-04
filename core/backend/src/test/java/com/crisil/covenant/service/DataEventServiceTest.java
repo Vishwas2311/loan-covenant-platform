@@ -181,4 +181,13 @@ class DataEventServiceTest {
         when(measureRepo.findByDataSourceTableId("t3")).thenReturn(List.of());
         assertThat(service.handle(req(TableEntityKeyLevel.CP_ID, "CP-1")).assessmentsQueued()).isZero();
     }
+
+    @Test
+    void aConcurrentDuplicateIsAnsweredAsADuplicate() {
+        when(tableRepo.findByDataSourceIdOrderByNameAsc("ds-dps"))
+                .thenReturn(List.of(table("t3", TableEntityKeyLevel.CP_ID)));
+        when(measureRepo.findByDataSourceTableId("t3")).thenReturn(List.of());
+        when(eventRepo.save(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("uk_data_event"));
+        assertThat(service.handle(req(TableEntityKeyLevel.CP_ID, "CP-1")).duplicate()).isTrue();
+    }
 }

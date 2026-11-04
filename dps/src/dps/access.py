@@ -1,8 +1,9 @@
 """Per-CP access, delegated to Covenant Core so both services apply one rule.
 
 Core's ``GET /api/v1/credit-proposals/{cpId}`` is guarded by ``CpAccessGuard``: 200 means the caller
-may see the CP, 404 means not. DPS forwards the caller's identity and asks. ADMIN / SUPPORT /
-SERVICE bypass, and AUDITOR may read, as in Core.
+may see the CP, 404 means not. DPS forwards the caller's identity and asks. ADMIN and SERVICE
+bypass; AUDITOR and SUPPORT may read any CP but change none, as in Core (support's own repairs are the
+role-gated job endpoints).
 """
 
 from __future__ import annotations
@@ -23,9 +24,9 @@ class CpAccessChecker(Protocol):
 
 
 def has_bypass(principal: Principal, read_only: bool) -> bool:
-    if principal.has_any(ADMIN, SUPPORT, SERVICE):
+    if principal.has_any(ADMIN, SERVICE):
         return True
-    return read_only and principal.has_any(AUDITOR)
+    return read_only and principal.has_any(AUDITOR, SUPPORT)
 
 
 class CoreCpAccessChecker:

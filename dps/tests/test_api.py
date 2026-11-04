@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 
+import pytest
 from conftest import h
 
 from dps.models import Document, ExtractedTerm, Job, StatementValue
@@ -317,3 +318,48 @@ def test_job_operations_for_support(client, app):
     assert (retried["status"], retried["attempts"], retried["error"]) == ("QUEUED", 0, None)
     assert client.post("/dps/v1/jobs/nope/retry", headers=support).status_code == 404
     assert client.post(f"/dps/v1/jobs/{job_id}/retry", headers=h()).status_code == 403
+
+
+def test_support_and_auditor_read_but_never_change_a_cp(client, app):
+    doc_id = upload(client).json()["documentId"]
+    tid = add_term(app, doc_id, expression="DSCR >= 1.2", status="NEEDS_REVIEW")
+    for who in (h("support-1", "SUPPORT"), h("aud-1", "AUDITOR")):
+        assert client.get("/dps/v1/documents?cpId=CP-1", headers=who).status_code == 200
+        assert client.get(f"/dps/v1/documents/{doc_id}/terms", headers=who).status_code == 200
+        assert upload(client, headers=who).status_code == 404
+        assert client.post(f"/dps/v1/documents/{doc_id}/links", json={"cpIds": ["CP-2"]},
+                           headers=who).status_code == 404
+        assert client.request("DELETE", f"/dps/v1/documents/{doc_id}/links", json={"cpIds": ["CP-1"]},
+                              headers=who).status_code == 404
+        assert client.patch(f"/dps/v1/terms/{tid}", json={"action": "APPROVE"}, headers=who).status_code == 404
+        assert client.post(f"/dps/v1/documents/{doc_id}/remove", json={"reason": "x"}, headers=who).status_code == 403
+
+
+def test_rate_limits_uploads_per_user(client, app):
+    app.state.settings.uploads_per_minute = 2
+    try:
+        assert upload(client, name="a.pdf", data=PDF + b"1").status_code == 202
+        assert upload(client, name="b.pdf", data=PDF + b"2").status_code == 202
+        limited = upload(client, name="c.pdf", data=PDF + b"3")
+        assert limited.status_code == 429 and limited.json()["code"] == "RATE_LIMITED"
+        assert limited.json()["details"]["retryAfterSeconds"] >= 1
+        assert upload(client, name="d.pdf", data=PDF + b"4", headers=h("wrm-meera", "APPROVER")).status_code != 429
+    finally:
+        app.state.settings.uploads_per_minute = 30
+
+
+def test_rate_limiter_window_and_switch_off():
+    from dps.errors import ApiError
+    from dps.ratelimit import RateLimiter
+
+    now = [0.0]
+    lim = RateLimiter(clock=lambda: now[0])
+    lim.check("u", "ask", 1)
+    with pytest.raises(ApiError) as ex:
+        lim.check("u", "ask", 1)
+    assert ex.value.status == 429
+    lim.check("u", "upload", 1)
+    now[0] = 61.0
+    lim.check("u", "ask", 1)
+    for _ in range(100):
+        lim.check("u", "ask", 0)

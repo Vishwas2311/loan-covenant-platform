@@ -75,10 +75,10 @@ function HealthLadder({ rows, names }: { rows: CpSummary[]; names: Map<string, s
                 {name && <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>{r.cpId}</Text>}
               </Group>
               <SplitBar parts={RESULT_PARTS(r)} height={8} ariaLabel={`${r.compliant} kept, ${r.breached} breached, ${r.error} could not be checked`} />
-              <Text size="xs" ta="right" className="num" c="var(--status-bad)" fw={650}>
+              <Text size="xs" ta="right" className="num" c="var(--text-bad)" fw={650}>
                 {r.breached ? `${r.breached} breached` : ''}
               </Text>
-              <Text size="xs" ta="right" className="num" c="orange.8">
+              <Text size="xs" ta="right" className="num" c="var(--text-warn)">
                 {r.error ? `${r.error} errors` : ''}
               </Text>
             </button>
@@ -116,7 +116,7 @@ function NextTasks() {
               <Text size="sm" truncate="end">{t.title}</Text>
               <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="xs" style={{ flexShrink: 0 }}>{t.cpId}</Anchor>
             </Group>
-            <Text size="xs" c={t.dueDate < today ? 'var(--status-bad)' : 'dimmed'} style={{ flexShrink: 0 }}>
+            <Text size="xs" c={t.dueDate < today ? 'var(--text-bad)' : 'dimmed'} style={{ flexShrink: 0 }}>
               {fmtDate(t.dueDate)}
             </Text>
           </Group>
@@ -155,7 +155,7 @@ function DueSoon() {
               <Anchor component={Link} to={`/cp/${encodeURIComponent(e.cpId)}`} size="xs">{e.cpId}</Anchor>
               {e.cpName ? ` · ${e.cpName}` : ''}
             </Text>
-            <Text size="xs" ta="right" style={{ whiteSpace: 'nowrap' }} c={e.overdueByDays > 0 ? 'var(--status-bad)' : 'dimmed'}>
+            <Text size="xs" ta="right" style={{ whiteSpace: 'nowrap' }} c={e.overdueByDays > 0 ? 'var(--text-bad)' : 'dimmed'}>
               {e.overdueByDays > 0 ? `${e.overdueByDays} days overdue` : humanizeTiming(e.timingStatus)}
             </Text>
           </div>
@@ -259,8 +259,8 @@ export function Portfolio() {
                 <Table.Td c="dimmed">{humanize(about.get(r.cpId)?.businessSegment) || '—'}</Table.Td>
                 <Table.Td ta="right">{r.applied}</Table.Td>
                 <Table.Td ta="right">{r.compliant}</Table.Td>
-                <Table.Td ta="right" c={r.breached ? 'var(--status-bad)' : 'dimmed'} fw={r.breached ? 650 : 400}>{r.breached}</Table.Td>
-                <Table.Td ta="right" c={r.error ? 'orange.8' : 'dimmed'}>{r.error}</Table.Td>
+                <Table.Td ta="right" c={r.breached ? 'var(--text-bad)' : 'dimmed'} fw={r.breached ? 650 : 400}>{r.breached}</Table.Td>
+                <Table.Td ta="right" c={r.error ? 'var(--text-warn)' : 'dimmed'}>{r.error}</Table.Td>
                 <Table.Td ta="right" c={r.pendingReview ? undefined : 'dimmed'}>{r.pendingReview}</Table.Td>
                 <Table.Td ta="right" c={r.dispositioned ? undefined : 'dimmed'}>{r.dispositioned}</Table.Td>
               </Table.Tr>

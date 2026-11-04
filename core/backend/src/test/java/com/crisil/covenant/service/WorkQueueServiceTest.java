@@ -22,6 +22,7 @@ import com.crisil.covenant.enums.CovenantDispositionStatus;
 import com.crisil.covenant.enums.CovenantStatusSource;
 import com.crisil.covenant.enums.DispositionApproval;
 import com.crisil.covenant.enums.TimingStatus;
+import com.crisil.covenant.repository.AppliedCovenantRepository;
 import com.crisil.covenant.repository.CreditProposalCacheRepository;
 import com.crisil.covenant.repository.WorkTaskRepository;
 import java.lang.reflect.Field;
@@ -51,13 +52,16 @@ class WorkQueueServiceTest {
     @Mock private CertificateRequirementService certificates;
     @Mock private CreditProposalCacheRepository cacheRepo;
     @Mock private WorkTaskRepository repo;
+    @Mock private AppliedCovenantRepository appliedRepo;
+    private final TaskSyncTracker tracker = new TaskSyncTracker(java.time.Duration.ofMinutes(2));
 
     private final List<WorkTask> stored = new ArrayList<>();
     private WorkQueueService service;
 
     @BeforeEach
     void setUp() throws Exception {
-        service = new WorkQueueService(monitoringService, reviewService, certificates, cacheRepo, repo, CLOCK);
+        service = new WorkQueueService(monitoringService, reviewService, certificates, cacheRepo, repo, appliedRepo,
+                tracker, CLOCK);
         lenient().when(monitoringService.summary("rm-anil")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 3, 1, 1, 0, 1, 0)));
         lenient().when(monitoringService.summary("wrm-meera")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 3, 1, 1, 0, 1, 0)));
         lenient().when(monitoringService.summary("rm-priya")).thenReturn(List.of());
@@ -114,6 +118,8 @@ class WorkQueueServiceTest {
         assertThat(stored).hasSize(1);
 
         when(reviewService.reviewRows("CP-1")).thenReturn(List.of(row("1", AssessmentResult.COMPLIANT, false, null, null)));
+        assertThat(service.tasksFor("rm-anil", true, true)).as("unchanged CP: not re-synced").hasSize(1);
+        tracker.markChanged("CP-1");
         assertThat(service.tasksFor("rm-anil", true, true)).isEmpty();
         assertThat(stored.get(0).getStatus()).isEqualTo(WorkTask.Status.RESOLVED);
         assertThat(stored.get(0).getClosedBy()).isEqualTo("system");

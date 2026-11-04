@@ -52,7 +52,7 @@ function Upload({ cpId, agreements }: { cpId: string; agreements: DpsDocument[] 
           <Text size="sm" c="dimmed">The file is read in the background; it shows in the list at once.</Text>
         </Stack>
         {cpIds.some((c) => c !== cpId) && (
-          <Text size="sm" c="orange">This file will also be linked to: {cpIds.filter((c) => c !== cpId).join(', ')}</Text>
+          <Text size="sm" c="var(--text-warn)">This file will also be linked to: {cpIds.filter((c) => c !== cpId).join(', ')}</Text>
         )}
         <Stack gap="sm">
           <FileInput label="File (PDF, XLSX, CSV)" value={file} onChange={(f) => {
@@ -322,7 +322,7 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
         <AskAgreement documentId={doc.id} onPage={(page, quote) => setCited({ page, quote })} />
       )}
       {cited && <SourcePage documentId={doc.id} page={cited.page} quote={cited.quote} onClose={() => setCited(null)} />}
-      {job.data?.error && <Text c="red" size="sm">{job.data.error}</Text>}
+      {job.data?.error && <Text c="var(--text-bad)" size="sm">{job.data.error}</Text>}
       <DocumentLinks doc={doc} canEdit={canReview} />
       {doc.type === 'LOAN_AGREEMENT' && (terms.isLoading ? <Loading /> : (
         <Table withTableBorder>

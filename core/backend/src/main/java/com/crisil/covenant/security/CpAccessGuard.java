@@ -30,8 +30,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  *
  * <p>Access is granted when the caller:
  * <ul>
- *   <li>has role ADMIN, SUPPORT or SERVICE; or</li>
- *   <li>has role AUDITOR and the request is a read (GET); or</li>
+ *   <li>has role ADMIN or SERVICE; or</li>
+ *   <li>has role AUDITOR or SUPPORT and the request is a read (GET): both look at any CP but change
+ *       none; support's own repairs go through {@code /api/v1/ops/**}, which is not CP-guarded; or</li>
  *   <li>is the CP's RM or WRM, by the CP cache first, then a live credit-proposal lookup.</li>
  * </ul>
  * Otherwise it throws 404 {@code CP_NOT_FOUND}, so a caller cannot learn that another portfolio's
@@ -41,9 +42,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class CpAccessGuard {
 
     private static final Logger LOG = LoggerFactory.getLogger(CpAccessGuard.class);
-    private static final Set<String> BYPASS = Set.of(
-            "ROLE_" + Roles.ADMIN, "ROLE_" + Roles.SUPPORT, "ROLE_" + Roles.SERVICE);
-    private static final String READ_ONLY_BYPASS = "ROLE_" + Roles.AUDITOR;
+    private static final Set<String> BYPASS = Set.of("ROLE_" + Roles.ADMIN, "ROLE_" + Roles.SERVICE);
+    private static final Set<String> READ_ONLY_BYPASS = Set.of("ROLE_" + Roles.AUDITOR, "ROLE_" + Roles.SUPPORT);
 
     private final CreditProposalCacheRepository cacheRepo;
     private final CreditProposalClient creditProposalClient;
@@ -95,7 +95,7 @@ public class CpAccessGuard {
         if (authorities.stream().anyMatch(BYPASS::contains)) {
             return true;
         }
-        if (authorities.contains(READ_ONLY_BYPASS) && isReadRequest()) {
+        if (authorities.stream().anyMatch(READ_ONLY_BYPASS::contains) && isReadRequest()) {
             return true;
         }
         Optional<String> user = CurrentUserContext.currentUser();

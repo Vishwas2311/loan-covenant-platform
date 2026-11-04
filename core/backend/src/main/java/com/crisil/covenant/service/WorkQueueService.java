@@ -10,6 +10,8 @@ import com.crisil.covenant.entity.WorkTask;
 import com.crisil.covenant.enums.AssessmentResult;
 import com.crisil.covenant.enums.DispositionApproval;
 import com.crisil.covenant.enums.TimingStatus;
+import com.crisil.covenant.entity.AppliedCovenant;
+import com.crisil.covenant.repository.AppliedCovenantRepository;
 import com.crisil.covenant.repository.CreditProposalCacheRepository;
 import com.crisil.covenant.repository.WorkTaskRepository;
 import java.time.Clock;
@@ -28,8 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * C4: the work queue. Before each read the open tasks of the user's CPs are brought in line with the
- * covenants: a task is opened for each thing that needs a person (a request to decide, a breach with
+ * C4: the work queue. Before each read the open tasks of the user's CPs that changed (see
+ * {@link TaskSyncTracker}) are brought in line with the covenants: a task is opened for each thing that needs a person (a request to decide, a breach with
  * no decision, an overdue check, a person-checked result to record, an overdue compliance
  * certificate) and closed as RESOLVED once that has cleared. Requests go to the CP's approver; the
  * rest to its RM. A task still open after its due date is escalated: the approver sees it too.
@@ -48,16 +50,21 @@ public class WorkQueueService {
     private final CertificateRequirementService certificates;
     private final CreditProposalCacheRepository cacheRepo;
     private final WorkTaskRepository repo;
+    private final AppliedCovenantRepository appliedRepo;
+    private final TaskSyncTracker tracker;
     private final Clock clock;
 
     public WorkQueueService(MonitoringService monitoringService, ReviewService reviewService,
                             CertificateRequirementService certificates, CreditProposalCacheRepository cacheRepo,
-                            WorkTaskRepository repo, Clock clock) {
+                            WorkTaskRepository repo, AppliedCovenantRepository appliedRepo, TaskSyncTracker tracker,
+                            Clock clock) {
         this.monitoringService = monitoringService;
         this.reviewService = reviewService;
         this.certificates = certificates;
         this.cacheRepo = cacheRepo;
         this.repo = repo;
+        this.appliedRepo = appliedRepo;
+        this.tracker = tracker;
         this.clock = clock;
     }
 
@@ -122,7 +129,7 @@ public class WorkQueueService {
     }
 
     /**
-     * Tasks on the user's CPs, after syncing them. {@code mine} keeps the user's own tasks plus the
+     * Tasks on the user's CPs, after syncing the ones that changed. {@code mine} keeps the user's own tasks plus the
      * escalated ones on CPs where they are the approver; {@code open} keeps only open tasks.
      */
     public List<WorkTaskView> tasksFor(String user, boolean mine, boolean open) {
@@ -131,9 +138,23 @@ public class WorkQueueService {
                 .collect(Collectors.toSet());
         Map<String, CreditProposalCacheEntry> owners = new HashMap<>();
         cacheRepo.findAllById(cps).forEach(e -> owners.put(e.getCpId(), e));
+        Set<String> changed = tracker.takeChangedAppliedCovenants();
+        if (!changed.isEmpty()) {
+            appliedRepo.findAllById(changed).stream().map(AppliedCovenant::getCpId).forEach(tracker::markChanged);
+        }
+        Instant now = Instant.now(clock);
         for (String cp : cps) {
-            CreditProposalCacheEntry e = owners.get(cp);
-            sync(cp, e == null ? null : e.getRmUserId(), e == null ? null : e.getWrmUserId());
+            if (!tracker.needsSync(cp, now)) {
+                continue;
+            }
+            synchronized (tracker.lock(cp)) {
+                if (tracker.needsSync(cp, now)) {
+                    tracker.startSync(cp);
+                    CreditProposalCacheEntry e = owners.get(cp);
+                    sync(cp, e == null ? null : e.getRmUserId(), e == null ? null : e.getWrmUserId());
+                    tracker.synced(cp, now);
+                }
+            }
         }
         repo.flush();
         List<WorkTaskView> out = new ArrayList<>();

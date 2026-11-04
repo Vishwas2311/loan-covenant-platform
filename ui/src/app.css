@@ -9,7 +9,7 @@
   --app-border: #e4e7ec;
   --app-rule: #eceef2;
   --app-chart-grid: #e8ebf0;
-  --app-chart-axis: #8a93a3;
+  --app-chart-axis: #687080;
   --app-ink: #111827;
   --data-hue: #5a46d6;
   --data-hue-pale: #dcd6fa;
@@ -27,12 +27,55 @@
   --app-border: #2a2f37;
   --app-rule: #242930;
   --app-chart-grid: #2a2f37;
-  --app-chart-axis: #8b93a3;
+  --app-chart-axis: #8f98a8;
   --app-ink: #e8eaee;
   --data-hue: #8f7ff0;
   --data-hue-pale: #302a52;
   --status-warn: #fab219;
   --status-neutral: #4b5361;
+}
+
+/* Secondary text at 5:1 or better on every surface (WCAG AA); Mantine's default grey is 3.3:1. Mantine
+   sets this variable on :root with the colour-scheme attribute, so these selectors match it and win. */
+html:root[data-mantine-color-scheme='light'] {
+  --mantine-color-dimmed: #5c6472;
+  /* Placeholders are read as text (a FileInput shows its placeholder as a label): AA too. */
+  --mantine-color-placeholder: #6b7380;
+  /* Status words in text (not marks): 4.5:1 or better on every surface. */
+  --text-bad: #b42e2e;
+  --text-warn: #a65200;
+  --text-good: #1a7f37;
+  /* Light badges: each colour's text darkened until it reads at 4.7:1 on its own tint. */
+  --mantine-color-gray-light-color: #212529;
+  --mantine-color-red-light-color: #bb2727;
+  --mantine-color-orange-light-color: #af3a0c;
+  --mantine-color-yellow-light-color: #a05300;
+  --mantine-color-green-light-color: #236f32;
+  --mantine-color-blue-light-color: #1864ab;
+  --mantine-color-violet-light-color: #5f3dc4;
+  --mantine-color-grape-light-color: #862e9c;
+  --mantine-color-teal-light-color: #076e4f;
+  --mantine-color-cyan-light-color: #0a6a7c;
+  --mantine-color-brand-light-color: #3b2c91;
+}
+
+html:root[data-mantine-color-scheme='dark'] {
+  --mantine-color-dimmed: #9ba3b1;
+  --mantine-color-placeholder: #8f98a8;
+  --text-bad: #ff8a80;
+  --text-warn: #f2b65a;
+  --text-good: #6fd08c;
+  --mantine-color-gray-light-color: #dee2e6;
+  --mantine-color-red-light-color: #ffa8a8;
+  --mantine-color-orange-light-color: #ffc078;
+  --mantine-color-yellow-light-color: #ffe066;
+  --mantine-color-green-light-color: #8ce99a;
+  --mantine-color-blue-light-color: #74c0fc;
+  --mantine-color-violet-light-color: #b197fc;
+  --mantine-color-grape-light-color: #e599f7;
+  --mantine-color-teal-light-color: #63e6be;
+  --mantine-color-cyan-light-color: #66d9e8;
+  --mantine-color-brand-light-color: #a594f1;
 }
 
 body {
@@ -88,6 +131,28 @@ body {
 
 .mantine-Table-td .mantine-Badge-label {
   overflow: visible;
+}
+
+/* Hidden until it has keyboard focus, then shown over the header. */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  padding: 8px 12px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--app-ink);
+  color: var(--app-surface);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+#main:focus {
+  outline: none;
 }
 
 /* Shell: the top bar and the labelled sidebar sit on the surface, split from the ground by one rule. */
@@ -286,6 +351,19 @@ button.kpi-cell[aria-pressed='true'] {
   background: none;
   border: none;
   cursor: pointer;
+}
+
+/* On a phone the bar takes its own line under the name and counts. */
+@media (max-width: 600px) {
+  .ladder-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    row-gap: 4px;
+  }
+
+  .ladder-row > :nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
 }
 
 .ladder-row:hover,

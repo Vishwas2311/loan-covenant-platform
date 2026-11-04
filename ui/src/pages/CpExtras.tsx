@@ -60,7 +60,7 @@ export function Certificates({ cpId }: { cpId: string }) {
           {(reqs.data ?? []).map((r) => (
             <Table.Tr key={r.id}>
               <Table.Td>{r.periodEnd}</Table.Td>
-              <Table.Td>{r.dueDate}{r.overdueDays > 0 && <Text size="xs" c="red">{r.overdueDays} d overdue</Text>}</Table.Td>
+              <Table.Td>{r.dueDate}{r.overdueDays > 0 && <Text size="xs" c="var(--text-bad)">{r.overdueDays} d overdue</Text>}</Table.Td>
               <Table.Td><StatusBadge value={r.state === 'RECEIVED' ? 'COMPLIED' : r.state === 'OVERDUE' ? 'BREACHED' : 'QUEUED'} />
                 <Text size="xs">{r.state}</Text></Table.Td>
               <Table.Td>

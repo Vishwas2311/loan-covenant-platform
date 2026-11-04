@@ -1,8 +1,6 @@
 package com.crisil.covenant.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,12 +8,12 @@ import static org.mockito.Mockito.when;
 import com.crisil.covenant.domain.CpMonitoringSummary;
 import com.crisil.covenant.dto.BreachReportRow;
 import com.crisil.covenant.dto.CpReviewRow;
-import com.crisil.covenant.entity.Assessment;
 import com.crisil.covenant.enums.AssessmentResult;
 import com.crisil.covenant.enums.CovenantDispositionStatus;
 import com.crisil.covenant.enums.CovenantStatusSource;
 import com.crisil.covenant.enums.DispositionApproval;
 import com.crisil.covenant.repository.AssessmentRepository;
+import com.crisil.covenant.repository.AssessmentRepository.AssessmentOutcome;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -24,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class BreachReportServiceTest {
@@ -47,16 +43,12 @@ class BreachReportServiceTest {
                 approval, null, null);
     }
 
-    private static Assessment a(AssessmentResult result, String executed, String scheduled) {
-        Assessment a = new Assessment();
-        a.setResult(result);
-        if (executed != null) {
-            a.setExecutedAt(Instant.parse(executed));
-        }
-        if (scheduled != null) {
-            a.setScheduledAt(Instant.parse(scheduled));
-        }
-        return a;
+    private record Outcome(String getAppliedCovenantId, AssessmentResult getResult, Instant getScheduledAt,
+                           Instant getExecutedAt) implements AssessmentOutcome { }
+
+    private static AssessmentOutcome a(String id, AssessmentResult result, String executed, String scheduled) {
+        return new Outcome(id, result, scheduled == null ? null : Instant.parse(scheduled),
+                executed == null ? null : Instant.parse(executed));
     }
 
     @Test
@@ -70,16 +62,13 @@ class BreachReportServiceTest {
                 row("waived", AssessmentResult.BREACHED, CovenantDispositionStatus.WAIVER, DispositionApproval.APPROVED),
                 row("err", AssessmentResult.ERROR, CovenantDispositionStatus.COMPLIED, null),
                 row("ok", AssessmentResult.COMPLIANT, CovenantDispositionStatus.COMPLIED, null)));
-        when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("old"), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(
-                        a(AssessmentResult.BREACHED, "2026-09-30T10:00:00Z", null),
-                        a(AssessmentResult.BREACHED, null, "2026-06-30T10:00:00Z"),
-                        a(AssessmentResult.BREACHED, null, null),
-                        a(AssessmentResult.COMPLIANT, "2026-03-31T10:00:00Z", null))));
-        when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("waived"), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(a(AssessmentResult.BREACHED, "2026-06-30T10:00:00Z", null))));
-        when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("err"), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(a(AssessmentResult.ERROR, "2026-10-30T10:00:00Z", null))));
+        when(assessmentRepo.findOutcomesByAppliedCovenantIdIn(List.of("old", "waived", "err"))).thenReturn(List.of(
+                a("old", AssessmentResult.BREACHED, "2026-09-30T10:00:00Z", null),
+                a("old", AssessmentResult.BREACHED, null, "2026-06-30T10:00:00Z"),
+                a("old", AssessmentResult.BREACHED, null, null),
+                a("old", AssessmentResult.COMPLIANT, "2026-03-31T10:00:00Z", null),
+                a("waived", AssessmentResult.BREACHED, "2026-06-30T10:00:00Z", null),
+                a("err", AssessmentResult.ERROR, "2026-10-30T10:00:00Z", null)));
 
         List<BreachReportRow> out = service().openBreaches("rm", 14);
 
@@ -94,5 +83,17 @@ class BreachReportServiceTest {
         assertThat(service().openBreachesXlsx("rm", 14)).isNotEmpty();
         assertThat(new String(service().openBreachesPdf("rm", 14), java.nio.charset.StandardCharsets.US_ASCII))
                 .contains("Cov-old").contains("3 open item\\(s\\); 1 to escalate.");
+    }
+
+    @Test
+    void historyKeepsTheNewestOutcomesPerCovenantAndBatchesLargeLists() {
+        java.util.List<String> ids = java.util.stream.IntStream.range(0, 1200).mapToObj(i -> "ac-" + i).toList();
+        when(assessmentRepo.findOutcomesByAppliedCovenantIdIn(org.mockito.ArgumentMatchers.anyList()))
+                .thenReturn(java.util.stream.IntStream.range(0, 70)
+                        .mapToObj(i -> a("ac-0", AssessmentResult.BREACHED, null, null)).toList());
+        java.util.Map<String, List<AssessmentOutcome>> h = service().history(ids);
+        assertThat(h.get("ac-0")).hasSize(BreachReportService.HISTORY_DEPTH);
+        verify(assessmentRepo, org.mockito.Mockito.times(3)).findOutcomesByAppliedCovenantIdIn(
+                org.mockito.ArgumentMatchers.anyList());
     }
 }

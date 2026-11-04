@@ -1,5 +1,7 @@
 package com.crisil.covenant.entity;
 
+import jakarta.persistence.EntityListeners;
+import com.crisil.covenant.service.CpChangeListener;
 import com.crisil.covenant.entity.AppliedCovenant;
 import com.crisil.covenant.entity.AuditableEntity;
 import jakarta.persistence.Column;
@@ -14,6 +16,7 @@ import org.hibernate.annotations.UuidGenerator;
 import com.crisil.covenant.enums.ScheduleStatus;
 
 @Entity
+@EntityListeners(CpChangeListener.class)
 @Table(name = "cov_monitoring_schedule")
 public class MonitoringSchedule extends AuditableEntity {
 

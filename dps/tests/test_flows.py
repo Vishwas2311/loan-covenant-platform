@@ -465,3 +465,36 @@ def test_core_client_validate_and_events_and_errors():
 
     with pytest.raises(CoreUnavailable):
         core_client(offline).validate_formula("OK")
+
+
+def test_renew_lease_extends_only_the_holders_lock(database):
+    job_id = add_job(database, add_document(database))
+    with database.session_factory() as s:
+        claimed = jobs.claim(s, "w1", "STANDARD", 5, 3)
+        first_until = jobs._aware(claimed.locked_until)
+        assert jobs.renew_lease(s, job_id, "w1", 600)
+        s.refresh(claimed)
+        assert jobs._aware(claimed.locked_until) > first_until
+        assert not jobs.renew_lease(s, job_id, "w2", 600)
+
+
+def test_worker_heartbeat_keeps_a_long_job_from_being_taken_over(database, tmp_path):
+    import time as _time
+
+    job_id = add_job(database, add_document(database))
+    seen = {}
+
+    def slow(j: Job):
+        _time.sleep(2.4)
+        with database.session_factory() as s:
+            seen["until"] = jobs._aware(s.get(Job, j.id).locked_until)
+            seen["other"] = jobs.claim(s, "w-other", "STANDARD", 3, 3)
+        return "PUBLISHED", "state-1", ""
+
+    w = Worker(settings(tmp_path, worker_lease_seconds=3), database.session_factory, FakeCore(),
+               {"AGREEMENT_INTAKE": slow})
+    started = utcnow()
+    assert w.run_once() is True
+    assert seen["other"] is None, "a second worker must not claim a job whose lease is being renewed"
+    assert seen["until"] > started + timedelta(seconds=3)
+    assert job(database, job_id).status == jobs.DONE

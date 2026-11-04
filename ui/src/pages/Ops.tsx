@@ -47,7 +47,7 @@ export function Jobs() {
                 <Table.Td><StatusBadge value={j.status} /></Table.Td>
                 <Table.Td>{j.pool}</Table.Td>
                 <Table.Td>{j.attempts}</Table.Td>
-                <Table.Td><Text size="xs" c="red">{j.error}</Text></Table.Td>
+                <Table.Td><Text size="xs" c="var(--text-bad)">{j.error}</Text></Table.Td>
                 <Table.Td>{j.status === 'FAILED' && (
                   <Button size="xs" onClick={() => retry.mutate(j.id)} loading={retry.isPending}>Retry</Button>)}</Table.Td>
               </Table.Tr>

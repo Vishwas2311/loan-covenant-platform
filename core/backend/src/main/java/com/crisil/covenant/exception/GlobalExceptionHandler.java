@@ -11,6 +11,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import com.crisil.covenant.dto.ErrorResponse;
 
 @RestControllerAdvice
@@ -64,6 +66,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of("MALFORMED_REQUEST", "Request body is missing or not valid JSON"));
+    }
+
+    /** A query or path value of the wrong type ({@code ?from=yesterday}) is the caller's mistake, not ours. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        Class<?> type = ex.getRequiredType();
+        String expected = type == null ? "a valid value"
+                : type == java.time.LocalDate.class ? "a date (yyyy-MM-dd)" : "a " + type.getSimpleName();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.of("INVALID_PARAMETER",
+                "Parameter '" + ex.getName() + "' must be " + expected));
+    }
+
+    /** The client went away (closed tab, timeout) while the answer was written: nothing to send, not a fault. */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public ResponseEntity<ErrorResponse> handleClientGone(AsyncRequestNotUsableException ex) {
+        LOG.debug("Client disconnected before the response was written");
+        return null;
     }
 
     @ExceptionHandler(Exception.class)

@@ -31,7 +31,7 @@ export function PageHeader({ title, finding, chips, actions, children }: {
 export type Tone = 'neutral' | 'good' | 'bad' | 'warn' | 'info';
 
 const VALUE: Record<Tone, string | undefined> = {
-  neutral: undefined, good: 'var(--status-good)', bad: 'var(--status-bad)', warn: 'orange.8', info: 'var(--data-hue)',
+  neutral: undefined, good: 'var(--text-good)', bad: 'var(--text-bad)', warn: 'var(--text-warn)', info: 'var(--data-hue)',
 };
 
 /** One container split by hairlines into equal columns of KPIs. */

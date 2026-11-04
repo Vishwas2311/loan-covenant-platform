@@ -76,7 +76,7 @@ function Diagnostics() {
                 <Table.Td>{c.covenantName}<Text size="xs" c="dimmed">{c.assessmentType}</Text></Table.Td>
                 <Table.Td><Text ff="monospace" size="xs">{c.conditionExpression}</Text></Table.Td>
                 <Table.Td>{c.compiled ? <Badge color="green" variant="light">yes</Badge>
-                  : <Text size="xs" c="red">{c.compileError ?? 'no'}</Text>}</Table.Td>
+                  : <Text size="xs" c="var(--text-bad)">{c.compileError ?? 'no'}</Text>}</Table.Td>
                 <Table.Td>{c.wouldResolve ? <Badge color="green" variant="light">yes</Badge>
                   : <Badge color="orange" variant="light">missing</Badge>}</Table.Td>
                 <Table.Td>
@@ -219,7 +219,7 @@ function Emails() {
                 <Table.Td>{when(n.changedDate)}</Table.Td><Table.Td>{n.emailTo}</Table.Td><Table.Td>{n.emailCc}</Table.Td>
                 <Table.Td>{n.cpIds}</Table.Td>
                 <Table.Td><StatusBadge value={n.outcome === 'SUCCESS' ? 'DONE' : 'FAILED'} />
-                  {n.errorMessage && <Text size="xs" c="red">{n.errorMessage}</Text>}</Table.Td>
+                  {n.errorMessage && <Text size="xs" c="var(--text-bad)">{n.errorMessage}</Text>}</Table.Td>
               </Table.Tr>
             ))}
             {list.data.length === 0 && <Table.Tr><Table.Td colSpan={5}><Text c="dimmed">No e-mails sent yet.</Text></Table.Td></Table.Tr>}

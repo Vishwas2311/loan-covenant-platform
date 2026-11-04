@@ -1,5 +1,7 @@
 package com.crisil.covenant.entity;
 
+import jakarta.persistence.EntityListeners;
+import com.crisil.covenant.service.CpChangeListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,6 +17,7 @@ import org.hibernate.annotations.UuidGenerator;
  * mutated.
  */
 @Entity
+@EntityListeners(CpChangeListener.class)
 @Table(name = "cov_compliance_certificate")
 public class ComplianceCertificate {
 

@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -99,8 +100,15 @@ public class DataEventService {
         int assessed = reassess(cpIds, measureCodes);
 
         String actor = CurrentUserContext.currentUser().orElse(AuditingConfig.SYSTEM_USER);
-        eventRepo.save(new DataEvent(req.dataSourceId(), req.entityKey(), req.entityKeyLevel(), req.asOfDate(),
-                req.changedAt(), req.documentId(), actor, Instant.now(), assessed));
+        try {
+            eventRepo.save(new DataEvent(req.dataSourceId(), req.entityKey(), req.entityKeyLevel(), req.asOfDate(),
+                    req.changedAt(), req.documentId(), actor, Instant.now(), assessed));
+        } catch (DataIntegrityViolationException raced) {
+            // The same event arrived twice at once (an outbox retry, or two Core nodes): the other copy
+            // was recorded first, and re-assessing is idempotent, so this one is a duplicate.
+            LOG.info("Data event for {} already recorded by a concurrent delivery", safe(req.entityKey()));
+            return new DataEventResponse(assessed, true);
+        }
         return new DataEventResponse(assessed, false);
     }
 
@@ -140,5 +148,9 @@ public class DataEventService {
         } catch (RuntimeException ex) {
             return false; // a condition that no longer compiles is surfaced by the normal assessment path
         }
+    }
+
+    private static String safe(String value) {
+        return value == null ? null : value.replace('\n', '_').replace('\r', '_');
     }
 }

@@ -101,50 +101,52 @@ export function MyTasks() {
       {isLoading && <Loading />}
       {error && <ErrorNote error={error} />}
       {data && (
-        <Table withTableBorder striped>
-          <Table.Thead>
-            <Table.Tr><Table.Th>Due</Table.Th><Table.Th>What</Table.Th><Table.Th>CP</Table.Th>
-              <Table.Th>Assigned to</Table.Th><Table.Th>Note</Table.Th><Table.Th /></Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.map((t, i) => (
-              <Fragment key={t.id}>
-              {byCp && (i === 0 || rows[i - 1].cpId !== t.cpId) && (
-                <Table.Tr bg="var(--mantine-color-default-hover)">
-                  <Table.Td colSpan={6}>
-                    <Text fw={600} size="sm">{borrower.get(t.cpId) ?? t.cpId} · {t.cpId}
-                      {' '}<Text span c="dimmed" size="xs">{rows.filter((x) => x.cpId === t.cpId).length} task(s)</Text></Text>
+        <Table.ScrollContainer minWidth={760}>
+          <Table withTableBorder striped>
+            <Table.Thead>
+              <Table.Tr><Table.Th>Due</Table.Th><Table.Th>What</Table.Th><Table.Th>CP</Table.Th>
+                <Table.Th>Assigned to</Table.Th><Table.Th>Note</Table.Th><Table.Th /></Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.map((t, i) => (
+                <Fragment key={t.id}>
+                {byCp && (i === 0 || rows[i - 1].cpId !== t.cpId) && (
+                  <Table.Tr bg="var(--mantine-color-default-hover)">
+                    <Table.Td colSpan={6}>
+                      <Text fw={600} size="sm">{borrower.get(t.cpId) ?? t.cpId} · {t.cpId}
+                        {' '}<Text span c="dimmed" size="xs">{rows.filter((x) => x.cpId === t.cpId).length} task(s)</Text></Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+                <Table.Tr>
+                  <Table.Td>
+                    <Text size="sm" style={{ whiteSpace: 'nowrap' }} c={t.status === 'OPEN' && t.dueDate < today ? 'var(--text-bad)' : undefined}>{fmtDate(t.dueDate)}</Text>
+                    {t.escalated && <Badge size="sm" color="red" mt={2}>escalated</Badge>}
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" fw={500}>{t.title}</Text>
+                    <Badge size="sm" mt={2} color={KIND[t.kind].color}>{KIND[t.kind].label}</Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="sm" fw={550}>{t.cpId}</Anchor>
+                    {borrower.get(t.cpId) && <Text size="xs" c="dimmed">{borrower.get(t.cpId)}</Text>}
+                  </Table.Td>
+                  <Table.Td>{t.assignee}</Table.Td>
+                  <Table.Td><Text size="xs">{t.note}</Text></Table.Td>
+                  <Table.Td>
+                    {t.status === 'OPEN'
+                      ? <Button size="xs" variant="light" onClick={() => setEditing(t)}>Update</Button>
+                      : <Text size="xs" c="dimmed">{t.status === 'DONE' ? `done by ${t.closedBy}` : 'sorted out'}</Text>}
                   </Table.Td>
                 </Table.Tr>
+                </Fragment>
+              ))}
+              {rows.length === 0 && (
+                <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">Nothing here.</Text></Table.Td></Table.Tr>
               )}
-              <Table.Tr>
-                <Table.Td>
-                  <Text size="sm" style={{ whiteSpace: 'nowrap' }} c={t.status === 'OPEN' && t.dueDate < today ? 'red' : undefined}>{fmtDate(t.dueDate)}</Text>
-                  {t.escalated && <Badge size="sm" color="red" mt={2}>escalated</Badge>}
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" fw={500}>{t.title}</Text>
-                  <Badge size="sm" mt={2} color={KIND[t.kind].color}>{KIND[t.kind].label}</Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="sm" fw={550}>{t.cpId}</Anchor>
-                  {borrower.get(t.cpId) && <Text size="xs" c="dimmed">{borrower.get(t.cpId)}</Text>}
-                </Table.Td>
-                <Table.Td>{t.assignee}</Table.Td>
-                <Table.Td><Text size="xs">{t.note}</Text></Table.Td>
-                <Table.Td>
-                  {t.status === 'OPEN'
-                    ? <Button size="xs" variant="light" onClick={() => setEditing(t)}>Update</Button>
-                    : <Text size="xs" c="dimmed">{t.status === 'DONE' ? `done by ${t.closedBy}` : 'sorted out'}</Text>}
-                </Table.Td>
-              </Table.Tr>
-              </Fragment>
-            ))}
-            {rows.length === 0 && (
-              <Table.Tr><Table.Td colSpan={6}><Text c="dimmed">Nothing here.</Text></Table.Td></Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       )}
       {editing && <EditTask task={editing} onClose={() => setEditing(null)} />}
     </Stack>

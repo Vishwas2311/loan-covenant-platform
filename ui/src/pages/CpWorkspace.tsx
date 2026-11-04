@@ -120,82 +120,84 @@ function ReviewGrid({ cpId }: { cpId: string }) {
   const openRow = (data ?? []).find((r) => r.appliedCovenantId === openId);
   return (
     <>
-      <Table striped withTableBorder>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Covenant</Table.Th><Table.Th>Rule</Table.Th><Table.Th>Actual</Table.Th>
-            <Table.Th>Headroom</Table.Th><Table.Th>Result</Table.Th><Table.Th>Status</Table.Th>
-            <Table.Th>Next due</Table.Th><Table.Th />
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {(data ?? []).map((r) => {
-            const pending = r.approvalStatus === 'REQUESTED';
-            const ownRequest = r.requestedBy === identity.user;
-            const rule = describeRule(r.conditionExpression, measures);
-            return (
-              <Table.Tr key={r.appliedCovenantId}>
-                <Table.Td>
-                  <Anchor component="button" ta="left" size="sm" fw={550} onClick={() => setOpenId(r.appliedCovenantId)}>
-                    {r.covenantName}
-                  </Anchor>
-                </Table.Td>
-                <Table.Td>
-                  {rule ? <Text size="sm">{rule.text}</Text> : null}
-                  <Text ff="monospace" size={rule ? 'xs' : 'sm'} c={rule ? 'dimmed' : undefined}>{r.conditionExpression}</Text>
-                </Table.Td>
-                <Table.Td style={{ whiteSpace: 'nowrap' }}>
-                  {rule ? withUnit(r.computedValue, rule.unit) : formatValue(r.computedValue)}
-                </Table.Td>
-                <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined} style={{ whiteSpace: 'nowrap' }}>
-                  {rule ? describeHeadroom(r.headroom, rule.unit, rule.limit) : formatValue(r.headroom)}
-                </Table.Td>
-                <Table.Td miw={130}>
-                  <StatusBadge value={r.latestResult} />
-                  {r.latestResult === 'ERROR' && r.errorMessage && (
-                    <Text size="xs" c="orange.8" maw={220}>{explainError(r.errorMessage, measures)}</Text>
-                  )}
-                  {r.assessedCondition && (
-                    <Text size="xs" c="orange.8" maw={220}>
-                      Checked against the earlier rule {r.assessedCondition}; the next check uses the new one.
-                    </Text>
-                  )}
-                  {r.atRisk && <Badge mt={4} color="orange" display="block" w="fit-content">at risk</Badge>}
-                </Table.Td>
-                <Table.Td>
-                  <Stack gap={2}>
-                    <StatusBadge value={r.dispositionStatus} />
-                    {r.approvalStatus && r.approvalStatus !== 'APPROVED' && (
-                      <Text size="xs" c={pending ? 'orange.8' : 'dimmed'} maw={190}>
-                        {humanize(r.requestedStatus)} asked by {r.requestedBy}: {r.approvalStatus.toLowerCase()}
+      <Table.ScrollContainer minWidth={980}>
+        <Table striped withTableBorder>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Covenant</Table.Th><Table.Th>Rule</Table.Th><Table.Th>Actual</Table.Th>
+              <Table.Th>Headroom</Table.Th><Table.Th>Result</Table.Th><Table.Th>Status</Table.Th>
+              <Table.Th>Next due</Table.Th><Table.Th />
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {(data ?? []).map((r) => {
+              const pending = r.approvalStatus === 'REQUESTED';
+              const ownRequest = r.requestedBy === identity.user;
+              const rule = describeRule(r.conditionExpression, measures);
+              return (
+                <Table.Tr key={r.appliedCovenantId}>
+                  <Table.Td>
+                    <Anchor component="button" ta="left" size="sm" fw={550} onClick={() => setOpenId(r.appliedCovenantId)}>
+                      {r.covenantName}
+                    </Anchor>
+                  </Table.Td>
+                  <Table.Td>
+                    {rule ? <Text size="sm">{rule.text}</Text> : null}
+                    <Text ff="monospace" size={rule ? 'xs' : 'sm'} c={rule ? 'dimmed' : undefined}>{r.conditionExpression}</Text>
+                  </Table.Td>
+                  <Table.Td style={{ whiteSpace: 'nowrap' }}>
+                    {rule ? withUnit(r.computedValue, rule.unit) : formatValue(r.computedValue)}
+                  </Table.Td>
+                  <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'var(--text-bad)' : undefined} style={{ whiteSpace: 'nowrap' }}>
+                    {rule ? describeHeadroom(r.headroom, rule.unit, rule.limit) : formatValue(r.headroom)}
+                  </Table.Td>
+                  <Table.Td miw={130}>
+                    <StatusBadge value={r.latestResult} />
+                    {r.latestResult === 'ERROR' && r.errorMessage && (
+                      <Text size="xs" c="var(--text-warn)" maw={220}>{explainError(r.errorMessage, measures)}</Text>
+                    )}
+                    {r.assessedCondition && (
+                      <Text size="xs" c="var(--text-warn)" maw={220}>
+                        Checked against the earlier rule {r.assessedCondition}; the next check uses the new one.
                       </Text>
                     )}
-                    {r.extensionDate && <Text size="xs" c="dimmed">until {fmtDate(r.extensionDate)}</Text>}
-                  </Stack>
-                </Table.Td>
-                <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(r.nextDueDate)}{r.overdueByDays > 0 && <Text size="xs" c="red">{r.overdueByDays} d overdue</Text>}</Table.Td>
-                <Table.Td>
-                  {pending && approver && !ownRequest && <DecisionButtons cpId={cpId} row={r} />}
-                  {pending && (!approver || ownRequest) && <Text size="xs" c="dimmed">Awaiting approver</Text>}
-                  {pending && ownRequest && <WithdrawButton cpId={cpId} row={r} />}
-                  {!pending && r.dispositionable && canAct && (
-                    <Button size="xs" variant="light" onClick={() => setEditing(r)}>Waive / extend</Button>
-                  )}
-                  {canAct && (r.assessmentType === 'MANUAL' || r.latestResult === 'PENDING_REVIEW') && (
-                    <Button size="xs" color="yellow" variant="light" onClick={() => setRecording(r)}>Record result</Button>
-                  )}
-                </Table.Td>
-              </Table.Tr>
-            );
-          })}
-          {(data ?? []).length === 0 && (
-            <Table.Tr><Table.Td colSpan={8}>
-              <Text c="dimmed">No covenants on this CP yet.{canAct ? ' ' : ' Its RM onboards them.'}{canAct && <Anchor
-                component={Link} to={`/onboarding/${encodeURIComponent(cpId)}`}>Onboard covenants</Anchor>}</Text>
-            </Table.Td></Table.Tr>
-          )}
-        </Table.Tbody>
-      </Table>
+                    {r.atRisk && <Badge mt={4} color="orange" display="block" w="fit-content">at risk</Badge>}
+                  </Table.Td>
+                  <Table.Td>
+                    <Stack gap={2}>
+                      <StatusBadge value={r.dispositionStatus} />
+                      {r.approvalStatus && r.approvalStatus !== 'APPROVED' && (
+                        <Text size="xs" c={pending ? 'var(--text-warn)' : 'dimmed'} maw={190}>
+                          {humanize(r.requestedStatus)} asked by {r.requestedBy}: {r.approvalStatus.toLowerCase()}
+                        </Text>
+                      )}
+                      {r.extensionDate && <Text size="xs" c="dimmed">until {fmtDate(r.extensionDate)}</Text>}
+                    </Stack>
+                  </Table.Td>
+                  <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(r.nextDueDate)}{r.overdueByDays > 0 && <Text size="xs" c="var(--text-bad)">{r.overdueByDays} d overdue</Text>}</Table.Td>
+                  <Table.Td>
+                    {pending && approver && !ownRequest && <DecisionButtons cpId={cpId} row={r} />}
+                    {pending && (!approver || ownRequest) && <Text size="xs" c="dimmed">Awaiting approver</Text>}
+                    {pending && ownRequest && <WithdrawButton cpId={cpId} row={r} />}
+                    {!pending && r.dispositionable && canAct && (
+                      <Button size="xs" variant="light" onClick={() => setEditing(r)}>Waive / extend</Button>
+                    )}
+                    {canAct && (r.assessmentType === 'MANUAL' || r.latestResult === 'PENDING_REVIEW') && (
+                      <Button size="xs" color="yellow" variant="light" onClick={() => setRecording(r)}>Record result</Button>
+                    )}
+                  </Table.Td>
+                </Table.Tr>
+              );
+            })}
+            {(data ?? []).length === 0 && (
+              <Table.Tr><Table.Td colSpan={8}>
+                <Text c="dimmed">No covenants on this CP yet.{canAct ? ' ' : ' Its RM onboards them.'}{canAct && <Anchor
+                  component={Link} to={`/onboarding/${encodeURIComponent(cpId)}`}>Onboard covenants</Anchor>}</Text>
+              </Table.Td></Table.Tr>
+            )}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
       {editing && <RequestDialog cpId={cpId} row={editing} onClose={() => setEditing(null)} />}
       {recording && <RecordResultDialog cpId={cpId} row={recording} onClose={() => setRecording(null)} />}
       {openRow && <CovenantDrawer cpId={cpId} row={openRow} canAct={canAct} onClose={() => setOpenId(null)} />}
@@ -212,21 +214,23 @@ function AuditTrail({ cpId }: { cpId: string }) {
     return <ErrorNote error={error} />;
   }
   return (
-    <Table withTableBorder>
-      <Table.Thead>
-        <Table.Tr><Table.Th>When</Table.Th><Table.Th>Change</Table.Th><Table.Th>By</Table.Th><Table.Th>Note</Table.Th></Table.Tr>
-      </Table.Thead>
-      <Table.Tbody>
-        {(data ?? []).map((a, i) => (
-          <Table.Tr key={`${a.changedDate}-${i}`}>
-            <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDateTime(a.changedDate)}</Table.Td>
-            <Table.Td>{a.oldStatus} → {a.newStatus}</Table.Td>
-            <Table.Td>{a.changedBy}</Table.Td>
-            <Table.Td>{a.rationale}</Table.Td>
-          </Table.Tr>
-        ))}
-      </Table.Tbody>
-    </Table>
+    <Table.ScrollContainer minWidth={640}>
+      <Table withTableBorder>
+        <Table.Thead>
+          <Table.Tr><Table.Th>When</Table.Th><Table.Th>Change</Table.Th><Table.Th>By</Table.Th><Table.Th>Note</Table.Th></Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {(data ?? []).map((a, i) => (
+            <Table.Tr key={`${a.changedDate}-${i}`}>
+              <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDateTime(a.changedDate)}</Table.Td>
+              <Table.Td>{a.oldStatus} → {a.newStatus}</Table.Td>
+              <Table.Td>{a.changedBy}</Table.Td>
+              <Table.Td>{a.rationale}</Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   );
 }
 

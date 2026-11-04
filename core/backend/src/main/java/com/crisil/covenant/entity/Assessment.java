@@ -1,5 +1,7 @@
 package com.crisil.covenant.entity;
 
+import jakarta.persistence.EntityListeners;
+import com.crisil.covenant.service.CpChangeListener;
 import com.crisil.covenant.entity.AppliedCovenant;
 import com.crisil.covenant.entity.AuditableEntity;
 import jakarta.persistence.CascadeType;
@@ -33,6 +35,7 @@ import com.crisil.covenant.enums.AssessmentTrigger;
         attributeNodes = {@NamedAttributeNode(value = "appliedCovenant", subgraph = "covenant"),
                           @NamedAttributeNode("comparisons")},
         subgraphs = @NamedSubgraph(name = "covenant", attributeNodes = @NamedAttributeNode("covenantMaster")))
+@EntityListeners(CpChangeListener.class)
 @Table(name = "cov_assessment")
 public class Assessment extends AuditableEntity {
 

@@ -21,13 +21,13 @@ export function AlertBell() {
   const alerts = Array.isArray(data) ? data : [];
   const urgent = alerts.filter((a) => a.kind !== 'AT_RISK').length;
   return (
+    // The popover's target is the button itself, so aria-expanded sits on the button, not on the badge wrapper.
+    <Indicator label={urgent} size={16} disabled={urgent === 0} color="red">
     <Popover opened={opened} onChange={setOpened} position="bottom-end" width={380} shadow="md">
       <Popover.Target>
-        <Indicator label={urgent} size={16} disabled={urgent === 0} color="red">
-          <ActionIcon variant="subtle" aria-label={`Alerts (${alerts.length})`} onClick={() => setOpened((o) => !o)}>
-            <IconBell size={20} />
-          </ActionIcon>
-        </Indicator>
+        <ActionIcon variant="subtle" aria-label={`Alerts (${alerts.length})`} onClick={() => setOpened((o) => !o)}>
+          <IconBell size={20} />
+        </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown>
         {alerts.length === 0 ? <Text size="sm" c="dimmed">Nothing needs you right now.</Text> : (
@@ -46,5 +46,6 @@ export function AlertBell() {
         )}
       </Popover.Dropdown>
     </Popover>
+    </Indicator>
   );
 }

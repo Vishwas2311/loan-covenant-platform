@@ -128,7 +128,8 @@ def test_core_checker_dev_headers_bypass_and_errors():
     c = checker_with(handler)
     assert c.allowed(Principal("rm-anil", frozenset({"RM"})), "CP-1", False)
     assert seen == {"user": "rm-anil", "roles": "RM"}
-    assert c.allowed(Principal("op", frozenset({"SUPPORT"})), "CP-X", False)
+    assert c.allowed(Principal("adm", frozenset({"ADMIN"})), "CP-X", False)
+    assert c.allowed(Principal("op", frozenset({"SUPPORT"})), "CP-X", True)
     assert c.allowed(Principal("aud", frozenset({"AUDITOR"})), "CP-X", True)
     assert not c.allowed(Principal("rm", frozenset({"RM"})), " ", True)
 

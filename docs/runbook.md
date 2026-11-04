@@ -93,7 +93,7 @@ CI must be green on the commit (`master` requires the Core, DPS, UI and Docker i
    alembic upgrade head
    ```
    (in the DPS image, with `DPS_DATABASE_URL` set). The image's default command also runs it, which is fine for one API instance; with several, run it as a one-off job and start the API with `uvicorn --factory dps.main:create_app --host 0.0.0.0 --port 9400`.
-4. **DPS API**, then **workers**. A worker that stops mid-job loses its lease, and the job is picked up again after `DPS_WORKER_LEASE_SECONDS` (900 s).
+4. **DPS API**, then **workers**. A worker that stops mid-job loses its lease, and the job is picked up again after `DPS_WORKER_LEASE_SECONDS` (120 s). A live worker renews the lease every third of that, so a long job is never taken over while it runs.
 5. **UI.**
 6. **Smoke test** (section 5).
 
@@ -104,6 +104,10 @@ CI must be green on the commit (`master` requires the Core, DPS, UI and Docker i
 3. `GET /api/v1/ops/health/data-sources` (role SUPPORT, header `X-Support-Token`) shows every data source reachable.
 4. Upload a known agreement to a test CP; the job reaches `DONE` or `NEEDS_REVIEW` within a minute.
 5. Open the open-breach report and download its Excel file.
+
+## 5a. Time zone
+
+Core runs in `COVENANT_TIME_ZONE` (default `Asia/Kolkata`, set in the image). The 06:00 daily run, due dates and "today" follow it, not the container's UTC clock. Set it on the Core container if the bank works in another zone. The daily-run trigger is re-registered with the zone at every start; per-covenant assessment triggers take it when they are next created or rescheduled.
 
 ## 6. Backups and restore
 

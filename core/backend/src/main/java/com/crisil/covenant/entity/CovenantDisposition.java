@@ -1,5 +1,7 @@
 package com.crisil.covenant.entity;
 
+import jakarta.persistence.EntityListeners;
+import com.crisil.covenant.service.CpChangeListener;
 import com.crisil.covenant.entity.AuditableEntity;
 import com.crisil.covenant.enums.CovenantDispositionStatus;
 import com.crisil.covenant.enums.CovenantStatusSource;
@@ -22,6 +24,7 @@ import org.hibernate.annotations.UuidGenerator;
  * top of the assessment result and never mutates {@code cov_assessment}.
  */
 @Entity
+@EntityListeners(CpChangeListener.class)
 @Table(name = "cov_covenant_disposition",
         uniqueConstraints = @UniqueConstraint(name = "uk_covenant_disposition",
                 columnNames = {"cp_id", "applied_covenant_id"}))

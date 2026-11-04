@@ -137,4 +137,23 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ErrorResponse> boom = handler.handleUnexpected(new IllegalStateException("x"));
         assertThat(boom.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Test
+    void aWrongParameterTypeIs400NamingTheParameter() throws Exception {
+        org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex =
+                new org.springframework.web.method.annotation.MethodArgumentTypeMismatchException("yesterday",
+                        java.time.LocalDate.class, "from", null, new IllegalArgumentException("bad"));
+        ResponseEntity<ErrorResponse> response = handler.handleTypeMismatch(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().message()).isEqualTo("Parameter 'from' must be a date (yyyy-MM-dd)");
+        assertThat(handler.handleTypeMismatch(new org.springframework.web.method.annotation
+                .MethodArgumentTypeMismatchException("x", Integer.class, "page", null, null)).getBody().message())
+                .isEqualTo("Parameter 'page' must be a Integer");
+    }
+
+    @Test
+    void aClientThatWentAwayGetsNoBodyAndNoErrorLog() {
+        assertThat(handler.handleClientGone(new org.springframework.web.context.request.async
+                .AsyncRequestNotUsableException("Broken pipe"))).isNull();
+    }
 }

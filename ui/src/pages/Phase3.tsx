@@ -71,7 +71,7 @@ export function BorrowerReminders({ cpId, canEdit }: { cpId: string; canEdit: bo
                   <Table.Td>{r.kind === 'DUE_SOON' ? 'Due soon' : 'Overdue'}</Table.Td>
                   <Table.Td>{r.sentTo}</Table.Td>
                   <Table.Td><StatusBadge value={r.outcome === 'SENT' ? 'DONE' : 'FAILED'} />
-                    {r.detail && <Text size="xs" c="red">{r.detail}</Text>}</Table.Td>
+                    {r.detail && <Text size="xs" c="var(--text-bad)">{r.detail}</Text>}</Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>

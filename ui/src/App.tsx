@@ -1,4 +1,6 @@
-import { Anchor, AppShell, Badge, Button, Card, Group, NavLink, Select, Stack, Text, Title, Tooltip } from '@mantine/core';
+import { Anchor, AppShell, Badge, Burger, Button, Card, Group, NavLink, Select, Stack, Text, Title, Tooltip } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { useEffect } from 'react';
 import {
   IconBooks, IconBuildingBank, IconChartBar, IconChecklist, IconDatabase, IconFileText, IconLayoutDashboard, IconLifebuoy,
   IconMathFunction, IconSettings, IconSparkles, IconTool,
@@ -32,7 +34,6 @@ const ICONS: Record<string, typeof IconBooks> = {
   '/ops/jobs': IconTool, '/ops/support': IconLifebuoy, '/data-sources': IconDatabase, '/settings': IconSettings,
 };
 
-/** The product name with a small chart mark, as on the GenBI-style boards. */
 /** Shown instead of a page the signed-in roles do not use (opened from a link or a typed address). */
 export function NoAccess({ identity, pathname }: { identity: Identity; pathname: string }) {
   const page = pageFor(pathname);
@@ -65,7 +66,7 @@ function IdentitySwitcher() {
   if (getAccessToken()) {
     return (
       <Group gap="sm">
-        <Text size="sm">{identity.user} ({identity.roles.join(', ') || 'no role'})</Text>
+        <Text size="sm" visibleFrom="sm">{identity.user} ({identity.roles.join(', ') || 'no role'})</Text>
         {signedIn() && <Button size="xs" variant="default" onClick={() => void signOut()}>Sign out</Button>}
       </Group>
     );
@@ -91,18 +92,29 @@ function IdentitySwitcher() {
 export function App() {
   const identity = useIdentity();
   const location = useLocation();
+  const [menuOpen, menu] = useDisclosure(false);
+  // On a phone the menu covers the page; following a link closes it.
+  useEffect(() => menu.close(), [location.pathname]);
   if (isBorrowerOnly(identity)) {
     return <PortalApp user={identity.user} onSignOut={signedIn() ? () => void signOut() : undefined} />;
   }
   return (
-    <AppShell header={{ height: 52 }} navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
+    <AppShell header={{ height: 52 }} navbar={{ width: 220, breakpoint: 'sm', collapsed: { mobile: !menuOpen } }} padding="md">
+      {/* First Tab stop: keyboard and screen-reader users jump past the header and menu. */}
+      <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>
+        Skip to content
+      </a>
       <AppShell.Header className="app-header">
-        <Group h="100%" px="md" justify="space-between">
-          <BrandMark />
-          <Group gap="sm">
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap">
+            <Burger opened={menuOpen} onClick={menu.toggle} hiddenFrom="sm" size="sm"
+              aria-label={menuOpen ? 'Close the menu' : 'Open the menu'} />
+            <BrandMark />
+          </Group>
+          <Group gap="sm" wrap="nowrap">
             {readOnlyOnLoans(identity) && (
               <Tooltip label="You can look at every CP but not change covenants, results or documents" multiline w={260}>
-                <Badge color="gray" variant="light">Read-only on loans</Badge>
+                <Badge color="gray" variant="light" visibleFrom="md">Read-only on loans</Badge>
               </Tooltip>
             )}
             <AlertBell />
@@ -111,7 +123,7 @@ export function App() {
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="sm" className="app-nav">
+      <AppShell.Navbar p="sm" className="app-nav" component="nav" aria-label="Main menu">
         {GROUPS.map((group) => {
           const pages = PAGES.filter((p) => p.group === group && canOpen(identity, p));
           return pages.length > 0 && (
@@ -128,7 +140,7 @@ export function App() {
           );
         })}
       </AppShell.Navbar>
-      <AppShell.Main>
+      <AppShell.Main id="main" tabIndex={-1}>
         <div className="app-main">
           <Routes>
             <Route path="/" element={<Navigate to={homeFor(identity)} replace />} />

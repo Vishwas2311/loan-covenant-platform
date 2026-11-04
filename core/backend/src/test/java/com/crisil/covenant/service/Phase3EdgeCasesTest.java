@@ -281,7 +281,8 @@ class Phase3EdgeCasesTest {
     @Test
     void workQueueHandlesCpsWithoutOwnersAndOtherPeoplesTasks() throws Exception {
         WorkQueueService service = new WorkQueueService(monitoringService, reviewService, requirements, cacheRepo,
-                taskRepo, CLOCK);
+                taskRepo, org.mockito.Mockito.mock(com.crisil.covenant.repository.AppliedCovenantRepository.class),
+                new TaskSyncTracker(java.time.Duration.ofMinutes(2)), CLOCK);
         List<WorkTask> stored = new ArrayList<>();
         when(monitoringService.summary("rm-anil")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 1, 0, 1, 0, 0, 0)));
         when(cacheRepo.findAllById(any())).thenReturn(List.of());

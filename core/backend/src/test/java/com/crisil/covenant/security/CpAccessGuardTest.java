@@ -113,21 +113,25 @@ class CpAccessGuardTest {
 
     @Test
     void bypassRolesAreAllowed() {
-        for (String role : List.of(Roles.ADMIN, Roles.SUPPORT, Roles.SERVICE)) {
+        for (String role : List.of(Roles.ADMIN, Roles.SERVICE)) {
             loginAs("op", role);
             assertThat(guard.canAccess("CP-ANY")).as(role).isTrue();
         }
     }
 
     @Test
-    void auditorCanOnlyRead() {
-        loginAs("aud", Roles.AUDITOR);
-        request("GET");
-        assertThat(guard.canAccess("CP-1")).isTrue();
-        request("POST");
-        when(cacheRepo.findCpIdsOwnedBy("aud")).thenReturn(List.of());
-        when(cpClient.lookup("CP-1")).thenReturn(null);
-        assertThat(guard.canAccess("CP-1")).isFalse();
+    void auditorAndSupportCanOnlyRead() {
+        for (String role : List.of(Roles.AUDITOR, Roles.SUPPORT)) {
+            loginAs("op-" + role, role);
+            request("GET");
+            assertThat(guard.canAccess("CP-1")).as(role + " reads").isTrue();
+            for (String method : List.of("POST", "PUT", "PATCH", "DELETE")) {
+                request(method);
+                when(cacheRepo.findCpIdsOwnedBy("op-" + role)).thenReturn(List.of());
+                when(cpClient.lookup("CP-1")).thenReturn(null);
+                assertThat(guard.canAccess("CP-1")).as(role + " " + method).isFalse();
+            }
+        }
     }
 
     @Test

@@ -253,31 +253,33 @@ export function Library() {
       {error && <ErrorNote error={error} />}
       {data && (
         <>
-          <Table withTableBorder striped>
-            <Table.Thead>
-              <Table.Tr><Table.Th>Name</Table.Th><Table.Th>Category</Table.Th><Table.Th>Rule</Table.Th>
-                <Table.Th>Type</Table.Th><Table.Th>Frequency</Table.Th><Table.Th /></Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {data.content.map((c) => (
-                <Table.Tr key={c.id}>
-                  <Table.Td>
-                    <Anchor component="button" ta="left" size="sm" fw={550} onClick={() => setOpenId(c.id)}>{c.name}</Anchor>
-                    <Text size="xs" c="dimmed">{c.description}</Text>
-                  </Table.Td>
-                  <Table.Td>{humanize(c.category)}</Table.Td>
-                  <Table.Td>
-                    {describeRule(c.conditionExpression, measures)
-                      && <Text size="sm">{describeRule(c.conditionExpression, measures)!.text}</Text>}
-                    <Text ff="monospace" size="xs" c="dimmed">{c.conditionExpression}</Text>
-                  </Table.Td>
-                  <Table.Td>{c.assessmentType === 'MANUAL' ? 'Manual check' : 'Automatic'}</Table.Td>
-                  <Table.Td>{humanize(c.defaultFrequency)}</Table.Td>
-                  <Table.Td>{!c.active && <Badge color="gray">inactive</Badge>}</Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+          <Table.ScrollContainer minWidth={860}>
+            <Table withTableBorder striped>
+              <Table.Thead>
+                <Table.Tr><Table.Th>Name</Table.Th><Table.Th>Category</Table.Th><Table.Th>Rule</Table.Th>
+                  <Table.Th>Type</Table.Th><Table.Th>Frequency</Table.Th><Table.Th /></Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data.content.map((c) => (
+                  <Table.Tr key={c.id}>
+                    <Table.Td>
+                      <Anchor component="button" ta="left" size="sm" fw={550} onClick={() => setOpenId(c.id)}>{c.name}</Anchor>
+                      <Text size="xs" c="dimmed">{c.description}</Text>
+                    </Table.Td>
+                    <Table.Td>{humanize(c.category)}</Table.Td>
+                    <Table.Td>
+                      {describeRule(c.conditionExpression, measures)
+                        && <Text size="sm">{describeRule(c.conditionExpression, measures)!.text}</Text>}
+                      <Text ff="monospace" size="xs" c="dimmed">{c.conditionExpression}</Text>
+                    </Table.Td>
+                    <Table.Td>{c.assessmentType === 'MANUAL' ? 'Manual check' : 'Automatic'}</Table.Td>
+                    <Table.Td>{humanize(c.defaultFrequency)}</Table.Td>
+                    <Table.Td>{!c.active && <Badge color="gray">inactive</Badge>}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
           <Group>
             <Button variant="default" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button>
             <Text size="sm">Page {data.number + 1} · {data.totalElements} covenants</Text>
