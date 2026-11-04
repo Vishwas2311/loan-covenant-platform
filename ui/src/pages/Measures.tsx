@@ -142,7 +142,7 @@ export function Measures() {
                     {!m.active && <Badge color="gray">inactive</Badge>}
                     {canAuthor && <Button size="xs" variant="subtle" onClick={() => setEditing(m)}>Edit</Button>}
                     {canAuthor && m.active && (
-                      <Button size="xs" variant="subtle" color="red" loading={switchOff.isPending}
+                      <Button size="xs" variant="subtle" color="gray" loading={switchOff.isPending}
                         onClick={() => window.confirm(`Switch off ${m.code}? New covenant rules can no longer use it.`)
                           && switchOff.mutate(m.id)}>Switch off</Button>
                     )}

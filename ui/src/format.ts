@@ -87,11 +87,22 @@ export function explainError(message: string | null | undefined, measures: Map<s
 
 const SHORT_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
-/** "2026-11-06" as "6 Nov 2026" for cards and headlines; tables keep the sortable ISO form. */
+/** "2026-11-06" as "6 Nov 2026". */
 export function fmtDate(iso: string | null | undefined): string {
   if (!iso) {
     return '—';
   }
   const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
   return Number.isNaN(d.getTime()) ? iso : SHORT_DATE.format(d);
+}
+
+const DATE_TIME = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+/** A timestamp as "3 Nov 2026, 11:30" in the viewer's time zone. */
+export function fmtDateTime(iso: string | null | undefined): string {
+  if (!iso) {
+    return '—';
+  }
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : DATE_TIME.format(d);
 }

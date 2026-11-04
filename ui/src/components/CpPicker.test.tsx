@@ -28,7 +28,6 @@ describe('CpChooser', () => {
     mockFetch((url) => (url.endsWith('/analytics/cps') ? { body: CARDS } : undefined));
     renderAt('/cp', '/cp', <Chooser />);
     expect(await screen.findByText('Tata Steel')).toBeInTheDocument();
-    expect(screen.getByText('Pick one.')).toBeInTheDocument();
     expect(screen.getByText('1 breached')).toBeInTheDocument();
     expect(screen.getByText('1 data error')).toBeInTheDocument();
     expect(screen.getByText('1 awaiting review')).toBeInTheDocument();
@@ -54,7 +53,7 @@ describe('CpChooser', () => {
   it('says what to do when the user owns no CP', async () => {
     mockFetch(() => ({ body: [] }));
     renderAt('/cp', '/cp', <Chooser />);
-    expect(await screen.findByText('No credit proposals of your own')).toBeInTheDocument();
+    expect(await screen.findByText(/not the RM or WRM on any CP/)).toBeInTheDocument();
   });
 
   it('shows an error when the list cannot load', async () => {

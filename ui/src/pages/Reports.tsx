@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Card, Group, NumberInput, Stack, Table, Text, Title } from '@mantine/core';
+import { Anchor, Badge, Button, Card, Group, NumberInput, Stack, Table, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -11,6 +11,7 @@ import { CustomReports } from './Phase3';
 import { AskAi } from './Ops';
 import { Chip, Kpi, KpiStrip, PageHeader } from '../components/Board';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+import { fmtDate } from '../format';
 
 /** Data errors grouped by CP: one line per CP instead of one per covenant. */
 function ErrorsByCp({ rows }: { rows: BreachRow[] }) {
@@ -62,10 +63,16 @@ export function Reports() {
       + `${open.length} breach${open.length === 1 ? ' is' : 'es are'} open`
       + `${toEscalate ? `, ${toEscalate} past ${days} days and due for escalation` : ''}.`
     : undefined;
+  const download = (f: (d: number) => Promise<unknown>) => () => f(days).catch((e) =>
+    notifications.show({ color: 'red', message: errorMessage(e) }));
   return (
-    <Stack gap="lg">
+    <Stack gap="md">
       <PageHeader title="Reports" finding={finding}
-        chips={<><Chip>Your portfolio</Chip><Chip>Last 12 months</Chip></>} />
+        chips={<><Chip>Your portfolio</Chip><Chip>Last 12 months</Chip></>}
+        actions={<>
+          <Button variant="light" onClick={download(r2.openBreachesXlsx)}>Download Excel</Button>
+          <Button variant="light" onClick={download(r2.openBreachesPdf)}>Download PDF</Button>
+        </>} />
       {total && breaches.data && (
         <KpiStrip ariaLabel="Portfolio risk">
           <Kpi label="Breach rate" value={`${(total.breachRate * 100).toFixed(1)}%`} lead tone={total.breached ? 'bad' : 'neutral'}
@@ -78,55 +85,59 @@ export function Reports() {
       <Charts />
       {analytics.isLoading && <Loading />}
       {analytics.error && <ErrorNote error={analytics.error} />}
-      <Card padding={0}>
-        <Group justify="space-between" align="end" p="lg" pb="md" wrap="wrap">
-          <Stack gap={2}>
-            <Title order={4}>Open breaches and errors</Title>
-            <Text size="sm" c="dimmed">Breaches first; covenants that could not be checked are grouped by CP below.</Text>
-          </Stack>
-          <Group align="end">
-            <NumberInput label="Escalate after (days)" min={0} value={days} onChange={(v) => setDays(Number(v) || 0)} w={170} />
-            <Button variant="light" onClick={() => r2.openBreachesXlsx(days).catch((e) =>
-              notifications.show({ color: 'red', message: errorMessage(e) }))}>Download Excel</Button>
-            <Button variant="light" onClick={() => r2.openBreachesPdf(days).catch((e) =>
-              notifications.show({ color: 'red', message: errorMessage(e) }))}>Download PDF</Button>
-          </Group>
-        </Group>
-        {breaches.isLoading && <Loading />}
-        {breaches.error && <ErrorNote error={breaches.error} />}
-        {breaches.data && (
-          <Table>
-            <Table.Thead>
-              <Table.Tr><Table.Th>CP</Table.Th><Table.Th>Covenant</Table.Th><Table.Th>Result</Table.Th>
-                <Table.Th>Open since</Table.Th><Table.Th ta="right">Days</Table.Th><Table.Th>Status</Table.Th><Table.Th /></Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {open.map((b) => (
-                <Table.Tr key={b.appliedCovenantId}>
-                  <Table.Td><Anchor component={Link} to={`/cp/${encodeURIComponent(b.cpId)}`} size="sm" fw={550}>{b.cpId}</Anchor></Table.Td>
-                  <Table.Td>{b.covenantName}</Table.Td>
-                  <Table.Td><StatusBadge value={b.result} /></Table.Td>
-                  <Table.Td className="num">{b.since}</Table.Td>
-                  <Table.Td ta="right">{b.daysOpen}</Table.Td>
-                  <Table.Td><StatusBadge value={b.status} />{b.approval && b.approval !== 'APPROVED' &&
-                    <Text size="xs">{b.approval.toLowerCase()}</Text>}</Table.Td>
-                  <Table.Td>{b.escalate && <Badge color="red">Escalate</Badge>}</Table.Td>
-                </Table.Tr>
-              ))}
-              {open.length === 0 && (
-                <Table.Tr><Table.Td colSpan={7}><Text c="dimmed">No open breaches.</Text></Table.Td></Table.Tr>
-              )}
-            </Table.Tbody>
-          </Table>
-        )}
-        {breaches.data && breaches.data.some((b) => b.result === 'ERROR') && (
-          <div style={{ padding: 'var(--mantine-spacing-lg)' }}>
-            <ErrorsByCp rows={breaches.data.filter((b) => b.result === 'ERROR')} />
-          </div>
-        )}
-      </Card>
-      <CustomReports />
-      <AskAi />
+      <Tabs defaultValue="breaches">
+        <Tabs.List>
+          <Tabs.Tab value="breaches">Open breaches{breaches.data ? ` (${open.length})` : ''}</Tabs.Tab>
+          <Tabs.Tab value="custom">Your reports</Tabs.Tab>
+          <Tabs.Tab value="ask">Ask AI</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="breaches" pt="md">
+          <Card padding={0}>
+            <Group justify="space-between" align="center" p="md" wrap="wrap">
+              <Text size="sm" c="dimmed">Breaches first; covenants that could not be checked are grouped by CP below.</Text>
+              <Group gap="xs" align="center">
+                <Text size="sm" c="dimmed">Escalate after</Text>
+                <NumberInput aria-label="Escalate after (days)" min={0} value={days} onChange={(v) => setDays(Number(v) || 0)} w={80} size="xs" />
+                <Text size="sm" c="dimmed">days</Text>
+              </Group>
+            </Group>
+            {breaches.isLoading && <Loading />}
+            {breaches.error && <ErrorNote error={breaches.error} />}
+            {breaches.data && (
+              <Table>
+                <Table.Thead>
+                  <Table.Tr><Table.Th>CP</Table.Th><Table.Th>Covenant</Table.Th><Table.Th>Result</Table.Th>
+                    <Table.Th>Open since</Table.Th><Table.Th ta="right">Days</Table.Th><Table.Th>Status</Table.Th><Table.Th /></Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {open.map((b) => (
+                    <Table.Tr key={b.appliedCovenantId}>
+                      <Table.Td><Anchor component={Link} to={`/cp/${encodeURIComponent(b.cpId)}`} size="sm" fw={550}>{b.cpId}</Anchor></Table.Td>
+                      <Table.Td>{b.covenantName}</Table.Td>
+                      <Table.Td><StatusBadge value={b.result} /></Table.Td>
+                      <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(b.since)}</Table.Td>
+                      <Table.Td ta="right">{b.daysOpen}</Table.Td>
+                      <Table.Td><StatusBadge value={b.status} />{b.approval && b.approval !== 'APPROVED' &&
+                        <Text size="xs">{b.approval.toLowerCase()}</Text>}</Table.Td>
+                      <Table.Td>{b.escalate && <Badge color="red">Escalate</Badge>}</Table.Td>
+                    </Table.Tr>
+                  ))}
+                  {open.length === 0 && (
+                    <Table.Tr><Table.Td colSpan={7}><Text c="dimmed">No open breaches.</Text></Table.Td></Table.Tr>
+                  )}
+                </Table.Tbody>
+              </Table>
+            )}
+            {breaches.data && breaches.data.some((b) => b.result === 'ERROR') && (
+              <div style={{ padding: 'var(--mantine-spacing-md)' }}>
+                <ErrorsByCp rows={breaches.data.filter((b) => b.result === 'ERROR')} />
+              </div>
+            )}
+          </Card>
+        </Tabs.Panel>
+        <Tabs.Panel value="custom" pt="md"><CustomReports /></Tabs.Panel>
+        <Tabs.Panel value="ask" pt="md"><AskAi /></Tabs.Panel>
+      </Tabs>
     </Stack>
   );
 }

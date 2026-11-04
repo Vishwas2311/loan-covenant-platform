@@ -172,9 +172,9 @@ describe('alerts, charts and settings', () => {
       return { body: [] };
     });
     renderAt('/reports', '/reports', <Reports />);
-    const bySegment = await screen.findByRole('img', { name: 'Breach rate by business segment' });
+    const bySegment = await screen.findByRole('table', { name: 'Breach rate by business segment' });
     expect(within(bySegment).getByText('Corporate')).toBeInTheDocument();
-    expect(within(bySegment).getAllByText('25%').length).toBeGreaterThan(0);
+    expect(within(bySegment).getAllByText('25.0%').length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('radio', { name: 'By sector' }));
     expect(screen.getByText('Nothing to show yet.')).toBeInTheDocument();
   });

@@ -13,7 +13,7 @@ import type { CpSummary } from '../api/types';
 import { ChartCard, Chip, Kpi, KpiStrip, PageHeader } from '../components/Board';
 import { humanize, useMyCps } from '../components/CpPicker';
 import { MAGNITUDE, STATUS, SplitBar, Legend } from '../components/charts';
-import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+import { ErrorNote, Loading } from '../components/Status';
 import { fmtDate } from '../format';
 
 type Show = 'all' | 'breached' | 'error' | 'pending';
@@ -70,16 +70,16 @@ function HealthLadder({ rows, names }: { rows: CpSummary[]; names: Map<string, s
             <button type="button" className="ladder-row"
               onClick={() => navigate(`/cp/${encodeURIComponent(r.cpId)}`)}
               aria-label={`Open ${r.cpId}${name ? `, ${name}` : ''}: ${r.breached} breached, ${r.error} could not be checked`}>
-              <div style={{ minWidth: 0 }}>
+              <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
                 <Text size="sm" fw={550} truncate="end">{name ?? r.cpId}</Text>
-                <Text size="xs" c="dimmed">{name ? `${r.cpId} · ` : ''}{r.applied} covenant{r.applied === 1 ? '' : 's'}</Text>
-              </div>
-              <SplitBar parts={RESULT_PARTS(r)} height={10} ariaLabel={`${r.compliant} kept, ${r.breached} breached, ${r.error} could not be checked`} />
-              <Text size="sm" ta="right" className="num" c={r.breached ? 'var(--status-bad)' : 'dimmed'} fw={r.breached ? 650 : 400}>
-                {r.breached ? `${r.breached} breached` : '—'}
+                {name && <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>{r.cpId}</Text>}
+              </Group>
+              <SplitBar parts={RESULT_PARTS(r)} height={8} ariaLabel={`${r.compliant} kept, ${r.breached} breached, ${r.error} could not be checked`} />
+              <Text size="xs" ta="right" className="num" c="var(--status-bad)" fw={650}>
+                {r.breached ? `${r.breached} breached` : ''}
               </Text>
-              <Text size="sm" ta="right" className="num" c={r.error ? 'orange.8' : 'dimmed'}>
-                {r.error ? `${r.error} errors` : '—'}
+              <Text size="xs" ta="right" className="num" c="orange.8">
+                {r.error ? `${r.error} errors` : ''}
               </Text>
             </button>
             </div>
@@ -111,11 +111,11 @@ function NextTasks() {
       {data && open.length === 0 && <Text c="dimmed" size="sm">Nothing is waiting on you.</Text>}
       <Stack gap={0}>
         {open.slice(0, 4).map((t) => (
-          <Group key={t.id} justify="space-between" wrap="nowrap" py={8} style={{ borderTop: '1px solid var(--app-rule)' }}>
-            <div style={{ minWidth: 0 }}>
-              <Text size="sm" lineClamp={1}>{t.title}</Text>
-              <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="xs">{t.cpId}</Anchor>
-            </div>
+          <Group key={t.id} justify="space-between" wrap="nowrap" py={6} gap="sm" style={{ borderTop: '1px solid var(--app-rule)' }}>
+            <Group gap={8} wrap="nowrap" style={{ minWidth: 0 }}>
+              <Text size="sm" truncate="end">{t.title}</Text>
+              <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="xs" style={{ flexShrink: 0 }}>{t.cpId}</Anchor>
+            </Group>
             <Text size="xs" c={t.dueDate < today ? 'var(--status-bad)' : 'dimmed'} style={{ flexShrink: 0 }}>
               {fmtDate(t.dueDate)}
             </Text>
@@ -125,6 +125,8 @@ function NextTasks() {
     </ChartCard>
   );
 }
+
+const humanizeTiming = (v: string | null | undefined) => (v ? v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, ' ') : '');
 
 /** A14: overdue checks and those due in the next 30 days, soonest first. */
 function DueSoon() {
@@ -146,22 +148,17 @@ function DueSoon() {
       {data && rows.length === 0 && <Text c="dimmed" size="sm">Nothing due.</Text>}
       <Stack gap={0}>
         {rows.slice(0, 7).map((e) => (
-          <Group key={e.appliedCovenantId} justify="space-between" wrap="nowrap" py={8}
-            style={{ borderTop: '1px solid var(--app-rule)' }}>
-            <div style={{ minWidth: 0 }}>
-              <Text size="sm" truncate="end">{e.covenantName}</Text>
-              <Text size="xs" c="dimmed" truncate="end">
-                <Anchor component={Link} to={`/cp/${encodeURIComponent(e.cpId)}`} size="xs">{e.cpId}</Anchor>
-                {e.cpName ? ` · ${e.cpName}` : ''}
-              </Text>
-            </div>
-            <Stack gap={2} align="flex-end" style={{ flexShrink: 0 }}>
-              <Text size="xs">{fmtDate(e.nextDueDate)}</Text>
-              {e.overdueByDays > 0
-                ? <Badge size="xs" color="red" variant="light" tt="none">{e.overdueByDays} days overdue</Badge>
-                : <StatusBadge value={e.timingStatus} />}
-            </Stack>
-          </Group>
+          <div key={e.appliedCovenantId} className="due-row">
+            <Text size="sm" truncate="end">{e.covenantName}</Text>
+            <Text size="xs" ta="right" style={{ whiteSpace: 'nowrap' }}>{fmtDate(e.nextDueDate)}</Text>
+            <Text size="xs" c="dimmed" truncate="end">
+              <Anchor component={Link} to={`/cp/${encodeURIComponent(e.cpId)}`} size="xs">{e.cpId}</Anchor>
+              {e.cpName ? ` · ${e.cpName}` : ''}
+            </Text>
+            <Text size="xs" ta="right" style={{ whiteSpace: 'nowrap' }} c={e.overdueByDays > 0 ? 'var(--status-bad)' : 'dimmed'}>
+              {e.overdueByDays > 0 ? `${e.overdueByDays} days overdue` : humanizeTiming(e.timingStatus)}
+            </Text>
+          </div>
         ))}
       </Stack>
       {rows.length > 7 && <Text size="xs" c="dimmed" mt="xs">and {rows.length - 7} more</Text>}

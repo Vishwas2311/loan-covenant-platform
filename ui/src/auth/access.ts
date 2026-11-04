@@ -11,32 +11,36 @@ export interface PageAccess {
   roles: Role[];
   /** Why these roles: shown on the "not for you" page. */
   purpose: string;
+  /** The menu section the page sits in. */
+  group: 'Monitor' | 'Credit proposals' | 'Setup' | 'Operations';
 }
 
+export const GROUPS: PageAccess['group'][] = ['Monitor', 'Credit proposals', 'Setup', 'Operations'];
+
 export const PAGES: PageAccess[] = [
-  { path: '/portfolio', label: 'Portfolio', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR', 'SUPPORT'],
+  { path: '/portfolio', group: 'Monitor', label: 'Portfolio', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR', 'SUPPORT'],
     purpose: 'the covenant position of the CPs you look after' },
-  { path: '/tasks', label: 'My tasks', roles: ['RM', 'APPROVER', 'ADMIN'],
+  { path: '/tasks', group: 'Monitor', label: 'My tasks', roles: ['RM', 'APPROVER', 'ADMIN'],
     purpose: 'work assigned to relationship managers and approvers' },
-  { path: '/cp', label: 'CP workspace', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR', 'SUPPORT'],
+  { path: '/cp', group: 'Credit proposals', label: 'CP workspace', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR', 'SUPPORT'],
     purpose: "one CP's covenant results, breaches and certificates" },
-  { path: '/onboarding', label: 'Onboarding', roles: ['RM', 'APPROVER', 'ADMIN'],
+  { path: '/onboarding', group: 'Credit proposals', label: 'Onboarding', roles: ['RM', 'APPROVER', 'ADMIN'],
     purpose: 'choosing which covenants a CP is monitored for' },
-  { path: '/documents', label: 'Documents', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR', 'SUPPORT'],
+  { path: '/documents', group: 'Credit proposals', label: 'Documents', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR', 'SUPPORT'],
     purpose: 'loan agreements, statements and evidence for a CP' },
-  { path: '/library', label: 'Covenant library', roles: ['RM', 'APPROVER', 'AUTHOR', 'ADMIN', 'AUDITOR', 'SUPPORT'],
+  { path: '/library', group: 'Setup', label: 'Covenant library', roles: ['RM', 'APPROVER', 'AUTHOR', 'ADMIN', 'AUDITOR', 'SUPPORT'],
     purpose: 'the covenants the bank can apply' },
-  { path: '/reports', label: 'Reports', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR'],
+  { path: '/reports', group: 'Monitor', label: 'Reports', roles: ['RM', 'APPROVER', 'ADMIN', 'AUDITOR'],
     purpose: 'breach rates, open breaches and your own reports' },
-  { path: '/measures', label: 'Measures', roles: ['AUTHOR', 'ADMIN'],
+  { path: '/measures', group: 'Setup', label: 'Measures', roles: ['AUTHOR', 'ADMIN'],
     purpose: 'the figures covenant rules are written in' },
-  { path: '/ops/jobs', label: 'Document jobs', roles: ['SUPPORT', 'ADMIN'],
+  { path: '/ops/jobs', group: 'Operations', label: 'Document jobs', roles: ['SUPPORT', 'ADMIN'],
     purpose: 'checking and restarting document processing' },
-  { path: '/ops/support', label: 'Support tools', roles: ['SUPPORT', 'ADMIN'],
+  { path: '/ops/support', group: 'Operations', label: 'Support tools', roles: ['SUPPORT', 'ADMIN'],
     purpose: 'diagnosing CPs and re-running jobs' },
-  { path: '/data-sources', label: 'Data sources', roles: ['ADMIN'],
+  { path: '/data-sources', group: 'Setup', label: 'Data sources', roles: ['ADMIN'],
     purpose: 'connections to the systems figures come from' },
-  { path: '/settings', label: 'Settings', roles: ['ADMIN'],
+  { path: '/settings', group: 'Setup', label: 'Settings', roles: ['ADMIN'],
     purpose: 'organisation-wide settings and FX rates' },
 ];
 

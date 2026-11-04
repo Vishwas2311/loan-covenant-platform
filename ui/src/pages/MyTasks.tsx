@@ -120,11 +120,11 @@ export function MyTasks() {
               <Table.Tr>
                 <Table.Td>
                   <Text size="sm" style={{ whiteSpace: 'nowrap' }} c={t.status === 'OPEN' && t.dueDate < today ? 'red' : undefined}>{fmtDate(t.dueDate)}</Text>
-                  {t.escalated && <Badge size="xs" color="red">escalated</Badge>}
+                  {t.escalated && <Badge size="sm" color="red" mt={2}>escalated</Badge>}
                 </Table.Td>
                 <Table.Td>
-                  <Badge size="xs" variant="light" color={KIND[t.kind].color}>{KIND[t.kind].label}</Badge>
-                  <Text size="sm">{t.title}</Text>
+                  <Text size="sm" fw={500}>{t.title}</Text>
+                  <Badge size="sm" mt={2} color={KIND[t.kind].color}>{KIND[t.kind].label}</Badge>
                 </Table.Td>
                 <Table.Td>
                   <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="sm" fw={550}>{t.cpId}</Anchor>

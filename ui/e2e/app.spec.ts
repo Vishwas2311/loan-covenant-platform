@@ -28,7 +28,7 @@ test('3. an agreement upload is processed by DPS', async ({ page }) => {
   await expect(async () => {
     await page.reload();
     await expect(page.getByRole('row').filter({ hasText: name })
-      .getByText(/^(PUBLISHED|NEEDS REVIEW)$/)).toBeVisible({ timeout: 5_000 });
+      .getByText(/^(Published|Needs review)$/)).toBeVisible({ timeout: 5_000 });
   }).toPass({ timeout: 120_000, intervals: [5_000] });
 });
 
@@ -52,7 +52,7 @@ test('5. a financial statement becomes values with cell references', async ({ pa
   await expect(page.getByText('Uploaded. Processing has started.')).toBeVisible();
   await expect(async () => {
     await page.reload();
-    await expect(page.getByRole('row').filter({ hasText: name }).getByText('PUBLISHED'))
+    await expect(page.getByRole('row').filter({ hasText: name }).getByText('Published'))
       .toBeVisible({ timeout: 5_000 });
   }).toPass({ timeout: 120_000, intervals: [5_000] });
   await page.getByRole('row').filter({ hasText: name }).click();
@@ -102,10 +102,11 @@ test('9. reports download as Excel and PDF', async ({ page }) => {
 
 test('10. Ask AI answers about the RM portfolio with Azure OpenAI', async ({ page }) => {
   await signIn(page, 'rm-anil', '/reports');
+  await page.getByRole('tab', { name: 'Ask AI' }).click();
   await page.getByRole('textbox', { name: 'Question' }).fill('Which of my covenants are breached?');
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
   await expect(page.getByText('Sources:')).toBeVisible({ timeout: 120_000 });
-  await expect(page.getByText(/CP-\d{4}/).first()).toBeVisible();
+  await expect(page.getByRole('tabpanel', { name: 'Ask AI' }).getByText(/CP-\d{4}/).first()).toBeVisible();
 });
 
 test('11. the covenant library loads and downloads', async ({ page }) => {
@@ -147,7 +148,7 @@ test('16. an RM records the result of a person-checked covenant', async ({ page 
   await page.getByLabel('What you checked').fill('e2e: insurance policy seen, valid to March 2027');
   await page.getByRole('button', { name: 'Save result' }).click();
   await expect(page.getByText('Result recorded.')).toBeVisible();
-  await expect(row.getByText('COMPLIANT')).toBeVisible();
+  await expect(row.getByText('Compliant')).toBeVisible();
 });
 
 test('17. the library shows where a covenant is used', async ({ page }) => {
@@ -232,7 +233,7 @@ test('23. an RM removes a wrongly uploaded document', async ({ page }) => {
   // Removed documents are hidden from the list until asked for.
   await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
   await page.getByRole('button', { name: /^Show removed/ }).click();
-  await expect(page.getByRole('row').filter({ hasText: name }).getByText('REMOVED')).toBeVisible();
+  await expect(page.getByRole('row').filter({ hasText: name }).getByText('Removed')).toBeVisible();
 });
 
 test('24. My tasks lists the RM\'s work, and the approver sees requests to decide', async ({ browser }) => {
@@ -273,6 +274,7 @@ test('27. a breach notice downloads as a Word file', async ({ page }) => {
 
 test('28. a custom report runs, saves, downloads and is deleted', async ({ page }) => {
   await signIn(page, 'rm-anil', '/reports');
+  await page.getByRole('tab', { name: 'Your reports' }).click();
   await page.getByRole('button', { name: 'Run' }).click();
   await expect(page.getByRole('cell', { name: /CP-10\d\d/ }).first()).toBeVisible();
   const name = `e2e report ${Date.now()}`;
@@ -290,7 +292,7 @@ test('28. a custom report runs, saves, downloads and is deleted', async ({ page 
 
 test('29. a statement shows its full spread', async ({ page }) => {
   await signIn(page, 'rm-anil', '/documents/CP-1001');
-  await page.getByRole('row').filter({ hasText: 'e2e-statement-' }).getByText('PUBLISHED').first().click();
+  await page.getByRole('row').filter({ hasText: 'e2e-statement-' }).getByText('Published').first().click();
   await expect(page.getByText(/\d+ of 43 standard lines found/)).toBeVisible();
   await expect(page.getByRole('cell', { name: 'EBITDA', exact: true })).toBeVisible();
 });

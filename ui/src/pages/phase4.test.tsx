@@ -63,7 +63,7 @@ describe('borrower portal', () => {
     mockFetch((url) => (url === '/api/v1/portal/cps' ? { body: [{ cpId: 'CP-1003', name: null }] }
       : { body: { ...VIEW, requirements: [VIEW.requirements[1]] } }));
     renderAt('/', '/', <PortalApp user="borrower-reliance" />);
-    expect(await screen.findByText(/The bank has your certificate for the period ending 2026-06-30\. Its next check is on 2026-12-31/))
+    expect(await screen.findByText(/The bank has your certificate for the period ending 30 Jun 2026\. Its next check is on 31 Dec 2026/))
       .toBeInTheDocument();
     expect(screen.getByText('What the bank checks, and when next')).toBeInTheDocument();
   });

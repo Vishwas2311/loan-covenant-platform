@@ -137,10 +137,11 @@ describe('CP workspace maker-checker', () => {
     expect(await screen.findByText('BREACHED → WAIVER')).toBeInTheDocument();
   });
 
-  it('asks for a CP when none is open', async () => {
+  it('opens a typed CP id the user does not own', async () => {
+    mockFetch(() => ({ body: [] }));
     renderAt('/cp', '/cp', <CpWorkspace />);
-    fireEvent.change(screen.getByLabelText('Credit proposal (CP id)'), { target: { value: 'CP-7' } });
-    fireEvent.click(screen.getByText('Open'));
+    fireEvent.change(await screen.findByLabelText('Search your CPs'), { target: { value: 'cp-7' } });
+    fireEvent.click(screen.getByText('Open CP-7'));
     expect(await screen.findByText('navigated')).toBeInTheDocument();
   });
 });

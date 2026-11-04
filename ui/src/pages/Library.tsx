@@ -19,7 +19,7 @@ import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading } from '../components/Status';
 import { humanize } from '../components/CpPicker';
 import { useMeasures } from '../components/useMeasures';
-import { describeRule } from '../format';
+import { describeRule, fmtDateTime } from '../format';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
 
@@ -196,7 +196,7 @@ function CovenantDetails({ id, canAuthor, onClose }: { id: string; canAuthor: bo
             <Table.Tbody>
               {(changes.data ?? []).map((x) => (
                 <Table.Tr key={x.id}>
-                  <Table.Td>{new Date(x.changedDate).toLocaleString()}</Table.Td>
+                  <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDateTime(x.changedDate)}</Table.Td>
                   <Table.Td><Text ff="monospace" size="xs">{x.oldExpression ?? '—'} → {x.newExpression}</Text></Table.Td>
                   <Table.Td>{x.changedBy}</Table.Td>
                 </Table.Tr>

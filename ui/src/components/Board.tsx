@@ -14,12 +14,14 @@ export function PageHeader({ title, finding, chips, actions, children }: {
   title: ReactNode; finding?: ReactNode; chips?: ReactNode; actions?: ReactNode; children?: ReactNode;
 }) {
   return (
-    <Group justify="space-between" align="flex-end" wrap="wrap" gap="md">
-      <Stack gap={6} style={{ minWidth: 0 }}>
-        <Title order={1}>{title}</Title>
+    <Group justify="space-between" align="center" wrap="wrap" gap="md">
+      <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+        <Group gap={10} align="center" wrap="wrap">
+          <Title order={1}>{title}</Title>
+          {chips && <Group gap={6}>{chips}</Group>}
+        </Group>
         {children}
-        {finding && <Text size="sm" c="dimmed" maw={760}>{finding}</Text>}
-        {chips && <Group gap={8} mt={2}>{chips}</Group>}
+        {finding && <Text size="sm" c="dimmed" maw={900}>{finding}</Text>}
       </Stack>
       {actions && <Group gap="sm">{actions}</Group>}
     </Group>
@@ -47,12 +49,12 @@ export function Kpi({ label, value, unit, tone = 'neutral', note, lead, onClick,
 }) {
   const body = (
     <>
-      <Text size="sm" c="dimmed" lh={1.3}>{label}</Text>
-      <Group gap={6} align="baseline" mt={6} wrap="nowrap">
-        <Text className="num" fz={lead ? 32 : 24} fw={lead ? 650 : 550} lh={1.1} c={VALUE[tone]}>{value}</Text>
+      <Text size="xs" c="dimmed" lh={1.3} fw={500}>{label}</Text>
+      <Group gap={8} align="baseline" mt={2} wrap="nowrap">
+        <Text className="num" fz={20} fw={lead ? 650 : 600} lh={1.2} c={VALUE[tone]}>{value}</Text>
         {unit && <Text size="sm" c="dimmed">{unit}</Text>}
+        {note && <Text size="xs" c="dimmed" lineClamp={1}>{note}</Text>}
       </Group>
-      {note && <Text size="xs" c="dimmed" mt={6} lineClamp={2}>{note}</Text>}
     </>
   );
   return onClick ? (
@@ -67,8 +69,8 @@ export function ChartCard({ title, subtitle, actions, children }: {
   title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode;
 }) {
   return (
-    <Card>
-      <Group justify="space-between" align="flex-start" mb="md" wrap="wrap" gap="sm">
+    <Card h="100%">
+      <Group justify="space-between" align="flex-start" mb="sm" wrap="wrap" gap="sm">
         <Stack gap={2}>
           <Title order={4}>{title}</Title>
           {subtitle && <Text size="sm" c="dimmed">{subtitle}</Text>}

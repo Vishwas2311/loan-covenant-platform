@@ -4,7 +4,8 @@ import {
   IconMathFunction, IconSettings, IconSparkles, IconTool,
 } from '@tabler/icons-react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { canOpen, homeFor, PAGES, pageFor, readOnlyOnLoans } from './auth/access';
+import { BrandMark } from './components/BrandMark';
+import { canOpen, GROUPS, homeFor, PAGES, pageFor, readOnlyOnLoans } from './auth/access';
 import { DEV_USERS, getAccessToken, isBorrowerOnly, setIdentity } from './auth/identity';
 import type { Identity } from './auth/identity';
 import { AlertBell } from './components/AlertBell';
@@ -32,21 +33,6 @@ const ICONS: Record<string, typeof IconBooks> = {
 };
 
 /** The product name with a small chart mark, as on the GenBI-style boards. */
-/** The Covenexa mark (same drawing as public/covenexa.svg) and the product name. */
-export function BrandMark({ label = 'Covenexa' }: { label?: string }) {
-  return (
-    <Group gap={10} wrap="nowrap">
-      <svg width="28" height="28" viewBox="0 0 160 160" aria-hidden="true">
-        <rect width="160" height="160" rx="32" fill="#0b0b12" />
-        <path d="M62 34 100 16v62L82 87v31l-60 28V100l40-19z" fill="#ffffff" />
-        <path d="M86 92 104 82 140 101v42L86 119z" fill="#7353ea" />
-        <path d="M86 92 104 82 140 101 122 111z" fill="#9a82f5" />
-      </svg>
-      <Text component="span" className="app-brand">{label}</Text>
-    </Group>
-  );
-}
-
 /** Shown instead of a page the signed-in roles do not use (opened from a link or a typed address). */
 export function NoAccess({ identity, pathname }: { identity: Identity; pathname: string }) {
   const page = pageFor(pathname);
@@ -109,9 +95,9 @@ export function App() {
     return <PortalApp user={identity.user} onSignOut={signedIn() ? () => void signOut() : undefined} />;
   }
   return (
-    <AppShell header={{ height: 60 }} navbar={{ width: 236, breakpoint: 'sm' }} padding="lg">
+    <AppShell header={{ height: 52 }} navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
       <AppShell.Header className="app-header">
-        <Group h="100%" px="lg" justify="space-between">
+        <Group h="100%" px="md" justify="space-between">
           <BrandMark />
           <Group gap="sm">
             {readOnlyOnLoans(identity) && (
@@ -126,34 +112,44 @@ export function App() {
         </Group>
       </AppShell.Header>
       <AppShell.Navbar p="sm" className="app-nav">
-        {PAGES.filter((p) => canOpen(identity, p)).map(({ path, label }) => {
-          const Icon = ICONS[path];
-          return (
-            <NavLink key={path} component={Link} to={path} label={label} leftSection={<Icon size={18} />}
-              active={location.pathname === path || location.pathname.startsWith(`${path}/`)} />
+        {GROUPS.map((group) => {
+          const pages = PAGES.filter((p) => p.group === group && canOpen(identity, p));
+          return pages.length > 0 && (
+            <div key={group} className="nav-group">
+              <Text className="nav-group-label">{group}</Text>
+              {pages.map(({ path, label }) => {
+                const Icon = ICONS[path];
+                return (
+                  <NavLink key={path} component={Link} to={path} label={label} leftSection={<Icon size={16} stroke={1.75} />}
+                    active={location.pathname === path || location.pathname.startsWith(`${path}/`)} />
+                );
+              })}
+            </div>
           );
         })}
       </AppShell.Navbar>
       <AppShell.Main>
-        <Routes>
-          <Route path="/" element={<Navigate to={homeFor(identity)} replace />} />
-          <Route path="/portfolio" element={<Guard identity={identity}><Portfolio /></Guard>} />
-          <Route path="/tasks" element={<Guard identity={identity}><MyTasks /></Guard>} />
-          <Route path="/cp" element={<Guard identity={identity}><CpWorkspace /></Guard>} />
-          <Route path="/cp/:cpId" element={<Guard identity={identity}><CpWorkspace /></Guard>} />
-          <Route path="/onboarding" element={<Guard identity={identity}><Onboarding /></Guard>} />
-          <Route path="/onboarding/:cpId" element={<Guard identity={identity}><Onboarding /></Guard>} />
-          <Route path="/documents" element={<Guard identity={identity}><Documents /></Guard>} />
-          <Route path="/documents/:cpId" element={<Guard identity={identity}><Documents /></Guard>} />
-          <Route path="/library" element={<Guard identity={identity}><Library /></Guard>} />
-          <Route path="/reports" element={<Guard identity={identity}><Reports /></Guard>} />
-          <Route path="/ops/jobs" element={<Guard identity={identity}><Jobs /></Guard>} />
-          <Route path="/ops/support" element={<Guard identity={identity}><Support /></Guard>} />
-          <Route path="/measures" element={<Guard identity={identity}><Measures /></Guard>} />
-          <Route path="/data-sources" element={<Guard identity={identity}><DataSources /></Guard>} />
-          <Route path="/settings" element={<Guard identity={identity}><Settings /></Guard>} />
-          <Route path="*" element={<Text>Page not found.</Text>} />
-        </Routes>
+        <div className="app-main">
+          <Routes>
+            <Route path="/" element={<Navigate to={homeFor(identity)} replace />} />
+            <Route path="/portfolio" element={<Guard identity={identity}><Portfolio /></Guard>} />
+            <Route path="/tasks" element={<Guard identity={identity}><MyTasks /></Guard>} />
+            <Route path="/cp" element={<Guard identity={identity}><CpWorkspace /></Guard>} />
+            <Route path="/cp/:cpId" element={<Guard identity={identity}><CpWorkspace /></Guard>} />
+            <Route path="/onboarding" element={<Guard identity={identity}><Onboarding /></Guard>} />
+            <Route path="/onboarding/:cpId" element={<Guard identity={identity}><Onboarding /></Guard>} />
+            <Route path="/documents" element={<Guard identity={identity}><Documents /></Guard>} />
+            <Route path="/documents/:cpId" element={<Guard identity={identity}><Documents /></Guard>} />
+            <Route path="/library" element={<Guard identity={identity}><Library /></Guard>} />
+            <Route path="/reports" element={<Guard identity={identity}><Reports /></Guard>} />
+            <Route path="/ops/jobs" element={<Guard identity={identity}><Jobs /></Guard>} />
+            <Route path="/ops/support" element={<Guard identity={identity}><Support /></Guard>} />
+            <Route path="/measures" element={<Guard identity={identity}><Measures /></Guard>} />
+            <Route path="/data-sources" element={<Guard identity={identity}><DataSources /></Guard>} />
+            <Route path="/settings" element={<Guard identity={identity}><Settings /></Guard>} />
+            <Route path="*" element={<Text>Page not found.</Text>} />
+          </Routes>
+        </div>
       </AppShell.Main>
     </AppShell>
   );

@@ -10,7 +10,7 @@ import { r3 } from '../api/endpoints3';
 import type { Frequency, ReviewRow } from '../api/types';
 import type { Assessment } from '../api/types3';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
-import { formatValue } from '../format';
+import { fmtDate, fmtDateTime, formatValue } from '../format';
 import { LetterButtons } from './Phase3';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
@@ -22,7 +22,7 @@ export function ruleLimit(expression: string | null | undefined): number | null 
 }
 
 function when(value: string | null | undefined) {
-  return value ? new Date(value).toLocaleString() : '—';
+  return fmtDateTime(value);
 }
 
 /** A1: a person records the outcome of a covenant the app cannot check by itself. */
@@ -84,23 +84,23 @@ export function TrendChart({ points, limit }: { points: { label: string; value: 
       aria-label={`Trend of ${points.length} results${limit === null ? '' : `, limit ${limit}`}`}>
       {limit !== null && (
         <>
-          <line x1={pad} x2={W - pad} y1={y(limit)} y2={y(limit)} stroke="var(--mantine-color-red-6)"
+          <line x1={pad} x2={W - pad} y1={y(limit)} y2={y(limit)} stroke="var(--status-bad)"
             strokeDasharray="5 4" />
-          <text x={W - pad} y={y(limit) - 4} textAnchor="end" fontSize="11" fill="var(--mantine-color-red-7)">
+          <text x={W - pad} y={y(limit) - 4} textAnchor="end" fontSize="11" fill="var(--status-bad)">
             limit {limit}
           </text>
         </>
       )}
-      <path d={line} fill="none" stroke="var(--mantine-color-blue-6)" strokeWidth="2" />
+      <path d={line} fill="none" stroke="var(--data-hue)" strokeWidth="2" />
       {points.map((p, i) => (
         <g key={`${p.label}-${i}`}>
-          <circle cx={x(i)} cy={y(p.value)} r="3.5" fill="var(--mantine-color-blue-6)" />
+          <circle cx={x(i)} cy={y(p.value)} r="3.5" fill="var(--data-hue)" />
           <title>{`${p.label}: ${p.value}`}</title>
         </g>
       ))}
-      <text x={pad} y={H - 6} fontSize="11" fill="var(--mantine-color-dimmed)">{points[0].label}</text>
+      <text x={pad} y={H - 6} fontSize="11" fill="var(--mantine-color-dimmed)">{fmtDate(points[0].label)}</text>
       <text x={W - pad} y={H - 6} fontSize="11" textAnchor="end" fill="var(--mantine-color-dimmed)">
-        {points[points.length - 1].label}
+        {fmtDate(points[points.length - 1].label)}
       </text>
     </svg>
   );

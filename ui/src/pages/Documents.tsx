@@ -15,7 +15,8 @@ import type { DocumentType, DpsDocument, ExtractedTerm } from '../api/types';
 import { authHeaders, hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { Kpi, KpiStrip, PageHeader } from '../components/Board';
-import { CpChips, CpChooser, CpPicker } from '../components/CpPicker';
+import { DocumentInbox } from './CpQueues';
+import { CpChips, CpPicker } from '../components/CpPicker';
 import { fmtDate } from '../format';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
 
@@ -378,7 +379,7 @@ export function Documents() {
   const go = (cp: string) => navigate(`/documents/${encodeURIComponent(cp)}`);
   let finding: string | undefined;
   if (!cpId) {
-    finding = 'Pick a credit proposal to upload its loan agreement, financial statements or certificates, and check what was read from them.';
+    finding = 'Loan agreements, financial statements and evidence across your credit proposals. Files that need a person come first.';
   } else if (docs.data) {
     finding = live.length === 0 ? 'No documents yet. Upload the loan agreement first; its covenants are read for onboarding.'
       : `${live.length} document${live.length === 1 ? '' : 's'} in use`
@@ -390,8 +391,8 @@ export function Documents() {
     <Stack gap="lg">
       <PageHeader title={cpId ? `Documents for ${cpId}` : 'Documents'} finding={finding}
         chips={cpId ? <CpChips cpId={cpId} /> : undefined}
-        actions={<CpPicker key={cpId} initial={cpId} onOpen={go} />} />
-      {!cpId && <CpChooser onOpen={go} />}
+        actions={cpId ? <CpPicker key={cpId} initial={cpId} onOpen={go} /> : undefined} />
+      {!cpId && <DocumentInbox onOpen={go} />}
       {cpId && docs.isLoading && <Loading />}
       {docs.error && <ErrorNote error={docs.error} />}
       {cpId && docs.data && live.length > 0 && (

@@ -8,7 +8,9 @@ import { useState } from 'react';
 import { errorMessage } from '../api/client';
 import { r5, type PortalView } from '../api/endpoints5';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle';
+import { BrandMark } from '../components/BrandMark';
 import { ErrorNote, Loading } from '../components/Status';
+import { fmtDate } from '../format';
 
 const fail = (e: unknown) => notifications.show({ color: 'red', message: errorMessage(e) });
 
@@ -36,8 +38,8 @@ function CertificateForm({ view }: { view: PortalView }) {
     return (
       <Alert color="green" variant="light" title="You are up to date">
         <Text size="sm">
-          {last ? `The bank has your certificate for the period ending ${last.periodEnd}. ` : 'No certificate is due yet. '}
-          {next ? `Its next check is on ${next}; a new request will appear here before then. ` : ''}
+          {last ? `The bank has your certificate for the period ending ${fmtDate(last.periodEnd)}. ` : 'No certificate is due yet. '}
+          {next ? `Its next check is on ${fmtDate(next)}; a new request will appear here before then. ` : ''}
           See what you sent under &ldquo;What you sent&rdquo;.
         </Text>
       </Alert>
@@ -46,7 +48,7 @@ function CertificateForm({ view }: { view: PortalView }) {
   return (
     <Stack>
       <Select label="For the period ending" value={period} onChange={setPeriod} allowDeselect={false}
-        data={open.map((r) => ({ value: r.periodEnd, label: `${r.periodEnd} (due ${r.dueDate})` }))} />
+        data={open.map((r) => ({ value: r.periodEnd, label: `${fmtDate(r.periodEnd)} (due ${fmtDate(r.dueDate)})` }))} />
       <FileInput label="Signed certificate (PDF)" value={file} onChange={setFile} accept=".pdf" placeholder="Choose the file" />
       <TextInput label="Signed by (your full name and title)" value={signedBy} onChange={(e) => setSignedBy(e.currentTarget.value)}
         placeholder="Priya Rao, Chief Financial Officer" />
@@ -104,8 +106,8 @@ function LoanView({ cpId }: { cpId: string }) {
           <Table.Tbody>
             {v.requirements.map((r) => (
               <Table.Tr key={r.id}>
-                <Table.Td>Period ending {r.periodEnd}</Table.Td>
-                <Table.Td>{r.dueDate}</Table.Td>
+                <Table.Td>Period ending {fmtDate(r.periodEnd)}</Table.Td>
+                <Table.Td>{fmtDate(r.dueDate)}</Table.Td>
                 <Table.Td>
                   {r.state === 'RECEIVED' && <Badge color="green" variant="light">received</Badge>}
                   {r.state === 'PENDING' && <Badge color="gray" variant="light">waiting</Badge>}
@@ -124,7 +126,7 @@ function LoanView({ cpId }: { cpId: string }) {
                 {[...v.covenants].sort((a, b) => (a.nextDueDate ?? '9').localeCompare(b.nextDueDate ?? '9')).map((c) => (
                   <Table.Tr key={c.name}>
                     <Table.Td><Text size="sm">{c.name}</Text></Table.Td>
-                    <Table.Td><Text size="sm" c="dimmed">{c.nextDueDate ?? 'not scheduled'}</Text></Table.Td>
+                    <Table.Td><Text size="sm" c="dimmed">{c.nextDueDate ? fmtDate(c.nextDueDate) : 'Not scheduled'}</Text></Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -147,7 +149,7 @@ function LoanView({ cpId }: { cpId: string }) {
               {v.submissions.map((s, i) => (
                 <Table.Tr key={i}>
                   <Table.Td>{new Date(s.submittedAt).toLocaleString()}</Table.Td>
-                  <Table.Td>{s.kind === 'CERTIFICATE' ? 'Certificate' : 'Statement'}{s.periodEnd ? ` for ${s.periodEnd}` : ''}</Table.Td>
+                  <Table.Td>{s.kind === 'CERTIFICATE' ? 'Certificate' : 'Statement'}{s.periodEnd ? ` for ${fmtDate(s.periodEnd)}` : ''}</Table.Td>
                   <Table.Td>{s.fileName}</Table.Td>
                   <Table.Td>{s.submittedBy}</Table.Td>
                 </Table.Tr>
@@ -171,7 +173,7 @@ export function PortalApp({ user, onSignOut }: { user: string; onSignOut?: () =>
     <AppShell header={{ height: 56 }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
-          <Title order={4}>Borrower portal</Title>
+          <BrandMark />
           <Group gap="sm">
             <ColorSchemeToggle />
             <Text size="sm">{user} (Borrower)</Text>
@@ -180,7 +182,8 @@ export function PortalApp({ user, onSignOut }: { user: string; onSignOut?: () =>
         </Group>
       </AppShell.Header>
       <AppShell.Main>
-        <Stack maw={900}>
+        <Stack maw={960} mx="auto">
+          <Title order={1}>Borrower portal</Title>
           <Alert color="blue" variant="light">
             Send your compliance certificates and financial statements to the bank here. You only see the loans the
             bank has shared with you.

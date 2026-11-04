@@ -1,5 +1,5 @@
 import { Group, Text, Tooltip } from '@mantine/core';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 /**
  * The app's chart kit. Status colours (kept, could not be checked, broken) are fixed and always come
@@ -157,9 +157,26 @@ export interface ColumnPoint {
  * Stacked columns over time (checks per month by result): recessive dashed grid with round ticks,
  * 2px gaps between segments, rounded tops, and a read-out of the hovered month.
  */
-export function StackedColumns({ points, ariaLabel, height = 220 }: { points: ColumnPoint[]; ariaLabel: string; height?: number }) {
+/** The width of an element in CSS pixels, so a chart draws at its real size instead of scaling its text. */
+function useWidth(fallback: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const ro = new ResizeObserver(([e]) => setWidth(Math.max(240, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, width] as const;
+}
+
+/** Stacked columns at a fixed height: the chart widens with the card but never grows taller. */
+export function StackedColumns({ points, ariaLabel, height = 200 }: { points: ColumnPoint[]; ariaLabel: string; height?: number }) {
   const [hover, setHover] = useState<number | null>(null);
-  const W = 720;
+  const [ref, W] = useWidth(720);
   const H = height;
   const left = 40;
   const bottom = 24;
@@ -169,17 +186,17 @@ export function StackedColumns({ points, ariaLabel, height = 220 }: { points: Co
   const hi = ticks[ticks.length - 1];
   const y = (v: number) => H - bottom - (v / hi) * (H - bottom - top);
   const slot = (W - left - 8) / Math.max(1, points.length);
-  const bar = Math.min(34, slot * 0.62);
+  const bar = Math.min(28, slot * 0.56);
   const every = Math.ceil(points.length / 8);
   const shown = hover === null ? null : points[hover];
   return (
-    <div style={{ position: 'relative' }}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={ariaLabel} className="chart"
+    <div ref={ref} style={{ position: 'relative' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={ariaLabel} className="chart"
         onMouseLeave={() => setHover(null)}>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={left} x2={W - 4} y1={y(t)} y2={y(t)} stroke="var(--app-chart-grid)" strokeDasharray={t === 0 ? undefined : '3 4'} />
-            <text x={left - 8} y={y(t) + 3} fontSize="9.5" textAnchor="end" fill="var(--app-chart-axis)">{fmt(t)}</text>
+            <text x={left - 8} y={y(t) + 3} fontSize="11" textAnchor="end" fill="var(--app-chart-axis)">{fmt(t)}</text>
           </g>
         ))}
         {points.map((p, i) => {
@@ -202,7 +219,7 @@ export function StackedColumns({ points, ariaLabel, height = 220 }: { points: Co
                 return <path key={s.key} d={d} fill={s.color} />;
               })}
               {(i % every === 0 || i === points.length - 1) && (
-                <text x={x + bar / 2} y={H - 7} fontSize="9.5" textAnchor="middle" fill="var(--app-chart-axis)">{p.label}</text>
+                <text x={x + bar / 2} y={H - 7} fontSize="11" textAnchor="middle" fill="var(--app-chart-axis)">{p.label}</text>
               )}
             </g>
           );

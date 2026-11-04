@@ -17,7 +17,7 @@ import { Certificates, Comparison, ManualValue } from './CpExtras';
 import { CovenantDrawer, RecordResultDialog } from './CovenantPanel';
 import { AiSuggestions, Cycles } from './CpMore';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
-import { describeHeadroom, describeRule, explainError, fmtDate, formatValue, withUnit } from '../format';
+import { describeHeadroom, describeRule, explainError, fmtDate, fmtDateTime, formatValue, withUnit } from '../format';
 import { useMeasures } from '../components/useMeasures';
 
 function RequestDialog({ cpId, row, onClose }: { cpId: string; row: ReviewRow; onClose: () => void }) {
@@ -160,21 +160,20 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                       Checked against the earlier rule {r.assessedCondition}; the next check uses the new one.
                     </Text>
                   )}
-                  {r.atRisk && <Badge mt={4} color="orange" variant="outline" display="block" w="fit-content">at risk</Badge>}
+                  {r.atRisk && <Badge mt={4} color="orange" display="block" w="fit-content">at risk</Badge>}
                 </Table.Td>
                 <Table.Td>
                   <Stack gap={2}>
                     <StatusBadge value={r.dispositionStatus} />
                     {r.approvalStatus && r.approvalStatus !== 'APPROVED' && (
-                      <Badge size="xs" variant="outline" color={pending ? 'yellow' : 'gray'} tt="none" h="auto"
-                        styles={{ label: { whiteSpace: 'normal', overflow: 'visible' } }} maw={190}>
-                        {(r.requestedStatus ?? '').toLowerCase()} asked by {r.requestedBy}: {r.approvalStatus.toLowerCase()}
-                      </Badge>
+                      <Text size="xs" c={pending ? 'orange.8' : 'dimmed'} maw={190}>
+                        {humanize(r.requestedStatus)} asked by {r.requestedBy}: {r.approvalStatus.toLowerCase()}
+                      </Text>
                     )}
-                    {r.extensionDate && <Text size="xs">until {r.extensionDate}</Text>}
+                    {r.extensionDate && <Text size="xs" c="dimmed">until {fmtDate(r.extensionDate)}</Text>}
                   </Stack>
                 </Table.Td>
-                <Table.Td style={{ whiteSpace: 'nowrap' }}>{r.nextDueDate ?? '—'}{r.overdueByDays > 0 && <Text size="xs" c="red">{r.overdueByDays} d overdue</Text>}</Table.Td>
+                <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDate(r.nextDueDate)}{r.overdueByDays > 0 && <Text size="xs" c="red">{r.overdueByDays} d overdue</Text>}</Table.Td>
                 <Table.Td>
                   {pending && approver && !ownRequest && <DecisionButtons cpId={cpId} row={r} />}
                   {pending && (!approver || ownRequest) && <Text size="xs" c="dimmed">Awaiting approver</Text>}
@@ -220,7 +219,7 @@ function AuditTrail({ cpId }: { cpId: string }) {
       <Table.Tbody>
         {(data ?? []).map((a, i) => (
           <Table.Tr key={`${a.changedDate}-${i}`}>
-            <Table.Td>{new Date(a.changedDate).toLocaleString()}</Table.Td>
+            <Table.Td style={{ whiteSpace: 'nowrap' }}>{fmtDateTime(a.changedDate)}</Table.Td>
             <Table.Td>{a.oldStatus} → {a.newStatus}</Table.Td>
             <Table.Td>{a.changedBy}</Table.Td>
             <Table.Td>{a.rationale}</Table.Td>
@@ -279,6 +278,20 @@ function CpTop({ cpId, picker }: { cpId: string; picker: JSX.Element }) {
   );
 }
 
+/** One line over the CP list: how many CPs need something, and what. */
+function DirectoryFinding() {
+  const cps = useMyCps().data ?? [];
+  const breached = cps.filter((c) => c.breached > 0).length;
+  const errors = cps.filter((c) => c.error > 0).length;
+  return (
+    <>
+      {cps.length} credit proposal{cps.length === 1 ? '' : 's'}, worst first
+      {breached || errors ? `: ${breached} with a breach, ${errors} with figures missing.` : ', all in order.'}
+      {' '}Open one to see its covenants, handle breaches and check certificates.
+    </>
+  );
+}
+
 /** FR-24/FR-12: one CP — covenant results, breach handling with maker-checker, and the status trail. */
 export function CpWorkspace() {
   const { cpId } = useParams();
@@ -287,10 +300,8 @@ export function CpWorkspace() {
     <Stack gap="lg">
       {cpId
         ? <CpTop cpId={cpId} picker={<CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />} />
-        : <PageHeader title="CP workspace"
-            actions={<CpPicker onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />} />}
-      {!cpId && <CpChooser onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)}
-        hint="Pick a credit proposal to see its covenant results, handle breaches and check certificates." />}
+        : <PageHeader title="CP workspace" finding={<DirectoryFinding />} />}
+      {!cpId && <CpChooser onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />}
       {cpId && (
         <Tabs defaultValue="covenants" keepMounted={false}>
           <Tabs.List>

@@ -1,4 +1,4 @@
-import { SegmentedControl, SimpleGrid, Stack, Table, Text } from '@mantine/core';
+import { Button, Grid, Group, SegmentedControl, Table, Text } from '@mantine/core';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { r2 } from '../api/endpoints2';
@@ -7,7 +7,7 @@ import type { AnalyticsGroup } from '../api/types2';
 import type { TrendPoint } from '../api/types3';
 import { ChartCard } from '../components/Board';
 import { humanize } from '../components/CpPicker';
-import { HBars, Legend, MAGNITUDE, STATUS, StackedColumns } from '../components/charts';
+import { Legend, MAGNITUDE, STATUS, StackedColumns } from '../components/charts';
 import { ErrorNote, Loading } from '../components/Status';
 
 const SERIES = [
@@ -34,46 +34,51 @@ export function MonthlyResults({ points }: { points: TrendPoint[] }) {
   );
 }
 
-const pct = (n: number) => `${Number(n.toFixed(1))}%`;
 
-/** Share of checked covenants breached in each group, highest first, with the counts behind it. */
+/** Share of checked covenants breached in each group, highest first: one row per group with its bar and counts. */
 export function BreachRate({ bySegment, bySector }: { bySegment: AnalyticsGroup[]; bySector: AnalyticsGroup[] }) {
   const [by, setBy] = useState<'segment' | 'sector'>('segment');
-  const rows = by === 'segment' ? bySegment : bySector;
-  const title = by === 'segment' ? 'Breach rate by business segment' : 'Breach rate by sector';
-  const top = rows.filter((r) => r.applied > 0).sort((a, b) => b.breachRate - a.breachRate);
+  const [all, setAll] = useState(false);
+  const rows = [...(by === 'segment' ? bySegment : bySector)]
+    .sort((a, b) => b.breachRate - a.breachRate || b.applied - a.applied);
+  const max = Math.max(...rows.map((r) => r.breachRate), 0.0001);
+  const shown = all ? rows : rows.slice(0, 6);
   return (
     <ChartCard title="Breach rate" subtitle="Breached as a share of covenants checked, highest first"
-      actions={<SegmentedControl size="xs" aria-label="Group by" value={by} onChange={(v) => setBy(v as 'segment' | 'sector')}
-        data={[{ value: 'segment', label: 'By business segment' }, { value: 'sector', label: 'By sector' }]} />}>
-      <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl">
-        <HBars ariaLabel={title} format={pct} labelWidth={110}
-          rows={top.map((r) => ({
-            key: r.key, label: humanize(r.key), value: r.breachRate * 100,
-            color: r.breachRate > 0 ? STATUS.bad : MAGNITUDE,
-            detail: `${r.breached} of ${r.compliant + r.breached} checked, ${r.cps} CP${r.cps === 1 ? '' : 's'}`,
-          }))} />
-        <Stack gap={0}>
-          <Table>
-            <Table.Thead>
-              <Table.Tr><Table.Th>{by === 'segment' ? 'Segment' : 'Sector'}</Table.Th><Table.Th ta="right">CPs</Table.Th>
-                <Table.Th ta="right">Covenants</Table.Th><Table.Th ta="right">Breached</Table.Th>
-                <Table.Th ta="right">Errors</Table.Th><Table.Th ta="right">Rate</Table.Th></Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rows.map((g) => (
-                <Table.Tr key={g.key}>
-                  <Table.Td>{humanize(g.key)}</Table.Td><Table.Td ta="right">{g.cps}</Table.Td><Table.Td ta="right">{g.applied}</Table.Td>
-                  <Table.Td ta="right" c={g.breached ? 'var(--status-bad)' : 'dimmed'} fw={g.breached ? 650 : 400}>{g.breached}</Table.Td>
-                  <Table.Td ta="right" c={g.error ? 'orange.8' : 'dimmed'}>{g.error}</Table.Td>
-                  <Table.Td ta="right">{(g.breachRate * 100).toFixed(1)}%</Table.Td>
-                </Table.Tr>
-              ))}
-              {rows.length === 0 && <Table.Tr><Table.Td colSpan={6}><Text size="sm" c="dimmed">No covenants yet.</Text></Table.Td></Table.Tr>}
-            </Table.Tbody>
-          </Table>
-        </Stack>
-      </SimpleGrid>
+      actions={<SegmentedControl size="xs" aria-label="Group by" value={by} onChange={(v) => { setBy(v as 'segment' | 'sector'); setAll(false); }}
+        data={[{ value: 'segment', label: 'By segment' }, { value: 'sector', label: 'By sector' }]} />}>
+      <Table verticalSpacing={6} aria-label={by === 'segment' ? 'Breach rate by business segment' : 'Breach rate by sector'}>
+        <Table.Thead>
+          <Table.Tr><Table.Th>{by === 'segment' ? 'Segment' : 'Sector'}</Table.Th><Table.Th w="40%">Rate</Table.Th>
+            <Table.Th ta="right">Breached</Table.Th><Table.Th ta="right">Errors</Table.Th>
+            <Table.Th ta="right">Checked</Table.Th></Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {shown.map((g) => (
+            <Table.Tr key={g.key}>
+              <Table.Td>{humanize(g.key)}</Table.Td>
+              <Table.Td>
+                <Group gap={8} wrap="nowrap">
+                  <div style={{ flex: '1 1 auto', minWidth: 48, height: 6, borderRadius: 3, background: 'var(--app-rule)' }}>
+                    <div style={{ width: `${(g.breachRate / max) * 100}%`, height: '100%', borderRadius: 3,
+                      background: g.breachRate > 0 ? STATUS.bad : MAGNITUDE }} />
+                  </div>
+                  <Text size="sm" className="num" w={46} ta="right">{(g.breachRate * 100).toFixed(1)}%</Text>
+                </Group>
+              </Table.Td>
+              <Table.Td ta="right" c={g.breached ? 'var(--status-bad)' : 'dimmed'} fw={g.breached ? 650 : 400}>{g.breached}</Table.Td>
+              <Table.Td ta="right" c={g.error ? 'orange.8' : 'dimmed'}>{g.error}</Table.Td>
+              <Table.Td ta="right">{g.compliant + g.breached}</Table.Td>
+            </Table.Tr>
+          ))}
+          {rows.length === 0 && <Table.Tr><Table.Td colSpan={5}><Text size="sm" c="dimmed">Nothing to show yet.</Text></Table.Td></Table.Tr>}
+        </Table.Tbody>
+      </Table>
+      {rows.length > 6 && (
+        <Button variant="subtle" size="xs" mt={6} onClick={() => setAll((v) => !v)}>
+          {all ? 'Show fewer' : `Show all ${rows.length}`}
+        </Button>
+      )}
     </ChartCard>
   );
 }
@@ -83,15 +88,19 @@ export function Charts() {
   const trend = useQuery({ queryKey: ['trend', 12], queryFn: () => r3.trend(12) });
   const analytics = useQuery({ queryKey: ['analytics'], queryFn: r2.analytics });
   return (
-    <>
-      <ChartCard title="Check results by month" subtitle="Every covenant check in the last 12 months, by result"
-        actions={<Legend items={SERIES.map((s) => ({ label: s.label, color: s.color }))} />}>
-        {trend.isLoading && <Loading />}
-        {trend.error && <ErrorNote error={trend.error} />}
-        {Array.isArray(trend.data) && trend.data.length === 0 && <Text size="sm" c="dimmed">No checks yet.</Text>}
-        {Array.isArray(trend.data) && trend.data.length > 0 && <MonthlyResults points={trend.data} />}
-      </ChartCard>
-      {analytics.data?.bySegment && <BreachRate bySegment={analytics.data.bySegment} bySector={analytics.data.bySector} />}
-    </>
+    <Grid gutter="md" align="stretch">
+      <Grid.Col span={{ base: 12, lg: 7 }}>
+        <ChartCard title="Check results by month" subtitle="Every covenant check in the last 12 months, by result"
+          actions={<Legend items={SERIES.map((s) => ({ label: s.label, color: s.color }))} />}>
+          {trend.isLoading && <Loading />}
+          {trend.error && <ErrorNote error={trend.error} />}
+          {Array.isArray(trend.data) && trend.data.length === 0 && <Text size="sm" c="dimmed">No checks yet.</Text>}
+          {Array.isArray(trend.data) && trend.data.length > 0 && <MonthlyResults points={trend.data} />}
+        </ChartCard>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, lg: 5 }}>
+        {analytics.data?.bySegment && <BreachRate bySegment={analytics.data.bySegment} bySector={analytics.data.bySector} />}
+      </Grid.Col>
+    </Grid>
   );
 }

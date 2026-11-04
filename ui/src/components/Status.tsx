@@ -9,13 +9,21 @@ const RESULT_COLOR: Record<string, string> = {
   WITHDRAWN: 'gray', REMOVED: 'gray', AT_RISK: 'orange',
 };
 
+const LABEL: Record<string, string> = { NA: 'N/A' };
+
+/** NEEDS_REVIEW -> Needs review. */
+function sentence(v: string): string {
+  const s = v.replace(/_/g, ' ').toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function StatusBadge({ value }: { value: string | null | undefined }) {
   if (!value) {
     return <Badge color="gray" variant="light">Not assessed</Badge>;
   }
   return (
     <Badge color={RESULT_COLOR[value] ?? 'gray'} variant="light">
-      {value.replace(/_/g, ' ')}
+      {LABEL[value] ?? sentence(value)}
     </Badge>
   );
 }

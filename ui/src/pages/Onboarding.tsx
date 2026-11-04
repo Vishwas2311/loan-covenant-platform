@@ -12,7 +12,8 @@ import type { Frequency, OnboardingRow } from '../api/types';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { Kpi, KpiStrip, PageHeader } from '../components/Board';
-import { CpChips, CpChooser, CpPicker, humanize } from '../components/CpPicker';
+import { OnboardingQueue } from './CpQueues';
+import { CpChips, CpPicker, humanize } from '../components/CpPicker';
 import { useMeasures } from '../components/useMeasures';
 import { describeRule } from '../format';
 import { ErrorNote, Loading } from '../components/Status';
@@ -168,7 +169,7 @@ export function Onboarding() {
   const applied = count('applied');
   let finding: string | undefined;
   if (!cpId) {
-    finding = 'Pick a credit proposal to choose which covenants to monitor. CPs with no covenants yet are the ones to start with.';
+    finding = 'Each credit proposal by where it is in onboarding: read the loan agreement, check it, then choose the covenants to monitor.';
   } else if (data) {
     finding = data.length === 0 ? 'No covenants proposed yet. Upload the loan agreement on Documents to have its covenants read.'
       : `${data.length} covenant${data.length === 1 ? '' : 's'} proposed, ${fromAgreement} read from the loan agreement. `
@@ -178,8 +179,8 @@ export function Onboarding() {
     <Stack gap="lg">
       <PageHeader title={cpId ? `Onboard ${cpId}` : 'Onboarding'} finding={finding}
         chips={cpId ? <CpChips cpId={cpId} /> : undefined}
-        actions={<CpPicker key={cpId} initial={cpId} onOpen={go} />} />
-      {!cpId && <CpChooser onOpen={go} />}
+        actions={cpId ? <CpPicker key={cpId} initial={cpId} onOpen={go} /> : undefined} />
+      {!cpId && <OnboardingQueue onOpen={go} />}
       {cpId && isLoading && <Loading />}
       {error && <ErrorNote error={error} />}
       {data && data.length > 0 && (

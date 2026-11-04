@@ -161,7 +161,7 @@ function Tables({ source }: { source: DataSource }) {
           <Text size="xs">{`${t.schemaName ? `${t.schemaName}.` : ''}${t.tableName}${t.active ? '' : ' (off)'}`}</Text>
           <Button size="compact-xs" variant="subtle" onClick={() => setEditing(t)}>Edit</Button>
           {t.active && (
-            <Button size="compact-xs" variant="subtle" color="red"
+            <Button size="compact-xs" variant="subtle" color="gray"
               onClick={() => window.confirm(`Switch off table ${t.tableName}? Measures on it stop being read.`) && off.mutate(t.id)}>
               Switch off</Button>
           )}
@@ -215,7 +215,7 @@ export function DataSources() {
                       loading={test.isPending && test.variables?.id === s.id}>Test</Button>
                     <Button size="xs" variant="subtle" onClick={() => setEditing(s)}>Edit</Button>
                     {s.active && (
-                      <Button size="xs" variant="subtle" color="red"
+                      <Button size="xs" variant="subtle" color="gray"
                         onClick={() => window.confirm(`Switch off ${s.name}? Its figures stop being read.`)
                           && switchOff.mutate(s.id)}>Switch off</Button>
                     )}
