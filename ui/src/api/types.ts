@@ -40,6 +40,10 @@ export interface ReviewRow {
   approvalStatus: Approval | null;
   requestedStatus: DispositionStatus | null;
   requestedBy: string | null;
+  /** Why the latest check ended in ERROR (e.g. missing figures); null otherwise. */
+  errorMessage?: string | null;
+  /** The rule the latest result was decided on, when the rule has changed since (re-check to apply it). */
+  assessedCondition?: string | null;
   attachments?: Attachment[];
   /** C3: compliant, but close to its limit. */
   atRisk?: boolean;

@@ -91,6 +91,28 @@ class ReviewServiceTest {
     // -- reviewRows ------------------------------------------------------
 
     @Test
+    void errorRowSaysWhyTheCheckCouldNotRun() {
+        when(monitoringService.covenantsForCp("CP-1")).thenReturn(List.of(
+                covenant("1", "50", "DSCR > 1.2", AssessmentResult.ERROR, "100"),
+                covenant("2", "50", "DSCR > 1.2", AssessmentResult.COMPLIANT, "101")));
+        when(masterRepo.findAllById(any())).thenReturn(List.of(master("50", CovenantCategory.FINANCIAL)));
+        Assessment failed = assessment("100", null);
+        failed.setErrorMessage("Missing values for measures: [DSCR]");
+        Assessment fine = assessment("101", "1.5");
+        fine.setErrorMessage("left over");
+        failed.setConditionExpression("DSCR > 1.0"); // decided on an older rule
+        fine.setConditionExpression("DSCR > 1.2");
+        when(assessmentRepo.findAllById(any())).thenReturn(List.of(failed, fine));
+
+        List<CpReviewRow> rows = service().reviewRows("CP-1");
+
+        assertThat(rows.get(0).errorMessage()).isEqualTo("Missing values for measures: [DSCR]");
+        assertThat(rows.get(1).errorMessage()).isNull();
+        assertThat(rows.get(0).assessedCondition()).isEqualTo("DSCR > 1.0");
+        assertThat(rows.get(1).assessedCondition()).isNull();
+    }
+
+    @Test
     void financialCompliantRowComputesHeadroomAndLocksStatus() {
         when(monitoringService.covenantsForCp("CP-1"))
                 .thenReturn(List.of(covenant("1", "50", "DSCR > 1.2", AssessmentResult.COMPLIANT, "100")));

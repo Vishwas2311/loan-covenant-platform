@@ -32,8 +32,10 @@ export const core = {
     conditionExpression?: string | null; thresholdSource?: string | null;
   }[]) => api<unknown[]>(`/api/v1/credit-proposals/${enc(cpId)}/applied-covenants`,
     { method: 'POST', json: { items } }),
-  covenants: (search = '', page = 0) =>
-    api<Page<Covenant>>(`/api/v1/covenants?search=${enc(search)}&page=${page}&size=25`),
+  covenants: (search = '', page = 0, filter: { category?: string; active?: boolean } = {}) =>
+    api<Page<Covenant>>(`/api/v1/covenants?search=${enc(search)}&page=${page}&size=25`
+      + `${filter.category ? `&category=${enc(filter.category)}` : ''}`
+      + `${filter.active === undefined ? '' : `&active=${filter.active}`}`),
   createCovenant: (body: NewCovenant) => api<Covenant>('/api/v1/covenants', { method: 'POST', json: body }),
   measures: () => api<Measure[]>('/api/v1/measures'),
   settings: () => api<ReportingSettings>('/api/v1/settings/reporting'),

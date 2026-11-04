@@ -42,6 +42,28 @@ describe('my tasks', () => {
     expect(sent(calls, 'GET', '/api/v1/tasks?scope=all&open=false')).toBeTruthy();
   });
 
+  it('searches, filters by kind and groups by CP', async () => {
+    const other = { ...TASK, id: 't2', cpId: 'CP-2', kind: 'REVIEW' as const, title: 'Record the result of Quick Ratio',
+      dueDate: '2999-01-01', escalated: false };
+    mockFetch((url) => ({ body: url.includes('/analytics/cps')
+      ? [{ cpId: 'CP-2', name: 'Infosys Ltd', businessSegment: null, sector: null, rmUserId: null, applied: 0,
+        compliant: 0, breached: 0, error: 0, pendingReview: 0, dispositioned: 0 }]
+      : [TASK, other] }));
+    renderAt('/tasks', '/tasks', <MyTasks />);
+    expect(await screen.findByText('Minimum DSCR is breached')).toBeInTheDocument();
+    expect(screen.getByText('1 past due')).toBeInTheDocument();
+    expect(await screen.findByText('Infosys Ltd')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search tasks'), { target: { value: 'infosys' } });
+    expect(screen.queryByText('Minimum DSCR is breached')).not.toBeInTheDocument();
+    expect(screen.getByText('Record the result of Quick Ratio')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search tasks'), { target: { value: 'nothing' } });
+    expect(screen.getByText('Nothing here.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search tasks'), { target: { value: '' } });
+    fireEvent.click(screen.getByLabelText('Group by CP'));
+    expect(screen.getByText(/Infosys Ltd · CP-2/)).toBeInTheDocument();
+    expect(screen.getAllByText('1 task(s)')).toHaveLength(2);
+  });
+
   it('saves a reassignment without finishing', async () => {
     const calls = mockFetch((_, init) => ({ body: init.method === 'PATCH' ? { ...TASK, assignee: 'wrm-meera' } : [TASK] }));
     renderAt('/tasks', '/tasks', <MyTasks />);

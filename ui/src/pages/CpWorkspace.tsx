@@ -16,7 +16,8 @@ import { Certificates, Comparison, ManualValue } from './CpExtras';
 import { CovenantDrawer, RecordResultDialog } from './CovenantPanel';
 import { AiSuggestions, Cycles } from './CpMore';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
-import { formatValue } from '../format';
+import { describeHeadroom, describeRule, explainError, formatValue, withUnit } from '../format';
+import { useMeasures } from '../components/useMeasures';
 
 function RequestDialog({ cpId, row, onClose }: { cpId: string; row: ReviewRow; onClose: () => void }) {
   const qc = useQueryClient();
@@ -107,6 +108,7 @@ function ReviewGrid({ cpId }: { cpId: string }) {
   const [editing, setEditing] = useState<ReviewRow | null>(null);
   const [recording, setRecording] = useState<ReviewRow | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const measures = useMeasures();
   const { data, isLoading, error } = useQuery({ queryKey: ['review', cpId], queryFn: () => core.review(cpId) });
   if (isLoading) {
     return <Loading />;
@@ -129,6 +131,7 @@ function ReviewGrid({ cpId }: { cpId: string }) {
           {(data ?? []).map((r) => {
             const pending = r.approvalStatus === 'REQUESTED';
             const ownRequest = r.requestedBy === identity.user;
+            const rule = describeRule(r.conditionExpression, measures);
             return (
               <Table.Tr key={r.appliedCovenantId}>
                 <Table.Td>
@@ -136,25 +139,41 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                     {r.covenantName}
                   </Anchor>
                 </Table.Td>
-                <Table.Td><Text ff="monospace" size="sm">{r.conditionExpression}</Text></Table.Td>
-                <Table.Td>{formatValue(r.computedValue)}</Table.Td>
-                <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined}>{formatValue(r.headroom)}</Table.Td>
                 <Table.Td>
+                  {rule ? <Text size="sm">{rule.text}</Text> : null}
+                  <Text ff="monospace" size={rule ? 'xs' : 'sm'} c={rule ? 'dimmed' : undefined}>{r.conditionExpression}</Text>
+                </Table.Td>
+                <Table.Td style={{ whiteSpace: 'nowrap' }}>
+                  {rule ? withUnit(r.computedValue, rule.unit) : formatValue(r.computedValue)}
+                </Table.Td>
+                <Table.Td c={r.headroom !== null && r.headroom < 0 ? 'red' : undefined} style={{ whiteSpace: 'nowrap' }}>
+                  {rule ? describeHeadroom(r.headroom, rule.unit, rule.limit) : formatValue(r.headroom)}
+                </Table.Td>
+                <Table.Td miw={130}>
                   <StatusBadge value={r.latestResult} />
+                  {r.latestResult === 'ERROR' && r.errorMessage && (
+                    <Text size="xs" c="orange.8" maw={220}>{explainError(r.errorMessage, measures)}</Text>
+                  )}
+                  {r.assessedCondition && (
+                    <Text size="xs" c="orange.8" maw={220}>
+                      Checked against the earlier rule {r.assessedCondition}; the next check uses the new one.
+                    </Text>
+                  )}
                   {r.atRisk && <Badge mt={4} color="orange" variant="outline" display="block" w="fit-content">at risk</Badge>}
                 </Table.Td>
                 <Table.Td>
                   <Stack gap={2}>
                     <StatusBadge value={r.dispositionStatus} />
                     {r.approvalStatus && r.approvalStatus !== 'APPROVED' && (
-                      <Badge size="xs" variant="outline" color={pending ? 'yellow' : 'gray'} tt="none">
+                      <Badge size="xs" variant="outline" color={pending ? 'yellow' : 'gray'} tt="none" h="auto"
+                        styles={{ label: { whiteSpace: 'normal', overflow: 'visible' } }} maw={190}>
                         {(r.requestedStatus ?? '').toLowerCase()} asked by {r.requestedBy}: {r.approvalStatus.toLowerCase()}
                       </Badge>
                     )}
                     {r.extensionDate && <Text size="xs">until {r.extensionDate}</Text>}
                   </Stack>
                 </Table.Td>
-                <Table.Td>{r.nextDueDate ?? '—'}{r.overdueByDays > 0 && <Text size="xs" c="red">{r.overdueByDays} d overdue</Text>}</Table.Td>
+                <Table.Td style={{ whiteSpace: 'nowrap' }}>{r.nextDueDate ?? '—'}{r.overdueByDays > 0 && <Text size="xs" c="red">{r.overdueByDays} d overdue</Text>}</Table.Td>
                 <Table.Td>
                   {pending && approver && !ownRequest && <DecisionButtons cpId={cpId} row={r} />}
                   {pending && (!approver || ownRequest) && <Text size="xs" c="dimmed">Awaiting approver</Text>}

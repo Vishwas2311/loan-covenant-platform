@@ -179,7 +179,13 @@ public class ReviewService {
                 onThisBreach ? disp.getStatus() : null,
                 onThisBreach ? disp.getRequestedBy() : null,
                 result == AssessmentResult.COMPLIANT
-                        && HeadroomCalculator.atRisk(headroom, thresholds, atRiskPercent));
+                        && HeadroomCalculator.atRisk(headroom, thresholds, atRiskPercent),
+                // Why the check could not run (missing figures, a bad rule), so the page can say so.
+                result == AssessmentResult.ERROR && latest != null ? latest.getErrorMessage() : null,
+                // The rule the latest result was decided on, when the rule has changed since.
+                latest != null && latest.getConditionExpression() != null
+                        && !latest.getConditionExpression().equals(c.conditionExpression())
+                        ? latest.getConditionExpression() : null);
     }
 
     /**

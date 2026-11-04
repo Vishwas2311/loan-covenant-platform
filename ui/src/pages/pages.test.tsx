@@ -96,6 +96,25 @@ describe('CP workspace maker-checker', () => {
     expect(await screen.findByText('Awaiting approver')).toBeInTheDocument();
   });
 
+  it('reads the rule out, explains a data error, and flags a result from an earlier rule', async () => {
+    mockFetch((url) => {
+      if (url.startsWith('/api/v1/measures')) {
+        return { body: [{ code: 'DSCR', name: 'Debt Service Coverage Ratio', unit: 'x', active: true }] };
+      }
+      return { body: url.endsWith('/review') ? [
+        { ...ROW, latestResult: 'ERROR', computedValue: null, headroom: null, dispositionable: false,
+          errorMessage: 'Missing values for measures: [DSCR]' },
+        { ...ROW, appliedCovenantId: 'ac-2', latestResult: 'COMPLIANT', computedValue: '1.4', headroom: 0.15,
+          dispositionable: false, assessedCondition: 'DSCR >= 1.0' }] : [] };
+    });
+    renderAt('/cp/CP-1', '/cp/:cpId', <CpWorkspace />);
+    expect(await screen.findByText('No figure yet for Debt Service Coverage Ratio')).toBeInTheDocument();
+    expect(screen.getAllByText('Debt Service Coverage Ratio at least 1.25x')).toHaveLength(2);
+    expect(screen.getByText('1.4x')).toBeInTheDocument();
+    expect(screen.getByText('0.15x (12%)')).toBeInTheDocument();
+    expect(screen.getByText(/Checked against the earlier rule DSCR >= 1.0/)).toBeInTheDocument();
+  });
+
   it('shows the status history and an empty state', async () => {
     mockFetch((url) => ({
       body: url.endsWith('/status-audit') ? [{ oldStatus: 'BREACHED', newStatus: 'WAIVER', source: 'USER',
@@ -254,6 +273,24 @@ describe('Library and settings', () => {
     expect(screen.getByText('inactive')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Next'));
     fireEvent.change(screen.getByLabelText('Search covenants'), { target: { value: 'dscr' } });
+  });
+
+  it('filters by category, hides switched-off covenants, and reads rules out', async () => {
+    const calls = mockFetch((url) => (url.startsWith('/api/v1/measures')
+      ? { body: [{ code: 'DSCR', name: 'Debt Service Coverage Ratio', unit: 'x', active: true }] }
+      : { body: { content: [{ id: '1', name: 'Minimum DSCR', category: 'FINANCIAL', description: 'd',
+        conditionExpression: 'DSCR >= 1.5', assessmentType: 'MANUAL', defaultFrequency: 'QUARTERLY', active: true,
+        custom: false }], totalElements: 1, number: 0, last: true } }));
+    renderAt('/library', '/library', <Library />);
+    expect(await screen.findByText('Debt Service Coverage Ratio at least 1.5x')).toBeInTheDocument();
+    expect(screen.getByText('Manual check')).toBeInTheDocument();
+    expect(screen.getByText('Quarterly')).toBeInTheDocument();
+    expect(calls.some((c) => c.url.includes('/api/v1/covenants?') && c.url.includes('&active=true'))).toBe(true);
+    fireEvent.click(screen.getByText('Non-financial'));
+    await waitFor(() => expect(calls.some((c) => c.url.includes('category=NON_FINANCIAL'))).toBe(true));
+    fireEvent.click(screen.getByLabelText('Include switched-off covenants'));
+    await waitFor(() => expect(calls.some((c) => c.url.includes('category=NON_FINANCIAL')
+      && !c.url.includes('active='))).toBe(true));
   });
 
   it('lets an author add a covenant, and hides the button from an RM', async () => {

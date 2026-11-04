@@ -1,5 +1,6 @@
 import {
-  Anchor, Badge, Button, Drawer, Group, Modal, SegmentedControl, Select, Stack, Table, TagsInput, Text, Textarea,
+  Anchor, Badge, Button, Checkbox, Drawer, Group, Modal, SegmentedControl, Select, Stack, Table, TagsInput, Text,
+  Textarea,
   TextInput, Title,
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +17,9 @@ import { canOpen, pageFor } from '../auth/access';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
 import { ErrorNote, Loading } from '../components/Status';
+import { humanize } from '../components/CpPicker';
+import { useMeasures } from '../components/useMeasures';
+import { describeRule } from '../format';
 
 const FREQUENCIES: Frequency[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
 
@@ -209,8 +213,12 @@ export function Library() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
+  const [category, setCategory] = useState('');
+  const [withOff, setWithOff] = useState(false);
+  const measures = useMeasures();
+  const filter = { category: category || undefined, active: withOff ? undefined : true };
   const { data, isLoading, error } = useQuery({
-    queryKey: ['covenants', search, page], queryFn: () => core.covenants(search, page),
+    queryKey: ['covenants', search, page, category, withOff], queryFn: () => core.covenants(search, page, filter),
   });
   return (
     <Stack>
@@ -224,8 +232,15 @@ export function Library() {
       </Group>
       {creating && <CovenantForm onClose={() => setCreating(false)} />}
       {openId && <CovenantDetails id={openId} canAuthor={canAuthor} onClose={() => setOpenId(null)} />}
-      <TextInput placeholder="Search name or description" aria-label="Search covenants" value={search}
-        onChange={(e) => { setSearch(e.currentTarget.value); setPage(0); }} maw={360} />
+      <Group>
+        <TextInput placeholder="Search name or description" aria-label="Search covenants" value={search}
+          onChange={(e) => { setSearch(e.currentTarget.value); setPage(0); }} w={320} />
+        <SegmentedControl aria-label="Category" value={category} onChange={(v) => { setCategory(v); setPage(0); }}
+          data={[{ value: '', label: 'All' }, { value: 'FINANCIAL', label: 'Financial' },
+            { value: 'NON_FINANCIAL', label: 'Non-financial' }]} />
+        <Checkbox label="Include switched-off covenants" checked={withOff}
+          onChange={(e) => { setWithOff(e.currentTarget.checked); setPage(0); }} />
+      </Group>
       {isLoading && <Loading />}
       {error && <ErrorNote error={error} />}
       {data && (
@@ -242,10 +257,14 @@ export function Library() {
                     <Anchor component="button" ta="left" onClick={() => setOpenId(c.id)}>{c.name}</Anchor>
                     <Text size="xs" c="dimmed">{c.description}</Text>
                   </Table.Td>
-                  <Table.Td>{c.category}</Table.Td>
-                  <Table.Td><Text ff="monospace" size="sm">{c.conditionExpression}</Text></Table.Td>
-                  <Table.Td>{c.assessmentType}</Table.Td>
-                  <Table.Td>{c.defaultFrequency}</Table.Td>
+                  <Table.Td>{humanize(c.category)}</Table.Td>
+                  <Table.Td>
+                    {describeRule(c.conditionExpression, measures)
+                      && <Text size="sm">{describeRule(c.conditionExpression, measures)!.text}</Text>}
+                    <Text ff="monospace" size="xs" c="dimmed">{c.conditionExpression}</Text>
+                  </Table.Td>
+                  <Table.Td>{c.assessmentType === 'MANUAL' ? 'Manual check' : 'Automatic'}</Table.Td>
+                  <Table.Td>{humanize(c.defaultFrequency)}</Table.Td>
                   <Table.Td>{!c.active && <Badge color="gray">inactive</Badge>}</Table.Td>
                 </Table.Tr>
               ))}
