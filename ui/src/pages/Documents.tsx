@@ -364,7 +364,7 @@ export function Documents() {
     <Stack>
       <Group justify="space-between" align="end">
         <Stack gap={2}>
-          <Title order={2}>{cpId ? `Documents for ${cpId}` : 'Documents'}</Title>
+          <Title order={1}>{cpId ? `Documents for ${cpId}` : 'Documents'}</Title>
           {cpId && <CpHeader cpId={cpId} />}
         </Stack>
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)} />

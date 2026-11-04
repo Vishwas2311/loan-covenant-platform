@@ -1,10 +1,233 @@
-/* Cards in the CP chooser lift on hover and show focus for keyboard users. */
-.cp-card {
-  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+/*
+ * Achromatic ledger: blue-grey ground, white flat cards with a hairline edge, ink chrome. The one hue
+ * (#1d5fbf) is for data; status colours are for state and always come with a word. See theme.ts.
+ */
+:root {
+  --app-bg: #f2f4f7;
+  --app-surface: #ffffff;
+  --app-raised: #f7f8fa;
+  --app-border: #e4e7ec;
+  --app-rule: #eceef2;
+  --app-chart-grid: #e8ebf0;
+  --app-chart-axis: #8a93a3;
+  --app-ink: #111827;
+  --data-hue: #1d5fbf;
+  --data-hue-pale: #c9d8f1;
+  /* Fixed status colours, never a series colour. */
+  --status-good: #0ca30c;
+  --status-warn: #e5a50a;
+  --status-bad: #d03b3b;
+  --status-neutral: #b4bcc8;
 }
+
+[data-mantine-color-scheme='dark'] {
+  --app-bg: #111317;
+  --app-surface: #181b20;
+  --app-raised: #1e2228;
+  --app-border: #2a2f37;
+  --app-rule: #242930;
+  --app-chart-grid: #2a2f37;
+  --app-chart-axis: #8b93a3;
+  --app-ink: #e8eaee;
+  --data-hue: #5b8fe0;
+  --data-hue-pale: #2a3b57;
+  --status-warn: #fab219;
+  --status-neutral: #4b5361;
+}
+
+body {
+  background: var(--app-bg);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11';
+}
+
+/* Cards: white on the ground, hairline edge, no shadow. */
+.mantine-Card-root {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+/* Tables are rules and alignment: no zebra, no header band. */
+.mantine-Table-table {
+  --table-striped-color: transparent;
+  --table-border-color: var(--app-rule);
+  --table-hover-color: var(--app-raised);
+}
+
+.mantine-Table-table[data-with-table-border] {
+  border-color: var(--app-border);
+  border-radius: var(--mantine-radius-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--app-surface);
+}
+
+/* Figures line up in number columns; text cells keep normal spacing (Inter's tabular forms widen hyphens). */
+.num,
+.mantine-Table-td[style*='text-align: right'],
+.mantine-Table-th[style*='text-align: right'] {
+  font-variant-numeric: tabular-nums;
+}
+
+.mantine-Table-td {
+  font-size: 0.875rem;
+}
+
+/* Shell: the top bar and the labelled sidebar sit on the surface, split from the ground by one rule. */
+.app-header {
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.app-brand {
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.app-nav {
+  background: var(--app-surface);
+  border-right: 1px solid var(--app-border);
+}
+
+.app-nav .mantine-NavLink-root {
+  border-radius: var(--mantine-radius-sm);
+  margin-bottom: 2px;
+  color: var(--mantine-color-text);
+  height: 34px;
+  padding-block: 0;
+}
+
+.app-nav .mantine-NavLink-root[data-active] {
+  background: var(--app-raised);
+  box-shadow: inset 0 0 0 1px var(--app-border);
+  font-weight: 600;
+}
+
+.app-nav .mantine-NavLink-root[data-active] .mantine-NavLink-section {
+  color: var(--data-hue);
+}
+
+/* Context next to a title: period, "as of", scope. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  background: var(--app-raised);
+  border: 1px solid var(--app-border);
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+/* KPI strip: one container split by hairlines into equal columns. */
+.kpi-strip {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--mantine-radius-md);
+}
+
+.kpi-strip > * + * {
+  border-left: 1px solid var(--app-rule);
+}
+
+.kpi-cell {
+  padding: 16px 20px;
+  text-align: left;
+  min-width: 0;
+}
+
+button.kpi-cell {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+button.kpi-cell:hover {
+  background: var(--app-raised);
+}
+
+button.kpi-cell[aria-pressed='true'] {
+  box-shadow: inset 0 -2px 0 var(--app-ink);
+}
+
+@media (max-width: 760px) {
+  .kpi-strip {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kpi-strip > * + * {
+    border-left: none;
+  }
+
+  .kpi-strip > * {
+    border-top: 1px solid var(--app-rule);
+  }
+}
+
+/* Clickable cards lift a little on hover and show keyboard focus. */
+.cp-card {
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
 button:hover > .cp-card,
 button:focus-visible > .cp-card {
-  border-color: var(--mantine-color-blue-5);
-  box-shadow: var(--mantine-shadow-sm);
-  transform: translateY(-1px);
+  border-color: var(--app-chart-axis);
+  background: var(--app-raised);
+}
+
+/* Charts: the mark under the pointer stays, the others step back. */
+.chart .mark {
+  transition: opacity 120ms ease;
+}
+
+.chart:hover .mark {
+  opacity: 0.5;
+}
+
+.chart .mark:hover {
+  opacity: 1;
+}
+
+/* Health ladder rows: one CP per row, worst first. */
+.ladder-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.3fr) 3fr 84px 76px;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 8px;
+  border-radius: 6px;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ladder-row:hover,
+.ladder-row:focus-visible {
+  background: var(--app-raised);
+}
+
+.ladder-item + .ladder-item {
+  border-top: 1px solid var(--app-rule);
+}
+
+@media print {
+  .app-nav,
+  .app-header {
+    display: none;
+  }
 }

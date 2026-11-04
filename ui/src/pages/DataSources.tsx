@@ -192,7 +192,7 @@ export function DataSources() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Title order={2}>Data sources</Title>
+        <Title order={1}>Data sources</Title>
         <Button onClick={() => setEditing('new')}>New data source</Button>
       </Group>
       <Text c="dimmed" size="sm">

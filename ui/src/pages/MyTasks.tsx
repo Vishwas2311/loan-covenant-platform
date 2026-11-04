@@ -10,6 +10,7 @@ import { errorMessage } from '../api/client';
 import { r4 } from '../api/endpoints4';
 import type { TaskKind, WorkTask } from '../api/types4';
 import { useMyCps } from '../components/CpPicker';
+import { fmtDate } from '../format';
 import { ErrorNote, Loading } from '../components/Status';
 
 const KIND: Record<TaskKind, { label: string; color: string }> = {
@@ -81,7 +82,7 @@ export function MyTasks() {
   const kinds = (Object.keys(KIND) as TaskKind[]).filter((k) => all.some((t) => t.kind === k));
   return (
     <Stack>
-      <Title order={2}>My tasks</Title>
+      <Title order={1}>My tasks</Title>
       <Text c="dimmed" size="sm">
         The app adds a task whenever something needs a person, and closes it by itself when it is sorted out.
         A task still open after its due date is escalated: the CP&apos;s approver sees it too.
@@ -118,7 +119,7 @@ export function MyTasks() {
               )}
               <Table.Tr>
                 <Table.Td>
-                  <Text size="sm" c={t.status === 'OPEN' && t.dueDate < today ? 'red' : undefined}>{t.dueDate}</Text>
+                  <Text size="sm" style={{ whiteSpace: 'nowrap' }} c={t.status === 'OPEN' && t.dueDate < today ? 'red' : undefined}>{fmtDate(t.dueDate)}</Text>
                   {t.escalated && <Badge size="xs" color="red">escalated</Badge>}
                 </Table.Td>
                 <Table.Td>
@@ -126,7 +127,7 @@ export function MyTasks() {
                   <Text size="sm">{t.title}</Text>
                 </Table.Td>
                 <Table.Td>
-                  <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`}>{t.cpId}</Anchor>
+                  <Anchor component={Link} to={`/cp/${encodeURIComponent(t.cpId)}`} size="sm" fw={550}>{t.cpId}</Anchor>
                   {borrower.get(t.cpId) && <Text size="xs" c="dimmed">{borrower.get(t.cpId)}</Text>}
                 </Table.Td>
                 <Table.Td>{t.assignee}</Table.Td>

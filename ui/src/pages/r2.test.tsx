@@ -89,8 +89,12 @@ describe('reports', () => {
         computedValue: null, since: '2026-10-30', daysOpen: 5, status: 'BREACHED', approval: null, escalate: false }] };
     });
     renderAt('/reports', '/reports', <Reports />);
-    expect(await screen.findByText('STEEL')).toBeInTheDocument();
+    expect(await screen.findByText(/40\.0% of checked covenants are breached across 2 CPs\. 1 breach is open, 1 past 14 days/)).toBeInTheDocument();
+    // The breach-rate KPI and the group table (segment shown, sector one click away).
     expect(screen.getAllByText('40.0%')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('radio', { name: 'By sector' }));
+    expect(screen.getAllByText('Steel').length).toBeGreaterThan(0);
+    expect(screen.getByText('Due for escalation')).toBeInTheDocument();
     expect(await screen.findByText('Escalate')).toBeInTheDocument();
     expect(screen.getByText('requested')).toBeInTheDocument();
     expect(screen.getByText('Data errors: 2 covenant(s) on 1 CP(s) could not be checked')).toBeInTheDocument();

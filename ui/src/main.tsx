@@ -1,3 +1,4 @@
+import '@fontsource-variable/inter';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/dropzone/styles.css';
@@ -9,6 +10,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
+import { theme } from './theme';
 import { loadAuthConfig, startAuth } from './auth/oidc';
 
 const queryClient = new QueryClient({
@@ -18,7 +20,7 @@ const queryClient = new QueryClient({
 function render() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <MantineProvider defaultColorScheme="auto">
+      <MantineProvider theme={theme} defaultColorScheme="auto">
         <Notifications />
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>

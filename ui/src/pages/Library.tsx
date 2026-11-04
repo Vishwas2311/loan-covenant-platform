@@ -231,7 +231,7 @@ export function Library() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Title order={2}>Covenant library</Title>
+        <Title order={1}>Covenant library</Title>
         <Group>
           {canAuthor && <Button onClick={() => setCreating(true)}>New covenant</Button>}
           <Button variant="light" onClick={() => r2.libraryXlsx().catch((e) =>
@@ -262,7 +262,7 @@ export function Library() {
               {data.content.map((c) => (
                 <Table.Tr key={c.id}>
                   <Table.Td>
-                    <Anchor component="button" ta="left" onClick={() => setOpenId(c.id)}>{c.name}</Anchor>
+                    <Anchor component="button" ta="left" size="sm" fw={550} onClick={() => setOpenId(c.id)}>{c.name}</Anchor>
                     <Text size="xs" c="dimmed">{c.description}</Text>
                   </Table.Td>
                   <Table.Td>{humanize(c.category)}</Table.Td>

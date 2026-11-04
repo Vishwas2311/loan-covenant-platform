@@ -241,7 +241,7 @@ export function Support() {
   const [ready, setReady] = useState(false);
   return (
     <Stack>
-      <Title order={2}>Support tools</Title>
+      <Title order={1}>Support tools</Title>
       <Alert color="blue" variant="light">
         These tools change or reveal data, so Core asks for the support token as well as your role. It is kept
         only while this page is open. Every action is written to the audit log.

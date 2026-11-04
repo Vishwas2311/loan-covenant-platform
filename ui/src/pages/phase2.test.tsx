@@ -172,8 +172,11 @@ describe('alerts, charts and settings', () => {
       return { body: [] };
     });
     renderAt('/reports', '/reports', <Reports />);
-    expect(await screen.findByRole('img', { name: 'CORPORATE 25% breached' })).toBeInTheDocument();
-    expect(screen.getByText('No covenants yet.')).toBeInTheDocument();
+    const bySegment = await screen.findByRole('img', { name: 'Breach rate by business segment' });
+    expect(within(bySegment).getByText('Corporate')).toBeInTheDocument();
+    expect(within(bySegment).getAllByText('25%').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('radio', { name: 'By sector' }));
+    expect(screen.getByText('Nothing to show yet.')).toBeInTheDocument();
   });
 
   it('saves the at-risk warning level', async () => {

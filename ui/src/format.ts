@@ -44,7 +44,7 @@ const SIMPLE = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|==|!=|>|<)\s*(-?\d+(?:\.\d
  * Anything more complex, or a measure we do not know, gives null and the caller shows the rule as written.
  */
 export function describeRule(expression: string | null | undefined, measures: Map<string, MeasureInfo>):
-  { text: string; unit: string | null; limit: number | null } | null {
+  { text: string; unit: string | null; limit: number | null; bound?: string } | null {
   const m = expression ? SIMPLE.exec(expression) : null;
   const measure = m ? measures.get(m[1]) : undefined;
   if (!m || !measure) {
@@ -53,9 +53,10 @@ export function describeRule(expression: string | null | undefined, measures: Ma
   const [, , op, raw] = m;
   if (raw === 'true' || raw === 'false') {
     const yes = (raw === 'true') === (op === '==');
-    return { text: `${measure.name}: must be ${yes ? 'yes' : 'no'}`, unit: null, limit: null };
+    return { text: `${measure.name}: must be ${yes ? 'yes' : 'no'}`, unit: null, limit: null, bound: yes ? 'yes' : 'no' };
   }
-  return { text: `${measure.name} ${WORDS[op]} ${withUnit(raw, measure.unit)}`, unit: measure.unit, limit: Number(raw) };
+  const bound = `${WORDS[op]} ${withUnit(raw, measure.unit)}`;
+  return { text: `${measure.name} ${bound}`, unit: measure.unit, limit: Number(raw), bound };
 }
 
 /** Headroom with its unit and, when the limit is known, as a share of it: "0.18x (14%)". */
@@ -82,4 +83,15 @@ export function explainError(message: string | null | undefined, measures: Map<s
   const names = missing[1].split(',').map((c) => c.trim()).filter(Boolean)
     .map((c) => measures.get(c)?.name ?? c);
   return `No figure yet for ${names.join(', ')}`;
+}
+
+const SHORT_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+/** "2026-11-06" as "6 Nov 2026" for cards and headlines; tables keep the sortable ISO form. */
+export function fmtDate(iso: string | null | undefined): string {
+  if (!iso) {
+    return '—';
+  }
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? iso : SHORT_DATE.format(d);
 }

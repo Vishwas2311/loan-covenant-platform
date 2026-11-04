@@ -31,6 +31,20 @@ const ICONS: Record<string, typeof IconBooks> = {
   '/ops/jobs': IconTool, '/ops/support': IconLifebuoy, '/data-sources': IconDatabase, '/settings': IconSettings,
 };
 
+/** The product name with a small chart mark, as on the GenBI-style boards. */
+export function BrandMark({ label = 'Covenant Platform' }: { label?: string }) {
+  return (
+    <Group gap={10} wrap="nowrap">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <rect x="1" y="12" width="5" height="9" rx="1.5" fill="var(--mantine-color-brand-4)" />
+        <rect x="8.5" y="7" width="5" height="14" rx="1.5" fill="var(--mantine-color-brand-6)" />
+        <rect x="16" y="1" width="5" height="20" rx="1.5" fill="var(--mantine-color-brand-8)" />
+      </svg>
+      <Text component="span" className="app-brand">{label}</Text>
+    </Group>
+  );
+}
+
 /** Shown instead of a page the signed-in roles do not use (opened from a link or a typed address). */
 export function NoAccess({ identity, pathname }: { identity: Identity; pathname: string }) {
   const page = pageFor(pathname);
@@ -93,10 +107,10 @@ export function App() {
     return <PortalApp user={identity.user} onSignOut={signedIn() ? () => void signOut() : undefined} />;
   }
   return (
-    <AppShell header={{ height: 56 }} navbar={{ width: 230, breakpoint: 'sm' }} padding="md">
-      <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Title order={4}>Covenant Platform</Title>
+    <AppShell header={{ height: 60 }} navbar={{ width: 236, breakpoint: 'sm' }} padding="lg">
+      <AppShell.Header className="app-header">
+        <Group h="100%" px="lg" justify="space-between">
+          <BrandMark />
           <Group gap="sm">
             {readOnlyOnLoans(identity) && (
               <Tooltip label="You can look at every CP but not change covenants, results or documents" multiline w={260}>
@@ -109,7 +123,7 @@ export function App() {
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="xs">
+      <AppShell.Navbar p="sm" className="app-nav">
         {PAGES.filter((p) => canOpen(identity, p)).map(({ path, label }) => {
           const Icon = ICONS[path];
           return (

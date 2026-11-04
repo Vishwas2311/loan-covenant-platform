@@ -1,11 +1,12 @@
 import {
-  Badge, Button, Card, Group, Progress, SegmentedControl, SimpleGrid, Stack, Text, TextInput, Title, UnstyledButton,
+  Badge, Button, Card, Group, SegmentedControl, SimpleGrid, Stack, Text, TextInput, Title, UnstyledButton,
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { r2 } from '../api/endpoints2';
 import type { CpCard } from '../api/types2';
+import { MAGNITUDE, STATUS, SplitBar } from './charts';
 import { ErrorNote, Loading } from './Status';
 
 /** Free-text CP id entry used by pages reached without a CP in the URL. */
@@ -74,16 +75,14 @@ function Health({ cp }: { cp: CpCard }) {
   if (cp.applied === 0) {
     return <Badge color="gray" variant="light">No covenants yet</Badge>;
   }
-  const pct = (n: number) => (n * 100) / cp.applied;
-  const other = cp.applied - cp.compliant - cp.breached - cp.error;
+  const other = Math.max(0, cp.applied - cp.compliant - cp.breached - cp.error);
   return (
-    <Stack gap={6}>
-      <Progress.Root size="sm" aria-hidden>
-        <Progress.Section value={pct(cp.compliant)} color="green" />
-        <Progress.Section value={pct(cp.breached)} color="red" />
-        <Progress.Section value={pct(cp.error)} color="orange" />
-        <Progress.Section value={pct(other)} color="gray.3" />
-      </Progress.Root>
+    <Stack gap={8}>
+      <SplitBar height={8} ariaLabel={`${cp.compliant} kept, ${cp.breached} breached, ${cp.error} could not be checked`} parts={[
+        { key: 'kept', label: 'Kept', value: cp.compliant, color: MAGNITUDE },
+        { key: 'breached', label: 'Breached', value: cp.breached, color: STATUS.bad },
+        { key: 'error', label: 'Could not be checked', value: cp.error, color: STATUS.warn },
+        { key: 'other', label: 'Not checked yet', value: other, color: STATUS.neutral }]} />
       <Group gap={6}>
         <Text size="xs" c="dimmed">{cp.applied} covenant{cp.applied === 1 ? '' : 's'}</Text>
         {cp.breached > 0 && <Badge size="xs" color="red" variant="light">{cp.breached} breached</Badge>}

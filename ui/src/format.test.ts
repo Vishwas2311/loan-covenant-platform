@@ -28,7 +28,7 @@ describe('rules in words', () => {
   ]);
 
   it('reads one-measure rules out with units', () => {
-    expect(describeRule('NET_LEVERAGE <= 3.75', measures)).toEqual({ text: 'Net Debt / EBITDA at most 3.75x', unit: 'x', limit: 3.75 });
+    expect(describeRule('NET_LEVERAGE <= 3.75', measures)).toEqual({ text: 'Net Debt / EBITDA at most 3.75x', unit: 'x', limit: 3.75, bound: 'at most 3.75x' });
     expect(describeRule('TNW >= 45000', measures)?.text).toBe('Tangible Net Worth at least ₹45,000 cr');
     expect(describeRule('OUTPUT > 6', measures)?.text).toBe('Crude Steel Output above 6 mn t');
     expect(describeRule('LICENCE == true', measures)?.text).toBe('Export Authorisation Valid: must be yes');

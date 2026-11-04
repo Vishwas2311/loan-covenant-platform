@@ -1,5 +1,5 @@
 import {
-  Anchor, Badge, Button, Group, Modal, SegmentedControl, Stack, Table, Tabs, Text, Textarea, TextInput, Title,
+  Anchor, Badge, Button, Group, Modal, SegmentedControl, Stack, Table, Tabs, Text, Textarea, TextInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -11,12 +11,13 @@ import { r3 } from '../api/endpoints3';
 import type { ReviewRow } from '../api/types';
 import { hasRole } from '../auth/identity';
 import { useIdentity } from '../auth/useIdentity';
-import { CpChooser, CpHeader, CpPicker } from '../components/CpPicker';
+import { Chip, Kpi, KpiStrip, PageHeader } from '../components/Board';
+import { CpChooser, CpPicker, humanize, useMyCps } from '../components/CpPicker';
 import { Certificates, Comparison, ManualValue } from './CpExtras';
 import { CovenantDrawer, RecordResultDialog } from './CovenantPanel';
 import { AiSuggestions, Cycles } from './CpMore';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
-import { describeHeadroom, describeRule, explainError, formatValue, withUnit } from '../format';
+import { describeHeadroom, describeRule, explainError, fmtDate, formatValue, withUnit } from '../format';
 import { useMeasures } from '../components/useMeasures';
 
 function RequestDialog({ cpId, row, onClose }: { cpId: string; row: ReviewRow; onClose: () => void }) {
@@ -135,7 +136,7 @@ function ReviewGrid({ cpId }: { cpId: string }) {
             return (
               <Table.Tr key={r.appliedCovenantId}>
                 <Table.Td>
-                  <Anchor component="button" ta="left" onClick={() => setOpenId(r.appliedCovenantId)}>
+                  <Anchor component="button" ta="left" size="sm" fw={550} onClick={() => setOpenId(r.appliedCovenantId)}>
                     {r.covenantName}
                   </Anchor>
                 </Table.Td>
@@ -230,19 +231,64 @@ function AuditTrail({ cpId }: { cpId: string }) {
   );
 }
 
+/**
+ * The top of one CP: the borrower as the title, where it sits as chips, the one finding (the breach to
+ * decide, or "all kept"), and this CP's covenants counted by result.
+ */
+function CpTop({ cpId, picker }: { cpId: string; picker: JSX.Element }) {
+  const card = useMyCps().data?.find((c) => c.cpId === cpId);
+  const measures = useMeasures();
+  const { data } = useQuery({ queryKey: ['review', cpId], queryFn: () => core.review(cpId) });
+  const rows = Array.isArray(data) ? data : [];
+  const breached = rows.filter((r) => r.latestResult === 'BREACHED');
+  const errors = rows.filter((r) => r.latestResult === 'ERROR').length;
+  const atRisk = rows.filter((r) => r.atRisk).length;
+  const kept = rows.filter((r) => r.latestResult === 'COMPLIANT').length;
+  const next = rows.map((r) => r.nextDueDate).filter((d): d is string => !!d).sort()[0];
+  const first = breached[0];
+  const firstRule = first ? describeRule(first.conditionExpression, measures) : null;
+  let finding: string | undefined;
+  if (first) {
+    finding = `${first.covenantName} is breached: ${firstRule ? withUnit(first.computedValue, firstRule.unit) : formatValue(first.computedValue)}`
+      + ` against ${firstRule?.bound ?? first.conditionExpression}.`
+      + (breached.length > 1 ? ` ${breached.length - 1} more breached.` : '');
+  } else if (rows.length) {
+    finding = errors ? `${errors} covenant${errors === 1 ? '' : 's'} could not be checked; the rest are kept.` : 'Every covenant is kept.';
+  }
+  return (
+    <Stack gap="lg">
+      <PageHeader title={card?.name ?? `CP ${cpId}`} finding={finding}
+        chips={<>
+          <Chip>{cpId}</Chip>
+          {card?.businessSegment && <Chip>{humanize(card.businessSegment)}</Chip>}
+          {card?.sector && <Chip>{humanize(card.sector)}</Chip>}
+          {card?.rmUserId && <Chip>RM {card.rmUserId}</Chip>}
+        </>}
+        actions={picker} />
+      {rows.length > 0 && (
+        <KpiStrip ariaLabel="This CP's covenants">
+          <Kpi label="Covenants" value={rows.length} note={`${kept} kept`} />
+          <Kpi label="Breached" value={breached.length} lead tone={breached.length ? 'bad' : 'neutral'}
+            note={breached.length ? 'Decide a waiver or extension, or follow up' : 'Nothing to decide'} />
+          <Kpi label="At risk" value={atRisk} tone={atRisk ? 'warn' : 'neutral'} note="Kept, but close to the limit" />
+          <Kpi label="Could not be checked" value={errors} tone={errors ? 'warn' : 'neutral'} note="A figure is missing" />
+          <Kpi label="Next check" value={fmtDate(next)} note={next ? 'Earliest due date' : 'Nothing scheduled'} />
+        </KpiStrip>
+      )}
+    </Stack>
+  );
+}
+
 /** FR-24/FR-12: one CP — covenant results, breach handling with maker-checker, and the status trail. */
 export function CpWorkspace() {
   const { cpId } = useParams();
   const navigate = useNavigate();
   return (
-    <Stack>
-      <Group justify="space-between" align="end">
-        <Stack gap={2}>
-          <Title order={2}>{cpId ? `CP ${cpId}` : 'CP workspace'}</Title>
-          {cpId && <CpHeader cpId={cpId} />}
-        </Stack>
-        <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />
-      </Group>
+    <Stack gap="lg">
+      {cpId
+        ? <CpTop cpId={cpId} picker={<CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />} />
+        : <PageHeader title="CP workspace"
+            actions={<CpPicker onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)} />} />}
       {!cpId && <CpChooser onOpen={(cp) => navigate(`/cp/${encodeURIComponent(cp)}`)}
         hint="Pick a credit proposal to see its covenant results, handle breaches and check certificates." />}
       {cpId && (

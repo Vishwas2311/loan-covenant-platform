@@ -47,7 +47,7 @@ export function Settings() {
   const set = (patch: Partial<ReportingSettings>) => setForm({ ...form!, ...patch });
   return (
     <Stack maw={960}>
-      <Title order={2}>Settings</Title>
+      <Title order={1}>Settings</Title>
       <Text c="dimmed">These apply to the whole bank. Changes take effect on the next check.</Text>
       <SimpleGrid cols={{ base: 1, md: 2 }}>
         <Section title="Reporting calendar" hint="How periods such as 'last 4 quarters' are counted.">

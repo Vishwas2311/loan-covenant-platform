@@ -12,6 +12,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "5.2.8",
     "@mantine/core": "8.3.6",
     "@mantine/dates": "8.3.6",
     "@mantine/dropzone": "8.3.6",

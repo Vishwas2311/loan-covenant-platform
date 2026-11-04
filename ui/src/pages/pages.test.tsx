@@ -26,10 +26,21 @@ describe('Portfolio', () => {
       { cpId: 'CP-2', applied: 2, compliant: 1, breached: 0, error: 1, pendingReview: 0, dispositioned: 1 },
     ] }));
     renderAt('/portfolio', '/portfolio', <Portfolio />);
-    expect(await screen.findByText('CP-1')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'CP-1' })).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText(/1 covenant is breached on 1 CP, and 1 could not be checked/)).toBeInTheDocument();
+    // The health ladder lists the worst CP first.
+    const ladder = screen.getAllByRole('button', { name: /^Open CP-/ });
+    expect(ladder[0]).toHaveAccessibleName(/^Open CP-1: 1 breached/);
+    fireEvent.click(screen.getByRole('button', { name: 'Show CPs: Data errors' }));
+    expect(screen.queryByRole('link', { name: 'CP-1' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show CPs: Data errors' }));
+    expect(screen.getByRole('link', { name: 'CP-1' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Review the breaches' }));
+    expect(screen.queryByRole('link', { name: 'CP-2' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'All' }));
     fireEvent.change(screen.getByLabelText('Filter by CP id'), { target: { value: 'cp-2' } });
-    expect(screen.queryByText('CP-1')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'CP-1' })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Filter by CP id'), { target: { value: 'zzz' } });
     expect(screen.getByText('No credit proposals to show.')).toBeInTheDocument();
   });

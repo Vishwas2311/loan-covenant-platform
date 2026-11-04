@@ -113,7 +113,7 @@ export function Measures() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Title order={2}>Measures</Title>
+        <Title order={1}>Measures</Title>
         {canAuthor && <Button onClick={() => setEditing('new')}>New measure</Button>}
       </Group>
       <Text c="dimmed" size="sm">

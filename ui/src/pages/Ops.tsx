@@ -27,7 +27,7 @@ export function Jobs() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Title order={2}>Document jobs</Title>
+        <Title order={1}>Document jobs</Title>
         <Select aria-label="Job status" clearable placeholder="All" value={status} onChange={setStatus}
           data={['QUEUED', 'RUNNING', 'NEEDS_REVIEW', 'DONE', 'FAILED']} w={180} />
       </Group>

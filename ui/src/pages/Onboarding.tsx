@@ -160,7 +160,7 @@ export function Onboarding() {
     <Stack>
       <Group justify="space-between" align="end">
         <Stack gap={2}>
-          <Title order={2}>{cpId ? `Onboard CP ${cpId}` : 'Onboarding'}</Title>
+          <Title order={1}>{cpId ? `Onboard CP ${cpId}` : 'Onboarding'}</Title>
           {cpId && <CpHeader cpId={cpId} />}
         </Stack>
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/onboarding/${encodeURIComponent(cp)}`)} />
