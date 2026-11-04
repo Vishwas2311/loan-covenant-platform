@@ -3,7 +3,7 @@ import type { Frequency, NewCovenant } from './types';
 import type {
   AiSuggestion, Alert, AppliedChange, TrendPoint, AppliedCovenant, Assessment, Attachment, CovenantDetail, CovenantUsage,
   CpDiagnostics, Cycle, DataColumn, DataSource, DataSourceTable, DataSourceWrite, DefinitionChange, ExpressionChange,
-  HealthReport, MeasureDetail, MeasureWrite, OpsAudit, Remediation, RunResult, ScheduleEvent, SentNotification,
+  HealthReport, MeasureDetail, MeasureWrite, OpsAudit, TableWrite, Remediation, RunResult, ScheduleEvent, SentNotification,
   TestConnection, ThresholdSuggestion,
 } from './types3';
 
@@ -64,6 +64,8 @@ export const r3 = {
   // ---- deletes for mistakes ----
   deleteCertificate: (cpId: string, id: string) =>
     api<unknown>(`${mon(cpId)}/compliance-certificate/${enc(id)}`, { method: 'DELETE' }),
+  downloadCertificate: (cpId: string, id: string, fileName: string) =>
+    download(`${mon(cpId)}/compliance-certificate/${enc(id)}/download`, fileName),
   deleteRequirement: (cpId: string, id: string) =>
     api<unknown>(`${mon(cpId)}/certificate-requirements/${enc(id)}`, { method: 'DELETE' }),
   deleteFxRate: (id: string) => api<unknown>(`/api/v1/fx/rates/${enc(id)}`, { method: 'DELETE' }),
@@ -108,6 +110,11 @@ export const r3 = {
   deactivateDataSource: (id: string) => api<DataSource>(`/api/v1/data-sources/${enc(id)}`, { method: 'DELETE' }),
   testDataSource: (id: string) => api<TestConnection>(`/api/v1/data-sources/${enc(id)}/test`, { method: 'POST' }),
   tables: (dataSourceId: string) => api<DataSourceTable[]>(`/api/v1/data-sources/${enc(dataSourceId)}/tables`),
+  saveTable: (dataSourceId: string, body: TableWrite, tableId?: string) => tableId
+    ? api<DataSourceTable>(`/api/v1/data-sources/${enc(dataSourceId)}/tables/${enc(tableId)}`, { method: 'PUT', json: body })
+    : api<DataSourceTable>(`/api/v1/data-sources/${enc(dataSourceId)}/tables`, { method: 'POST', json: body }),
+  deactivateTable: (dataSourceId: string, tableId: string) =>
+    api<DataSourceTable>(`/api/v1/data-sources/${enc(dataSourceId)}/tables/${enc(tableId)}`, { method: 'DELETE' }),
   tableColumns: (dataSourceId: string, tableId: string) =>
     api<DataColumn[]>(`/api/v1/data-sources/${enc(dataSourceId)}/tables/${enc(tableId)}/columns`),
 
@@ -120,6 +127,9 @@ export const r3 = {
   opsAudit: (targetType: string, targetId?: string) => api<OpsAudit[]>(
     `/api/v1/ops/audit?targetType=${enc(targetType)}${targetId ? `&targetId=${enc(targetId)}` : ''}`, ops()),
   dataSourceHealth: () => api<HealthReport>('/api/v1/ops/health/data-sources', ops()),
+  sendReminders: () => api<{ contacts: number; sent: number; failed: number }>('/api/v1/monitoring/reminder-runs',
+    { method: 'POST' }),
+  sendScheduledReports: () => api<{ sent: number }>('/api/v1/reports/scheduled-runs', { method: 'POST' }),
   sendDailyEmail: () => api<RunResult>('/api/v1/monitoring/notification-runs', { method: 'POST' }),
   notifications: () => api<SentNotification[]>('/api/v1/ops/notifications', ops()),
 };

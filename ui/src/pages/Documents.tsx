@@ -351,6 +351,7 @@ export function Documents() {
   const navigate = useNavigate();
   const [open, setOpen] = useState<DpsDocument | null>(null);
   const docs = useQuery({ queryKey: ['documents', cpId], queryFn: () => dps.documents(cpId!), enabled: !!cpId });
+  const canUpload = hasRole(useIdentity(), 'RM', 'APPROVER', 'ADMIN');
   return (
     <Stack>
       <Group justify="space-between" align="end">
@@ -358,7 +359,7 @@ export function Documents() {
         <CpPicker key={cpId} initial={cpId} onOpen={(cp) => navigate(`/documents/${encodeURIComponent(cp)}`)} />
       </Group>
       {/* Keyed by CP: switching CP must reset the card, or the old CP stays in "Linked credit proposals". */}
-      {cpId && <Upload key={cpId} cpId={cpId} agreements={(docs.data ?? [])
+      {cpId && canUpload && <Upload key={cpId} cpId={cpId} agreements={(docs.data ?? [])
         .filter((d) => d.type === 'LOAN_AGREEMENT' && d.status !== 'REMOVED')} />}
       {docs.isLoading && cpId && <Loading />}
       {docs.error && <ErrorNote error={docs.error} />}

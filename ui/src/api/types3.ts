@@ -153,6 +153,19 @@ export interface DataSourceTable {
   active: boolean;
 }
 
+/** POST/PUT a data-source table: where one CP's figures sit (one row per CP and as-of date). */
+export interface TableWrite {
+  name: string;
+  schemaName: string;
+  tableName: string;
+  entityKeyColumn: string;
+  asOfColumn: string;
+  layout: 'COLUMNAR';
+  codeColumn: string;
+  valueColumn: string;
+  entityKeyLevel: 'CP_ID';
+}
+
 export interface DataColumn {
   key: string;
   label: string;

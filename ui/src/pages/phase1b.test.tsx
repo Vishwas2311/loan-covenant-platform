@@ -92,7 +92,7 @@ describe('data sources, the rest', () => {
       return { body: [existing] };
     });
     renderAt('/data-sources', '/data-sources', <DataSources />);
-    expect(await screen.findByText('Tables: dbo.ratios (off)')).toBeInTheDocument();
+    expect(await screen.findByText('dbo.ratios (off)')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Switch off' }));
     await waitFor(() => expect(sent(calls, 'DELETE', '/data-sources/s1')).toBeTruthy());
 
@@ -144,6 +144,13 @@ describe('deleting mistakes', () => {
     const calls = mockFetch((url) => (url.endsWith('/certificate-requirements') ? { body: [{ id: 'q1',
       periodEnd: '2026-09-30', dueDate: '2026-11-15', state: 'RECEIVED', overdueDays: 0,
       certificates: [{ id: 'c1', fileName: 'cert.pdf' }] }] } : { body: {} }));
+    setIdentity({ user: 'auditor-1', roles: ['AUDITOR'] });
+    const view = renderAt('/cp/CP-1', '/cp/:cpId', <Certificates cpId="CP-1" />);
+    expect(await screen.findByRole('button', { name: 'cert.pdf' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete cert.pdf' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add requirement' })).not.toBeInTheDocument();
+    view.unmount();
+    setIdentity({ user: 'rm-anil', roles: ['RM'] });
     renderAt('/cp/CP-1', '/cp/:cpId', <Certificates cpId="CP-1" />);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete cert.pdf' }));
     await waitFor(() => expect(sent(calls, 'DELETE', '/compliance-certificate/c1')).toBeTruthy());
@@ -167,5 +174,49 @@ describe('deleting mistakes', () => {
     expect(await screen.findByText('USD/INR')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await waitFor(() => expect(sent(calls, 'DELETE', '/api/v1/fx/rates/fx1')).toBeTruthy());
+  });
+});
+
+describe('data-source tables and support sends', () => {
+  it('adds a table to a source', async () => {
+    const source = { id: 's1', name: 'Bank DB', type: 'MSSQL', description: null, connectionConfig: {}, active: true };
+    const calls = mockFetch((url, init) => {
+      if (url.endsWith('/s1/tables') && init.method === 'POST') {
+        return { status: 201, body: { id: 't9', dataSourceId: 's1', name: 'Ratios', schemaName: 'dbo', tableName: 'cp_ratios',
+          entityKeyColumn: 'cp_id', asOfColumn: 'as_of_date', layout: 'COLUMNAR', active: true } };
+      }
+      return { body: url.endsWith('/tables') ? [] : [source] };
+    });
+    renderAt('/data-sources', '/data-sources', <DataSources />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add table' }));
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'Ratios' } });
+    fireEvent.change(screen.getByLabelText(/^Schema/), { target: { value: 'dbo' } });
+    fireEvent.change(screen.getByLabelText(/^Table/), { target: { value: 'cp_ratios' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save table' }));
+    expect(await screen.findByText('Table saved. Measures can now point at it.')).toBeInTheDocument();
+    expect(JSON.parse(sent(calls, 'POST', '/data-sources/s1/tables')!.init.body as string)).toMatchObject({
+      name: 'Ratios', schemaName: 'dbo', tableName: 'cp_ratios', entityKeyColumn: 'cp_id', asOfColumn: 'as_of_date',
+      layout: 'COLUMNAR', entityKeyLevel: 'CP_ID' });
+  });
+
+  it('support sends borrower reminders and scheduled reports now', async () => {
+    const calls = mockFetch((url) => {
+      if (url.endsWith('/reminder-runs')) {
+        return { body: { contacts: 2, sent: 1, failed: 0 } };
+      }
+      if (url.endsWith('/scheduled-runs')) {
+        return { body: { sent: 3 } };
+      }
+      return { body: [] };
+    });
+    renderAt('/ops/support', '/ops/support', <Support />);
+    fireEvent.change(screen.getByLabelText('Support token'), { target: { value: 't' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Use token' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Sent e-mails' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Send borrower reminders now' }));
+    expect(await screen.findByText('Borrower reminders: 1 sent (2 contact(s) checked)')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Send scheduled reports now' }));
+    expect(await screen.findByText('Scheduled reports: 3 sent')).toBeInTheDocument();
+    expect(sent(calls, 'POST', '/api/v1/monitoring/reminder-runs')).toBeTruthy();
   });
 });

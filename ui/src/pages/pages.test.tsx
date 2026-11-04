@@ -130,6 +130,8 @@ const CUSTOM: OnboardingRow = {
 };
 
 describe('Onboarding', () => {
+  beforeEach(() => setIdentity({ user: 'rm-anil', roles: ['RM'] }));
+
   it('helpers pick defaults and threshold provenance', () => {
     expect(initialDraft(EXTRACTED)).toEqual({ selected: true, frequency: 'QUARTERLY', expression: 'DSCR >= 1.25' });
     expect(initialDraft({ ...EXTRACTED, source: 'RECOMMENDED', defaultFrequency: 'CUSTOM' }).selected).toBe(false);

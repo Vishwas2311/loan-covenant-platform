@@ -8,7 +8,7 @@ import { IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { errorMessage } from '../api/client';
 import { r3 } from '../api/endpoints3';
-import type { DataSource, DataSourceWrite } from '../api/types3';
+import type { DataSource, DataSourceTable, DataSourceWrite, TableWrite } from '../api/types3';
 import { ErrorNote, Loading } from '../components/Status';
 
 const MASK = '********';
@@ -88,20 +88,88 @@ function SourceForm({ existing, onClose }: { existing?: DataSource; onClose: () 
   );
 }
 
+/** A8: the tables of one source: where a CP's figures sit (one row per CP and as-of date). */
+function TableForm({ source, existing, onClose }: { source: DataSource; existing?: DataSourceTable; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [t, setT] = useState<TableWrite>({
+    name: existing?.name ?? '', schemaName: existing?.schemaName ?? '', tableName: existing?.tableName ?? '',
+    entityKeyColumn: existing?.entityKeyColumn ?? 'cp_id', asOfColumn: existing?.asOfColumn ?? 'as_of_date',
+    layout: 'COLUMNAR', codeColumn: '', valueColumn: '', entityKeyLevel: 'CP_ID',
+  });
+  const set = (patch: Partial<TableWrite>) => setT((x) => ({ ...x, ...patch }));
+  const ident = /^[A-Za-z_][A-Za-z0-9_]*$/;
+  const ready = t.name.trim() && ident.test(t.tableName) && ident.test(t.entityKeyColumn) && ident.test(t.asOfColumn)
+    && (t.schemaName === '' || ident.test(t.schemaName));
+  const save = useMutation({
+    mutationFn: () => r3.saveTable(source.id, { ...t, name: t.name.trim() }, existing?.id),
+    onSuccess: () => {
+      notifications.show({ color: 'green', message: 'Table saved. Measures can now point at it.' });
+      qc.invalidateQueries({ queryKey: ['tables', source.id] });
+      qc.invalidateQueries({ queryKey: ['all-tables'] });
+      onClose();
+    },
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
+  return (
+    <Modal opened onClose={onClose} title={existing ? `Edit table ${existing.tableName}` : `New table in ${source.name}`}>
+      <Stack>
+        <TextInput label="Name" required value={t.name} onChange={(e) => set({ name: e.currentTarget.value })}
+          placeholder="Quarterly ratios" />
+        <Group grow>
+          <TextInput label="Schema" value={t.schemaName} onChange={(e) => set({ schemaName: e.currentTarget.value })}
+            placeholder="dbo" />
+          <TextInput label="Table" required value={t.tableName} onChange={(e) => set({ tableName: e.currentTarget.value })}
+            placeholder="cp_ratios" />
+        </Group>
+        <Group grow>
+          <TextInput label="CP id column" required value={t.entityKeyColumn}
+            onChange={(e) => set({ entityKeyColumn: e.currentTarget.value })} />
+          <TextInput label="As-of date column" required value={t.asOfColumn}
+            onChange={(e) => set({ asOfColumn: e.currentTarget.value })} />
+        </Group>
+        <Text size="xs" c="dimmed">Names must be plain SQL identifiers (letters, digits and _). Each other column holds one figure.</Text>
+        <Group justify="flex-end">
+          <Button variant="default" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!ready}>Save table</Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
+}
+
 function Tables({ source }: { source: DataSource }) {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState<DataSourceTable | 'new' | null>(null);
   const { data, isLoading, error } = useQuery({ queryKey: ['tables', source.id], queryFn: () => r3.tables(source.id) });
+  const off = useMutation({
+    mutationFn: (id: string) => r3.deactivateTable(source.id, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tables', source.id] }),
+    onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
+  });
   if (isLoading) {
     return <Loading />;
   }
   if (error) {
     return <ErrorNote error={error} />;
   }
+  const rows = Array.isArray(data) ? data : [];
   return (
-    <Text size="xs" c="dimmed">
-      Tables: {(data ?? []).length === 0 ? 'none yet'
-        : (data ?? []).map((t) => `${t.schemaName ? `${t.schemaName}.` : ''}${t.tableName}${t.active ? '' : ' (off)'}`)
-          .join(', ')}
-    </Text>
+    <Stack gap={2} mt={4}>
+      {rows.length === 0 && <Text size="xs" c="dimmed">Tables: none yet</Text>}
+      {rows.map((t) => (
+        <Group key={t.id} gap="xs">
+          <Text size="xs">{`${t.schemaName ? `${t.schemaName}.` : ''}${t.tableName}${t.active ? '' : ' (off)'}`}</Text>
+          <Button size="compact-xs" variant="subtle" onClick={() => setEditing(t)}>Edit</Button>
+          {t.active && (
+            <Button size="compact-xs" variant="subtle" color="red"
+              onClick={() => window.confirm(`Switch off table ${t.tableName}? Measures on it stop being read.`) && off.mutate(t.id)}>
+              Switch off</Button>
+          )}
+        </Group>
+      ))}
+      <Button size="compact-xs" variant="subtle" w="fit-content" onClick={() => setEditing('new')}>Add table</Button>
+      {editing && <TableForm source={source} existing={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} />}
+    </Stack>
   );
 }
 

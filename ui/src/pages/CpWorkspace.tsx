@@ -159,7 +159,7 @@ function ReviewGrid({ cpId }: { cpId: string }) {
                   {pending && approver && !ownRequest && <DecisionButtons cpId={cpId} row={r} />}
                   {pending && (!approver || ownRequest) && <Text size="xs" c="dimmed">Awaiting approver</Text>}
                   {pending && ownRequest && <WithdrawButton cpId={cpId} row={r} />}
-                  {!pending && r.dispositionable && (
+                  {!pending && r.dispositionable && canAct && (
                     <Button size="xs" variant="light" onClick={() => setEditing(r)}>Waive / extend</Button>
                   )}
                   {canAct && (r.assessmentType === 'MANUAL' || r.latestResult === 'PENDING_REVIEW') && (

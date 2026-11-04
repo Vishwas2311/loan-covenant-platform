@@ -152,6 +152,23 @@ function Emails() {
     },
     onError: fail,
   });
+  const reminders = useMutation({
+    mutationFn: r3.sendReminders,
+    onSuccess: (r) => {
+      notifications.show({ color: r.failed ? 'orange' : 'green',
+        message: `Borrower reminders: ${r.sent} sent${r.failed ? `, ${r.failed} failed` : ''} (${r.contacts} contact(s) checked)` });
+      list.refetch();
+    },
+    onError: fail,
+  });
+  const reports = useMutation({
+    mutationFn: r3.sendScheduledReports,
+    onSuccess: (r) => {
+      notifications.show({ color: 'green', message: `Scheduled reports: ${r.sent} sent` });
+      list.refetch();
+    },
+    onError: fail,
+  });
   let pretty = '';
   try {
     pretty = open?.requestBody ? JSON.stringify(JSON.parse(open.requestBody), null, 2) : '';
@@ -163,6 +180,8 @@ function Emails() {
       <Group>
         <Button onClick={() => window.confirm('Run today\'s check and send the summary e-mails now?') && send.mutate()}
           loading={send.isPending}>Send today&apos;s e-mails now</Button>
+        <Button variant="light" onClick={() => reminders.mutate()} loading={reminders.isPending}>Send borrower reminders now</Button>
+        <Button variant="light" onClick={() => reports.mutate()} loading={reports.isPending}>Send scheduled reports now</Button>
       </Group>
       {list.isLoading && <Loading />}
       {list.error && <ErrorNote error={list.error} />}

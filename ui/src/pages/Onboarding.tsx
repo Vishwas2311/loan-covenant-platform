@@ -9,6 +9,8 @@ import { errorMessage } from '../api/client';
 import { core } from '../api/endpoints';
 import { r3 } from '../api/endpoints3';
 import type { Frequency, OnboardingRow } from '../api/types';
+import { hasRole } from '../auth/identity';
+import { useIdentity } from '../auth/useIdentity';
 import { CpPicker } from '../components/CpPicker';
 import { ErrorNote, Loading } from '../components/Status';
 
@@ -59,6 +61,7 @@ export function Onboarding() {
     queryKey: ['onboarding', cpId], queryFn: () => core.onboarding(cpId!), enabled: !!cpId,
   });
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const canApply = hasRole(useIdentity(), 'RM', 'APPROVER', 'ADMIN');
   useEffect(() => {
     const next: Record<string, Draft> = {};
     (data ?? []).forEach((r, i) => { next[rowKey(r, i)] = initialDraft(r); });
@@ -198,13 +201,13 @@ export function Onboarding() {
               })}
             </Table.Tbody>
           </Table>
-          <Group justify="end">
+          {canApply && <Group justify="end">
             <Button variant="light" onClick={() => suggest.mutate()} loading={suggest.isPending}
               disabled={selectedCount === 0}>Suggest thresholds</Button>
             <Button onClick={() => apply.mutate()} loading={apply.isPending} disabled={selectedCount === 0}>
               Apply {selectedCount} covenant(s)
             </Button>
-          </Group>
+          </Group>}
         </>
       )}
     </Stack>

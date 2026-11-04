@@ -1,5 +1,5 @@
 import {
-  Badge, Button, FileInput, Group, NumberInput, Select, Stack, Table, Text, TextInput, Textarea, Title,
+  Anchor, Badge, Button, FileInput, Group, NumberInput, Select, Stack, Table, Text, TextInput, Textarea, Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -67,17 +67,22 @@ export function Certificates({ cpId }: { cpId: string }) {
                 {r.certificates.length === 0 && '—'}
                 {r.certificates.map((c) => (
                   <Group key={c.id} gap={4} wrap="nowrap">
-                    <Text size="sm">{c.fileName}</Text>
-                    <Button size="compact-xs" variant="subtle" color="red" aria-label={`Delete ${c.fileName}`}
-                      onClick={() => window.confirm(`Delete certificate ${c.fileName}?`) && removeCertificate.mutate(c.id)}>
-                      Delete</Button>
+                    <Anchor component="button" size="sm" onClick={() => r3.downloadCertificate(cpId, c.id, c.fileName)
+                      .catch(fail)}>{c.fileName}</Anchor>
+                    {canEdit && (
+                      <Button size="compact-xs" variant="subtle" color="red" aria-label={`Delete ${c.fileName}`}
+                        onClick={() => window.confirm(`Delete certificate ${c.fileName}?`) && removeCertificate.mutate(c.id)}>
+                        Delete</Button>
+                    )}
                   </Group>
                 ))}
               </Table.Td>
               <Table.Td>
-                <Button size="xs" variant="subtle" color="red" loading={removeRequirement.isPending}
-                  onClick={() => window.confirm(`Delete the requirement for period ${r.periodEnd}?`)
-                    && removeRequirement.mutate(r.id)}>Delete</Button>
+                {canEdit && (
+                  <Button size="xs" variant="subtle" color="red" loading={removeRequirement.isPending}
+                    onClick={() => window.confirm(`Delete the requirement for period ${r.periodEnd}?`)
+                      && removeRequirement.mutate(r.id)}>Delete</Button>
+                )}
               </Table.Td>
             </Table.Tr>
           ))}
@@ -86,6 +91,7 @@ export function Certificates({ cpId }: { cpId: string }) {
           )}
         </Table.Tbody>
       </Table>
+      {canEdit && (<>
       <Group align="end">
         <TextInput type="date" label="Require period end" value={periodEnd} onChange={(e) => setPeriodEnd(e.currentTarget.value)} />
         <TextInput type="date" label="Due by" value={dueDate} onChange={(e) => setDueDate(e.currentTarget.value)} />
@@ -97,6 +103,7 @@ export function Certificates({ cpId }: { cpId: string }) {
           data={(reqs.data ?? []).map((r) => r.periodEnd)} />
         <Button onClick={() => upload.mutate()} disabled={!file} loading={upload.isPending}>Upload</Button>
       </Group>
+      </>)}
     </Stack>
   );
 }
