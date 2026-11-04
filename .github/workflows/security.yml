@@ -68,7 +68,7 @@ jobs:
           docker compose -f deploy/docker-compose.yml --env-file deploy/.env build core dps-api ui
       # The Core image holds every Java dependency jar, so this also covers the Maven dependencies.
       - name: Scan Core
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           image-ref: covenant-platform-core
           severity: HIGH,CRITICAL
@@ -76,7 +76,7 @@ jobs:
           trivyignores: .trivyignore
           exit-code: "1"
       - name: Scan DPS
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           image-ref: covenant-platform-dps-api
           severity: HIGH,CRITICAL
@@ -84,7 +84,7 @@ jobs:
           trivyignores: .trivyignore
           exit-code: "1"
       - name: Scan UI
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           image-ref: covenant-platform-ui
           severity: HIGH,CRITICAL

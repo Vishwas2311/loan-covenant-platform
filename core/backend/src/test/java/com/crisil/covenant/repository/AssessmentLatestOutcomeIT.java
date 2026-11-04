@@ -19,14 +19,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The batched assessment queries against a real schema (H2 in MSSQL mode): the native ROW_NUMBER query
  * picks each covenant's newest assessment and maps its result to the enum, and the history query lists
- * outcomes newest first per covenant.
+ * outcomes newest first per covenant. Rolled back after, so the shared test database is left as found.
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional
 class AssessmentLatestOutcomeIT {
 
     @Autowired private CovenantMasterRepository masterRepo;
