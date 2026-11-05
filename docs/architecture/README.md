@@ -9,6 +9,8 @@ with its stack, component diagram, main journeys, data model and API map.
 | 2 | **covenant-monitoring** — "Covenant Monitoring System" | The second team | [covenant-monitoring.md](covenant-monitoring.md) | `C:\Users\vishw\OneDrive\Desktop\covenant-monitoring` |
 | 3 | **covenant-platform** — Covenexa, the combined product | Built on 1 + 2 | [covenant-platform.md](covenant-platform.md) | `C:\Users\vishw\covenant-platform` (GitHub `Vishwas2311/loan-covenant-platform`) |
 
+The complete Covenexa architecture in a single diagram: [covenant-platform.md, section 0](covenant-platform.md#0-the-whole-system-in-one-diagram).
+
 ## How the three relate
 
 ```mermaid

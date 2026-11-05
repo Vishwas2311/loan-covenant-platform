@@ -9,6 +9,135 @@
 
 Back to the [overview](README.md). What each page does for a user: [user-guide.md](../user-guide.md).
 
+## 0. The whole system in one diagram
+
+Nine layers, top to bottom: who uses it, how they get in, the UI, Core, the contracts between Core and DPS, DPS, the data, the outside services, and how it is built and run. Sections 2–9 below zoom into each part.
+
+```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 460, "nodeSpacing": 22, "rankSpacing": 46}}}%%
+flowchart TB
+    subgraph L1["1 · USERS"]
+        direction LR
+        staff(["Bank staff<br/>RM · Approver · Author · Admin · Auditor · Support"])
+        borrower(["Borrower"])
+    end
+
+    subgraph L2["2 · EDGE AND SIGN‑IN"]
+        direction LR
+        gw["nginx gateway :8080<br/>serves the React app<br/>/api → Core · /dps → DPS<br/>security headers · correlation id"]
+        idp{{"Identity provider<br/>Keycloak (local) / Entra ID (prod)<br/>OIDC + PKCE · JWT with roles"}}
+        gw <-->|"sign-in redirect"| idp
+    end
+
+    subgraph L3["3 · UI — React 18 · Mantine · TanStack Query"]
+        direction LR
+        uishell["App shell<br/>role menu · route guards<br/>alert bell · light / dark"]
+        uipages["Staff pages<br/>Portfolio · My tasks · CP workspace<br/>Onboarding · Documents · Reports + Ask AI<br/>Library · Measures · Data sources · Settings<br/>Document jobs · Support tools"]
+        uiportal["Borrower portal<br/>certificates · statements"]
+        uiapi["API layer<br/>typed calls with the user's token"]
+        uishell --> uipages & uiportal --> uiapi
+    end
+
+    subgraph L4["4 · CORE — Spring Boot 3.5 · Java 17 · :9310 — from covenant‑monitoring"]
+        direction TB
+        subgraph L4a["Request handling and scheduling"]
+            direction LR
+            csec["Request pipeline<br/>JWT check + roles<br/>CP isolation (CpAccessGuard)<br/>support token for /ops"]
+            cjob["Quartz scheduler, clustered<br/>5 min task sync · 02:00 covenant checks<br/>05:30 fetch-ahead · 06:00 daily run"]
+            cclients["Bank-service clients<br/>9 WebClients · OAuth client credentials<br/>retries + circuit breakers"]
+        end
+        subgraph L4b["Business areas — 34 controllers"]
+            direction LR
+            c1["Library + formula engine<br/>covenants · measures<br/>data sources"]
+            c2["Onboarding<br/>recommendations<br/>ML thresholds · apply"]
+            c3["Assessment engine<br/>compile → ingest → resolve → evaluate<br/>freshness gate · stale-figures fallback"]
+            c4["Monitoring + review<br/>grid · waivers (maker-checker)<br/>tasks · alerts · analytics"]
+        end
+        subgraph L4c["More business areas"]
+            direction LR
+            c5["Borrower side<br/>certificates · reminders<br/>portal · letters"]
+            c6["Reports + e-mail<br/>breach report · saved reports<br/>escalation digest"]
+            c7["Support toolkit<br/>diagnose · reload · re-check<br/>audit · clean-up"]
+        end
+        L4a --> L4b --> L4c
+    end
+
+    subgraph L5["5 · CORE ↔ DPS CONTRACTS"]
+        direction LR
+        k1["C1<br/>agreement covenants<br/>Core ← DPS"]
+        k2["C2<br/>statement figures<br/>Core ← DPS"]
+        k3["C3 (opt-in)<br/>AI suggestions<br/>Core ← DPS"]
+        k4["C4<br/>library + measures<br/>DPS ← Core"]
+        k5["C5<br/>DATA_EVENT → re-check<br/>DPS → Core"]
+        k6["Access check<br/>may this user see this CP?<br/>DPS → Core"]
+    end
+
+    subgraph L6["6 · DPS — FastAPI · CrewAI Flows · Python 3.12 · :9400 — from covenanttrackingphase1.2"]
+        direction TB
+        subgraph L6a["API"]
+            direction LR
+            dapi["Endpoints<br/>uploads · term review · spreads · values<br/>recommendations · Ask AI · jobs"]
+            dguard["JWT check · CP access via Core (30 s cache)<br/>per-user rate limits"]
+            dai["Advisory AI<br/>Ask AI · agreement Q&A · narratives · C3<br/>token usage recorded"]
+        end
+        subgraph L6b["Workers — job queue, leases, 3 attempts, standard + heavy pools"]
+            direction LR
+            fa["Flow A — agreements<br/>parse → extract → normalise → validate<br/>publish / needs review"]
+            fb["Flow B — statements<br/>parse → line items → derive → checks<br/>report / needs review"]
+            parse["ParserEngine<br/>pypdf → RapidOCR → Docling"]
+            dout["Event outbox<br/>DATA_EVENT to Core, with retries"]
+            fa & fb --> parse
+            fb --> dout
+        end
+        L6a --> L6b
+    end
+
+    subgraph L7["7 · DATA"]
+        direction LR
+        sqlcore[("SQL Server — Core<br/>36 cov_* tables · QRTZ_* · Flyway V1–V32<br/>append-only assessments · staging copy · audits")]
+        sqldps[("SQL Server — DPS<br/>documents · jobs · extracted terms · statement values<br/>outbox · flow state · AI usage · Alembic")]
+        store[("Document store<br/>original PDFs and spreadsheets")]
+    end
+
+    subgraph L8["8 · EXTERNAL SERVICES — WireMock, Mailpit and a mock ML locally"]
+        direction LR
+        bank{{"Bank services<br/>credit proposals (RM / WRM, loan status) · covenant attributes<br/>data API + catalogue · notifications · workflow cases · files · ML · AI suggestions"}}
+        custdb{{"Bank data tables<br/>MSSQL data sources"}}
+        aoai{{"Azure OpenAI"}}
+    end
+
+    subgraph L9["9 · BUILD, RUN AND OPERATE"]
+        direction LR
+        ci["GitHub Actions<br/>CI · Security (semgrep, bandit, pip-audit,<br/>npm audit, Trivy) · nightly E2E"]
+        deploy["Docker images + Compose<br/>real sign-in · mail · two Core nodes"]
+        obs["Operations<br/>actuator :9320 · runbook<br/>golden-set gate · load tests"]
+    end
+
+    L1 -->|"HTTPS"| L2
+    L2 --> L3
+    L3 -->|"/api + JWT"| L4
+    L3 -->|"/dps + JWT"| L6
+    L4 <--> L5
+    L5 <--> L6
+    L4 -->|"JDBC"| L7
+    L6 -->|"SQL · files"| L7
+    L7 ~~~ L8
+    L4 -->|"HTTP + OAuth · JDBC to bank tables"| L8
+    L6 -->|"Azure OpenAI"| L8
+    L8 ~~~ L9
+
+    %% keep each layer's parts side by side
+    staff ~~~ borrower
+    csec ~~~ cjob ~~~ cclients
+    c1 ~~~ c2 ~~~ c3 ~~~ c4
+    c5 ~~~ c6 ~~~ c7
+    k1 ~~~ k2 ~~~ k3 ~~~ k4 ~~~ k5 ~~~ k6
+    dapi ~~~ dguard ~~~ dai
+    sqlcore ~~~ sqldps ~~~ store
+    bank ~~~ custdb ~~~ aoai
+    ci ~~~ deploy ~~~ obs
+```
+
 ## 1. Technology stack, and where each piece came from
 
 | Layer | Technology | Came from |
