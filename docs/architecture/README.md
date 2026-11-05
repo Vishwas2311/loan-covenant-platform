@@ -12,40 +12,42 @@ with its stack, component diagram, main journeys, data model and API map.
 ## How the three relate
 
 ```mermaid
-flowchart LR
-    subgraph ours["1 · covenanttrackingphase1.2 (Python)"]
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
+flowchart TB
+    subgraph ours["1 · covenanttrackingphase1.2 — our team, Python"]
+        direction LR
         o1["Loan-agreement reading<br/>regex + OCR"]
         o2["Statement reading<br/>Excel / PDF, ratio formulas"]
         o3["CrewAI agents<br/>reports, chat, news"]
         o4["FastAPI + one-page UI<br/>JSON files"]
     end
 
-    subgraph theirs["2 · covenant-monitoring (Java)"]
+    subgraph theirs["2 · covenant‑monitoring — second team, Java"]
+        direction LR
         t1["Covenant library<br/>+ formula language"]
-        t2["Measures, data sources,<br/>staging + freshness gate"]
-        t3["Quartz scheduling +<br/>assessment engine"]
-        t4["Waivers, evidence,<br/>RM e-mails, support toolkit"]
+        t2["Measures, data sources<br/>staging + freshness gate"]
+        t3["Quartz scheduling<br/>+ assessment engine"]
+        t4["Waivers, evidence, RM e-mails<br/>support toolkit"]
         t5["React + Mantine UI<br/>X-User header"]
     end
 
-    subgraph platform["3 · covenant-platform — Covenexa"]
-        core["Core<br/>Spring Boot"]
+    subgraph platform["3 · covenant‑platform — Covenexa"]
+        direction LR
+        ui["New UI<br/>+ nginx gateway"]
         dps["DPS — Document Processing Service<br/>FastAPI + CrewAI Flows"]
-        ui["New UI + nginx gateway"]
-        new["New: OIDC sign-in and roles · maker-checker · tasks<br/>borrower portal · reminders · reports · Azure OpenAI<br/>SQL Server for both · Docker · CI security gates"]
+        core["Core<br/>Spring Boot"]
+        dps <-->|"C1 · C2 · C3 · DATA_EVENT"| core
     end
 
-    o1 -->|rebuilt as Flow A| dps
-    o2 -->|rebuilt as Flow B| dps
-    o3 -->|consolidated on Azure OpenAI| dps
-    o4 -. replaced .-> ui
-    t1 --> core
-    t2 --> core
-    t3 --> core
-    t4 --> core
-    t5 -. replaced .-> ui
-    new --- core & dps & ui
-    dps <-->|C1 recommendations · C2 values · C3 AI · DATA_EVENT| core
+    new["New in covenant-platform: OIDC sign-in and 7 roles · maker-checker · tasks and alerts<br/>borrower portal · reminders · reports · Azure OpenAI · SQL Server for both · Docker · CI security gates"]
+
+    o1 -->|"Flow A"| dps
+    o2 -->|"Flow B"| dps
+    o3 -->|"Azure OpenAI"| dps
+    o4 -.->|replaced| ui
+    t1 & t2 & t3 & t4 --> core
+    t5 -.->|replaced| ui
+    platform --- new
 ```
 
 ## Side by side

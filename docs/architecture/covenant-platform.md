@@ -27,10 +27,11 @@ Back to the [overview](README.md). What each page does for a user: [user-guide.m
 ## 2. Deployment (local Docker stack)
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart TB
     browser(["Browser"])
 
-    subgraph host["One machine — docker compose (deploy/)"]
+    subgraph host["One machine — docker compose (deploy/)"]
         direction TB
         ui["ui — nginx :8080<br/>React app + gateway<br/>/api → core · /dps → dps-api"]
         kc["keycloak :8180<br/>realm 'covenant', test users<br/>(docker-compose.real.yml)"]
@@ -74,24 +75,25 @@ the bank's real services, and Core can run as several nodes (`docker-compose.sca
 ## 3. Component architecture
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart TB
     staff(["RM · Approver · Author · Admin · Auditor · Support"])
     borrower(["Borrower"])
     idp{{"Keycloak / Entra ID<br/>OIDC, JWT, roles"}}
 
-    subgraph uiL["UI — React + Mantine (new)"]
+    subgraph uiL["UI — React + Mantine (new)"]
         spa["Portfolio · My tasks · CP workspace · Onboarding · Documents<br/>Reports + Ask AI · Covenant library · Measures · Data sources · Settings<br/>Document jobs · Support tools"]
         portal["Borrower portal"]
     end
 
-    subgraph coreL["Core — Spring Boot (from covenant-monitoring)"]
+    subgraph coreL["Core — Spring Boot (from covenant‑monitoring)"]
         sec["Security: JWT resource server, role checks,<br/>CP isolation (CpAccessGuard), support token"]
         kept["Kept from covenant-monitoring:<br/>library · measures · data sources · formula engine<br/>onboarding · assessment engine · staging + freshness gate<br/>waiver / extension · evidence · support toolkit"]
         added["Added in covenant-platform:<br/>maker-checker approvals · tasks + alerts · reports + exports<br/>certificates + reminders · borrower portal · letters<br/>loan-system sync · escalation digest · FX · stale-figures fallback<br/>portfolio cache · DPS clients (C1 recommendations, C2 values, C3 AI)"]
         q["Quartz (clustered)<br/>covenant checks · 05:30 fetch-ahead · 06:00 daily run · 5-min task sync"]
     end
 
-    subgraph dpsL["DPS — FastAPI (from covenanttrackingphase1.2)"]
+    subgraph dpsL["DPS — FastAPI (from covenanttrackingphase1.2)"]
         dapi["API: uploads, documents, term review,<br/>values (C2), recommendations (C1), Ask AI, AI usage"]
         acc["Access check: asks Core whether this user may see this CP<br/>(answers cached 30 s; 503 when Core is busy)"]
         fa["Flow A — agreements<br/>parse → extract → normalise → validate<br/>→ publish / needs review / failed / heavy"]
@@ -249,14 +251,6 @@ erDiagram
     dps_document ||--o{ dps_extracted_term : "covenants read"
     dps_document ||--o{ dps_statement_value : "figures read"
     dps_document |o--o| dps_document : "amends"
-    cov_applied_covenant ||--o{ cov_work_task : "tasks"
-    cov_applied_covenant ||--o{ cov_letter_log : "letters"
-    cov_credit_proposal_cache ||--o{ cov_certificate_requirement : "certificates due"
-    cov_credit_proposal_cache ||--o| cov_borrower_contact : "reminders to"
-    cov_borrower_contact ||--o{ cov_reminder_log : "sent"
-    cov_credit_proposal_cache ||--o{ cov_portal_access : "borrower users"
-    cov_portal_access ||--o{ cov_portal_submission : "certificates, statements"
-    cov_loan_sync_run ||--o{ cov_loan_sync_change : "changes"
 
     dps_document {
         string id PK
@@ -286,6 +280,20 @@ erDiagram
     }
 ```
 
+New Core tables, added to covenant-monitoring's 23:
+
+```mermaid
+erDiagram
+    cov_applied_covenant ||--o{ cov_work_task : "tasks"
+    cov_applied_covenant ||--o{ cov_letter_log : "letters"
+    cov_credit_proposal_cache ||--o{ cov_certificate_requirement : "certificates due"
+    cov_credit_proposal_cache ||--o| cov_borrower_contact : "reminders to"
+    cov_borrower_contact ||--o{ cov_reminder_log : "sent"
+    cov_credit_proposal_cache ||--o{ cov_portal_access : "borrower users"
+    cov_portal_access ||--o{ cov_portal_submission : "certificates, statements"
+    cov_loan_sync_run ||--o{ cov_loan_sync_change : "changes"
+```
+
 New Core tables: `cov_work_task`, `cov_saved_report`, `cov_certificate_requirement`,
 `cov_borrower_contact`, `cov_reminder_log`, `cov_portal_access`, `cov_portal_submission`,
 `cov_letter_log`, `cov_loan_sync_run`, `cov_loan_sync_change`, `cov_data_event`, `cov_fx_rate`,
@@ -296,9 +304,10 @@ New Core tables: `cov_work_task`, `cov_saved_report`, `cov_certificate_requireme
 ## 9. Build and quality pipeline
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart LR
     push["git push"] --> ci & secw
-    subgraph ci["CI workflow"]
+    subgraph ci["CI workflow"]
         b1["Core: Maven verify<br/>unit + integration, JaCoCo, SpotBugs"]
         b2["DPS: ruff, pytest 90%+ coverage"]
         b3["Golden set: tests + synthetic gate<br/>recall, precision, thresholds"]
@@ -306,7 +315,7 @@ flowchart LR
         b4["UI: Vitest coverage, type-check, build"]
         b6["Docker images: compose check, builds"]
     end
-    subgraph secw["Security workflow"]
+    subgraph secw["Security workflow"]
         s1["semgrep"]
         s2["bandit (DPS)"]
         s3["pip-audit (DPS)"]

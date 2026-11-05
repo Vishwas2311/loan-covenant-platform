@@ -30,69 +30,71 @@ Back to the [overview](README.md).
 ## 2. Component architecture
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart TB
     user(["RM · WRM · covenant author · support<br/>browser"])
 
-    subgraph fe["frontend — React 18 + Mantine 8 + TanStack Query (Vite :9312)"]
-        pages["Pages: covenant-master · measures · data-sources · formula<br/>onboarding (wizard) · monitoring (By-CP / By-Covenant, CP grid) · settings · support"]
-        client["api/client.ts — apiFetch over /api/v1<br/>X-User header from the dev user switcher"]
+    subgraph fe["frontend — React 18 + Mantine 8 + TanStack Query, Vite :9312"]
+        direction LR
+        pages["Pages<br/>covenant-master · measures · data-sources · formula<br/>onboarding wizard · monitoring By-CP / By-Covenant<br/>settings · support"]
+        client["api/client.ts<br/>apiFetch over /api/v1<br/>X-User header from the dev user switcher"]
+        pages --> client
     end
 
-    subgraph be["backend — Spring Boot 3.5 (:9310), package com.crisil.covenant"]
+    ctrl["controller — 20 REST controllers /api/v1/**<br/>(support routes need X-Support-Token)"]
+
+    subgraph be["backend — Spring Boot 3.5, :9310, package com.crisil.covenant"]
         direction TB
-        ctrl["controller — 20 REST controllers /api/v1/**"]
-        subgraph svc["service"]
+        subgraph author["Authoring"]
+            direction LR
             lib["CovenantMasterService<br/>library, eligibility, AUTO / MANUAL"]
             ms["MeasureService · DataSourceService<br/>DataSourceTableService · ColumnDiscovery"]
-            rec["RecommendationService · OnboardingRecommendationService<br/>MlThresholdService"]
+        end
+        subgraph onboard["Onboarding"]
+            direction LR
+            rec["RecommendationService<br/>OnboardingRecommendationService<br/>MlThresholdService"]
             app["AppliedCovenantService<br/>apply, per-CP overrides, audit"]
+        end
+        subgraph check["Checking"]
+            direction LR
             sch["ScheduleService · DailyRunInitializer<br/>Quartz triggers"]
             asm["AssessmentService<br/>compile → ingest → resolve → evaluate"]
-            ing["IngestionOrchestrationService · StagingIngestionService<br/>freshness gate · IngestionPreStageService"]
-            agg["MeasureAggregationResolver<br/>windows, FLAT / PERIODIC sampling"]
+            ing["IngestionOrchestrationService<br/>StagingIngestionService<br/>freshness gate"]
+            agg["MeasureAggregationResolver<br/>windows, FLAT / PERIODIC"]
+            dsl["formula — FormulaEngine<br/>Lexer · Parser · TypeChecker<br/>Evaluator · Renderer"]
+        end
+        subgraph follow["Monitoring and follow‑up"]
+            direction LR
             rev["ReviewService · MonitoringService<br/>CP grid, headroom, schedule"]
-            disp["Disposition + AttachmentService<br/>waiver / extension, evidence, certificates"]
-            ai["AiSuggestionService"]
+            disp["Disposition · AttachmentService<br/>waiver / extension, evidence"]
             br["BreachNotificationService<br/>RM / WRM summaries"]
             wf["WorkflowCaseService<br/>one case per CP"]
-            ops["OpsDiagnostics · OpsRemediation · OpsHealth · OpsAudit · CpDataCleanup"]
+            ai["AiSuggestionService"]
+            ops["Ops* services<br/>diagnose, re-ingest, re-assess, health, audit"]
         end
-        dsl["formula — FormulaEngine<br/>Lexer · Parser · TypeChecker · Evaluator · Renderer"]
-        jobs["Quartz jobs<br/>AssessmentJob (per covenant) · IngestionPreStageJob 05:30 · DailyBreachRunJob 06:00"]
+        jobs["Quartz jobs<br/>AssessmentJob per covenant · IngestionPreStageJob 05:30<br/>DailyBreachRunJob 06:00"]
         repo["repository — Spring Data JPA"]
-        impl["service/impl — 9 WebClient clients + resilience4j"]
+        impl["service/impl — 9 WebClient clients<br/>resilience4j: circuit breaker, retry, time limit"]
     end
 
-    db[("H2 file (dev) / SQL Server (prod)<br/>23 cov_* tables + QRTZ_* + flyway_schema_history")]
+    db[("H2 file (dev) / SQL Server (prod)<br/>23 cov_* tables · QRTZ_* · flyway_schema_history")]
 
-    subgraph bank["Bank services — WireMock :9311 in dev"]
-        cpS{{"Credit-proposal service<br/>CP details, RM / WRM"}}
-        attS{{"Covenant attributes"}}
-        dataS{{"Data API + data catalogue<br/>(REST sources)"}}
-        mssql{{"Customer SQL Server tables<br/>(MSSQL sources)"}}
-        mlS{{"ML threshold service"}}
-        aiS{{"AI status suggestions"}}
-        notS{{"Notification service"}}
-        wfS{{"Workflow engine<br/>POST /api/runtime/cases"}}
-        fileS{{"File upload / download"}}
-    end
+    bank{{"Bank services — WireMock :9311 in dev<br/>credit proposals (RM / WRM) · covenant attributes<br/>data API + data catalogue · ML thresholds<br/>AI status suggestions · notification · workflow engine · file service"}}
+    mssql{{"Customer SQL Server tables<br/>(MSSQL data sources)"}}
 
-    user --> pages --> client --> ctrl
-    ctrl --> lib & ms & rec & app & rev & disp & asm & ops & ai
+    user --> fe
+    client --> ctrl
+    ctrl --> author & onboard & follow
+    ctrl -->|"/assessments/run"| asm
     app --> sch --> jobs
-    jobs --> asm & br & ing
+    jobs --> asm & br
+    jobs -->|05:30| ing
     asm --> dsl
     asm --> ing --> agg
     asm --> wf
-    lib & ms & rec & app & asm & rev & disp & br & ops --> repo --> db
-    jobs -. trigger store .-> db
-    rec --> impl
-    br --> impl
-    wf --> impl
-    disp --> impl
-    ai --> impl
-    ing --> impl
-    impl --> cpS & attS & dataS & mlS & aiS & notS & wfS & fileS
+    author & onboard & check & follow --> repo --> db
+    rec & br & wf & disp & ai & ing --> impl
+    impl --> bank
     ing --> mssql
 ```
 
@@ -158,6 +160,7 @@ checks started in the same second at 02:00 (fixed later in covenant-platform, BU
 ## 5. The formula language engine
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart LR
     src["Condition text<br/>e.g. TOTAL_DEBT / EBITDA <= 3.5<br/>AVG(EBITDA, 4Q) >= 1000000"] --> lex["Lexer<br/>tokens"]
     lex --> par["Parser<br/>syntax tree (Node)"]

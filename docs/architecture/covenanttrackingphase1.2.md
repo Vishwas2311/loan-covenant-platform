@@ -29,79 +29,82 @@ Back to the [overview](README.md).
 ## 2. Component architecture
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart TB
     user(["Analyst / RM in a browser"])
 
-    subgraph proc["One Python process — FastAPI + Uvicorn, port 8000"]
+    subgraph proc["One Python process — FastAPI + Uvicorn, port 8000"]
         direction TB
         subgraph web["web.py"]
-            ui["Single-page UI (HTML/CSS/JS inside web.py)<br/>Dashboard · Agent Audits · Master Covenant<br/>Added Companies · + Add Company · Ask AI · PDF viewer"]
-            api["REST endpoints /api/*<br/>(33 routes)"]
+            direction LR
+            ui["Single-page UI, HTML/CSS/JS inside web.py<br/>Dashboard · Agent Audits · Master Covenant<br/>Added Companies · + Add Company · Ask AI · PDF viewer"]
+            api["REST endpoints /api/*<br/>33 routes"]
+            ui --> api
         end
 
-        subgraph pipelines["main.py — pipelines"]
-            loanp["run_loan_agreement_from_bytes<br/>loan agreement → covenants"]
+        subgraph pipelines["main.py — pipelines"]
+            direction LR
+            loanp["run_loan_agreement_from_bytes<br/>agreement → covenants"]
             detp["run_deterministic_from_bytes<br/>statement → ratios → report"]
             agp["run_agents_from_bytes<br/>same, by the CrewAI crew"]
-            resume["resume_agents_with_manual_values<br/>continue after the user fills missing inputs"]
+            resume["resume_agents_with_manual_values<br/>after the user fills missing inputs"]
         end
 
-        subgraph crew["crew.py — Covenanttrackingphase1 crew (Process.sequential)"]
-            orch["orchestrator_agent"]
-            ingest["excel_ingestion_agent<br/>validate_excel_input_task"]
-            calc["calculation_agent<br/>calculate_dscr_task"]
-            rep["reporting_agent<br/>generate_decision_report_task"]
+        subgraph crew["crew.py — Covenanttrackingphase1 crew, sequential"]
+            direction LR
+            orch["orchestrator_agent"] --> ingest["excel_ingestion_agent<br/>validate_excel_input_task"] --> calc["calculation_agent<br/>calculate_dscr_task"] --> rep["reporting_agent<br/>generate_decision_report_task"]
         end
 
-        subgraph tools["tools/custom_tool.py — CrewAI tools (3,962 lines)"]
+        subgraph tools["tools/custom_tool.py — CrewAI tools, 3,962 lines"]
+            direction LR
             lae["LoanAgreementExtractionTool<br/>regex covenants + OCR"]
-            xlv["ExcelValidationTool<br/>Excel / PDF statement → figures"]
+            xlv["ExcelValidationTool<br/>Excel / PDF → figures"]
             dscr["DSCRCalculationTool<br/>ratios vs thresholds"]
             crt["CovenantReportTool<br/>decision + narrative"]
             agt["Agentic* wrappers<br/>shared state by run_id"]
         end
 
-        subgraph single["Single agents (agent_factory.py)"]
-            chat["chat_analyst_agent<br/>chatbot.py — Ask AI"]
+        subgraph single["Single agents — agent_factory.py"]
+            direction LR
+            chat["chat_analyst_agent<br/>Ask AI, chatbot.py"]
             trend["trend_narrative_agent<br/>news trends"]
             risk["risk_commentary_agent<br/>report commentary"]
         end
 
         subgraph helpers["Helpers"]
-            hitl["human_in_the_loop.py<br/>manual overrides, breach reviews"]
-            rem["reminders.py<br/>due-soon list, computed on request"]
-            cust["custom_covenants.py<br/>user-defined formulas"]
-            aud["agent_audit.py<br/>audit of every agent run"]
+            direction LR
+            hitl["human_in_the_loop.py<br/>overrides, breach reviews"]
+            rem["reminders.py<br/>due-soon list on request"]
+            cust["custom_covenants.py<br/>user formulas"]
+            aud["agent_audit.py<br/>every agent run"]
         end
     end
 
-    subgraph files["JSON files on disk (src/covenanttrackingphase1/)"]
-        intake[("intake_submissions.json<br/>TinyDB — companies, agreements,<br/>reports, covenant selections")]
+    subgraph files["JSON files on disk — src/covenanttrackingphase1/"]
+        direction LR
+        intake[("intake_submissions.json<br/>TinyDB: companies, agreements,<br/>reports, selections")]
         hitlf[("human_in_the_loop.json")]
         audf[("agent_audit_logs.json")]
-        cfg[("config/covenant_master_defaults.json<br/>config/custom_covenants.json<br/>config/metric_mappings.json")]
-        pdfs[("uploads/loan_agreements/*.pdf")]
+        cfg[("config/*.json<br/>master, custom covenants, metric aliases")]
+        pdfs[("uploads/loan_agreements/")]
     end
 
-    llm{{"OpenAI-compatible LLM<br/>gpt-4.1"}}
+    llm{{"OpenAI-compatible LLM — gpt-4.1"}}
     news{{"Google News RSS"}}
 
-    user --> ui --> api
-    api --> loanp --> lae
-    api --> detp --> xlv
-    detp --> dscr --> crt
-    api --> agp --> orch --> ingest --> calc --> rep
-    api --> resume --> agp
-    ingest -. tool .-> agt
-    calc -. tool .-> agt
-    rep -. tool .-> agt
+    user --> ui
+    api --> pipelines
+    loanp --> lae
+    detp --> xlv --> dscr --> crt
+    agp --> crew
+    resume --> agp
+    crew -.->|tools| agt
     agt -.-> xlv & dscr & crt
     crt --> risk
-    api --> chat
-    api --> news --> trend
-    api --> hitl & rem & cust
-    orch & ingest & calc & rep & chat & trend & risk --> llm
-    chat & trend & risk --> aud
+    api --> single & helpers
+    trend --> news
+    crew & single --> llm
+    single --> aud
     api --> intake
     hitl --> hitlf
     aud --> audf
@@ -161,9 +164,10 @@ sequenceDiagram
 ## 4. The CrewAI crew (agentic mode)
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart LR
     inp["Statement workbook<br/>+ run_id"] --> t1
-    subgraph crew["Process.sequential, memory off"]
+    subgraph crew["Process.sequential, memory off"]
         t1["validate_excel_input_task<br/>excel_ingestion_agent<br/>tool: AgenticValidateExcelTool"]
         t2["calculate_dscr_task<br/>calculation_agent<br/>tool: AgenticCalculateDSCRTool"]
         t3["generate_decision_report_task<br/>reporting_agent<br/>tool: AgenticGenerateReportTool"]
@@ -180,6 +184,7 @@ and reporting agents. The deterministic mode runs the same tools directly, witho
 ## 5. Where data lives
 
 ```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart LR
     subgraph disk["src/covenanttrackingphase1/"]
         a[("intake_submissions.json<br/>(TinyDB)")]
