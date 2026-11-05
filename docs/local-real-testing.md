@@ -114,7 +114,7 @@ In this mode Core's own host ports (9310/9320) are not published — reach it on
 
 ## 6. Manual test script
 
-Do these in order; each step says what you should see.
+Do these in order; each step says what you should see. For what every page and button does in full, and the timetable of what runs by itself, see [`user-guide.md`](user-guide.md).
 
 | # | Sign in as | Do | Expect |
 |---|---|---|---|
@@ -128,7 +128,7 @@ Do these in order; each step says what you should see.
 | 8 | `wrm-meera` | Same covenant → approve | Status *Waiver approved*; the status history shows both steps |
 | 9 | `rm-anil` | **Reports** → open breaches → download Excel and PDF | Both files open |
 | 10 | `rm-anil` | **Reports** → **Ask AI**: "Which of my covenants are breached?"; then **Documents** → the statement from step 5 | An answer written by Azure OpenAI about your CPs only; the statement shows an AI-written narrative |
-| 11 | `author-1` | **Covenant library** → search "DSCR" → **Download Excel** | Matching covenants; the Excel file opens. (Creating covenants is done through Core's API; the UI has no form for it yet) |
+| 11 | `author-1` | **Covenant library** → search "DSCR" → **Download Excel**; then **New covenant** and save one | Matching covenants; the Excel file opens; the new covenant appears in the library |
 | 12 | `support-1` | **Document jobs** | All DPS jobs with their status; a failed one can be retried |
 | 13 | `admin-1` | **Settings** → change a setting | Saved; other roles do not see Settings |
 | 14 | `rm-anil` | **Documents** → upload an agreement to CP-1003 as *Loan agreement* with **Amendment of** set to the earlier one; publish its DSCR term | On **Onboarding** → CP-1003 the amendment's DSCR replaces the earlier agreement's; covenants it does not mention stay (C7) |

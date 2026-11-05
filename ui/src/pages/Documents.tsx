@@ -55,13 +55,13 @@ function Upload({ cpId, agreements }: { cpId: string; agreements: DpsDocument[] 
           <Text size="sm" c="var(--text-warn)">This file will also be linked to: {cpIds.filter((c) => c !== cpId).join(', ')}</Text>
         )}
         <Stack gap="sm">
-          <FileInput label="File (PDF, XLSX, CSV)" value={file} onChange={(f) => {
+          <FileInput label="File (PDF, XLSX, XLS, CSV)" value={file} onChange={(f) => {
             setFile(f);
             // A spreadsheet can only be a financial statement; a loan agreement is always a PDF.
             if (f && /\.(csv|xlsx|xls)$/i.test(f.name)) {
               setType('FINANCIAL_STATEMENT');
             }
-          }} accept=".pdf,.xlsx,.csv" placeholder="Choose a file" />
+          }} accept=".pdf,.xlsx,.xls,.csv" placeholder="Choose a file" />
           <Select label="Type" data={TYPES} value={type} allowDeselect={false}
             onChange={(v) => v && setType(v as DocumentType)} />
           {type === 'FINANCIAL_STATEMENT' && (
@@ -234,7 +234,7 @@ function RemoveOrReplace({ doc, onDone }: { doc: DpsDocument; onDone: () => void
             The file is kept for the record but marked REMOVED. Figures read from it stop counting (an earlier
             upload for the same period counts again), and the covenants that used them are checked again.
           </Text>
-          <FileInput label="Replace with (optional)" value={file} onChange={setFile} accept=".pdf,.xlsx,.csv"
+          <FileInput label="Replace with (optional)" value={file} onChange={setFile} accept=".pdf,.xlsx,.xls,.csv"
             placeholder="Choose the right file" clearable />
           <Textarea label="Why" value={reason} onChange={(e) => setReason(e.currentTarget.value)}
             placeholder="e.g. Uploaded to the wrong CP" required={!file} />

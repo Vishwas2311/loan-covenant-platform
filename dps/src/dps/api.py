@@ -99,7 +99,10 @@ _FAILURE_REASONS: list[tuple[str, str]] = [
                        "the new copy."),
     ("Unreadable statement", "This spreadsheet could not be read; it may be damaged. Save it again as .xlsx or .csv "
                              "and upload it."),
-    ("statements are not supported", "This file type cannot be read as a statement. Upload a PDF, .xlsx or .csv."),
+    ("Unreadable .xls statement", "This old Excel (.xls) file could not be read; it may be damaged. Save it again "
+                                  "as .xlsx or .csv and upload it."),
+    ("statements are not supported", "This file type cannot be read as a statement. Upload a PDF, .xlsx, .xls or "
+                                     ".csv."),
 ]
 
 

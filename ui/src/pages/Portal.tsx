@@ -77,7 +77,7 @@ function StatementForm({ view }: { view: PortalView }) {
   });
   return (
     <Stack>
-      <FileInput label="Financial statement (PDF, XLSX or CSV)" value={file} onChange={setFile} accept=".pdf,.xlsx,.csv"
+      <FileInput label="Financial statement (PDF, XLSX, XLS or CSV)" value={file} onChange={setFile} accept=".pdf,.xlsx,.xls,.csv"
         placeholder="Choose the file" />
       <TextInput type="date" label="Period end" value={period} onChange={(e) => setPeriod(e.currentTarget.value)} />
       <Group justify="end">

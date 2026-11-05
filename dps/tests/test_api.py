@@ -145,6 +145,7 @@ def test_a_failed_document_tells_the_rm_why(client, app):
     assert "password-protected" in next(d for d in listed if d["id"] == doc_id)["failureReason"]
     assert failure_reason(None) is None
     assert "damaged" in failure_reason("Unreadable statement: BadZipFile")
+    assert ".xls" in failure_reason("Unreadable .xls statement: Unsupported format, or corrupt file")
     assert "support" in failure_reason("something else")
 
 
