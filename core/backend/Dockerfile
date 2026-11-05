@@ -7,7 +7,10 @@ COPY src ./src
 RUN mvn -B -q -P fast -DskipTests package
 
 FROM eclipse-temurin:17-jre-jammy
-RUN useradd --system --uid 10001 covenant
+# Take the distribution's security fixes that landed after the base image was built (the image scan in
+# security.yml fails on any fixed HIGH or CRITICAL CVE).
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 covenant
 WORKDIR /app
 COPY --from=build /src/target/covenant-service-*.jar app.jar
 USER 10001

@@ -90,20 +90,20 @@ The first run raised seven items; all seven were verified as false positives, no
 | DPS Python static analysis | bandit | No issues (3,323 LOC, 0 `#nosec`) |
 | UI dependencies | `npm audit --omit=dev` | 0 vulnerabilities |
 | CI static analysis | bandit + semgrep (`security.yml`) | 0 findings (from the suite) |
-| Python dependency CVEs | pip-audit | **Not run — not installed.** Add `pip-audit` (or `safety`) to CI |
-| Container image CVEs | trivy | **Not run — not installed.** Scan the built images before release |
+| Python dependency CVEs | pip-audit (`security.yml`, every push) | Pass, with four advisories accepted in the workflow (no fixed chromadb release yet) |
+| Container image CVEs | Trivy 0.70.0 (`security.yml`, every push), HIGH and CRITICAL with a fix | Core, DPS and UI clean, with five accepted findings in `.trivyignore` (each with its reason). A new HIGH CVE in the Ubuntu and Debian `apt` package (CVE-2026-109518) failed the scan on 5 November; fixed the same day by `apt-get upgrade` in the Core and DPS images |
 
 ## Limits of this test
 
 - Local only: the real gateway/WAF, Entra ID, and the bank's CP, loan, notification and workflow services
   are not present, so their auth and access paths are untested.
 - Authenticated, grey-box, by the team that wrote the code — not independent.
-- No fuzzing, no business-logic abuse campaign, no image/dependency CVE scan (tooling absent).
+- No fuzzing and no business-logic abuse campaign. Dependency and image CVEs are covered by CI (above).
 
 ## Conclusion
 
 On the local stack, the application stands up to the common web attacks: authentication cannot be forged
 or bypassed, one RM cannot reach another's data, roles are enforced, SQL injection and path traversal are
 blocked, the formula language cannot execute code, and the security headers and CORS policy are correct.
-This clears the cheap findings early. It does **not** replace the independent penetration test, the ASVS L2
-review, or a container/dependency CVE scan, all of which remain required before full production.
+This clears the cheap findings early. It does **not** replace the independent penetration test or the ASVS L2
+review, which remain required before full production.

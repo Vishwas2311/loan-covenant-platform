@@ -5,7 +5,8 @@
 FROM python:3.12-slim
 ARG INSTALL_HEAVY=0
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 CREWAI_TRACING_ENABLED=false
-RUN useradd --system --create-home --uid 10001 dps && apt-get update \
+# apt-get upgrade takes the distribution's security fixes released after the base image was built.
+RUN useradd --system --create-home --uid 10001 dps && apt-get update && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY pyproject.toml README.md ./
