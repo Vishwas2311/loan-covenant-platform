@@ -94,7 +94,7 @@ describe('support tools, the rest', () => {
     fireEvent.change(await screen.findByLabelText('Id (optional)'), { target: { value: 'CP-1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Show' }));
     expect(await screen.findByText('support-1')).toBeInTheDocument();
-    expect(sent(calls, 'GET', '/api/v1/ops/audit?targetType=cp&targetId=CP-1')).toBeTruthy();
+    expect(sent(calls, 'GET', '/api/v1/ops/audit?targetType=CP&targetId=CP-1')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Data source health' }));
     expect(await screen.findByText('1 of 2 data sources reachable', { exact: false })).toBeInTheDocument();

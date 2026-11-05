@@ -3,6 +3,9 @@ package com.crisil.covenant.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,9 +38,10 @@ class CertificateRequirementServiceTest {
 
     @Mock private CertificateRequirementRepository repo;
     @Mock private AttachmentService attachmentService;
+    @Mock private OpsAuditService audit;
 
     private CertificateRequirementService service() {
-        return new CertificateRequirementService(repo, attachmentService, TODAY);
+        return new CertificateRequirementService(repo, attachmentService, TODAY, audit);
     }
 
     @Test
@@ -92,7 +96,10 @@ class CertificateRequirementServiceTest {
         when(repo.findByIdAndCpId("r1", "CP-1")).thenReturn(Optional.of(r));
         service().remove("CP-1", "r1");
         verify(repo).delete(r);
+        verify(audit).recordSuccess(eq("DELETE_CERTIFICATE_DUE_DATE"), eq("CP"), eq("CP-1"),
+                eq("periodEnd=" + Q1), anyString());
         when(repo.findByIdAndCpId("r2", "CP-1")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service().remove("CP-1", "r2")).isInstanceOf(ApiException.class);
+        verifyNoMoreInteractions(audit);
     }
 }

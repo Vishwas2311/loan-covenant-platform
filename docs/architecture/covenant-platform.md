@@ -380,7 +380,7 @@ Cross-cutting pieces:
 | Retries | `TransientRetry` | Re-runs a whole transaction that SQL Server chose as a deadlock victim |
 | Health | `DataSourceHealthIndicator` | Reports each data source in `/actuator/health` |
 | Dev stubs | `WireMockDevConfig` | Starts WireMock inside Core for the dev profile |
-| Deleting mistakes | `@DeleteMapping` endpoints | Compliance certificates, certificate due dates, evidence attachments, exchange rates and saved reports are deleted outright, by the right role and within the user's CPs (no who / when record of the delete yet). Library covenants, measures, data sources and tables are switched off, never deleted, and keep their history |
+| Deleting mistakes | `@DeleteMapping` endpoints | Compliance certificates, certificate due dates, evidence attachments and exchange rates are deleted by the right role within the user's CPs, and each delete writes a row to `cov_ops_audit` (who, when, what: `DELETE_CERTIFICATE`, `DELETE_CERTIFICATE_DUE_DATE`, `DELETE_EVIDENCE`, `DELETE_FX_RATE`), shown in Support → Audit log. Saved reports are deleted by their owner. Library covenants, measures, data sources and tables are switched off, never deleted, and keep their history |
 
 ## 3c. Inside DPS — every module
 

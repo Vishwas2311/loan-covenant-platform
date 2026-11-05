@@ -689,8 +689,11 @@ Every data source: **Reachable**, **Response** time, **Tables**, **Staged rows**
 
 ### Tab: Audit log
 
-Choose what it is **About** (a CP, a covenant, a document…) and an optional **Id**, press **Show**:
-every action with **When**, **Action**, **Outcome** and **Detail**.
+Choose what it is **About** (**A CP**, **A covenant on a CP** or **Exchange rates**) and an optional
+**Id**, press **Show**: every action with **When**, **Action**, **By**, **Outcome** and **Detail**.
+Deletes are recorded here too: a removed compliance certificate (`DELETE_CERTIFICATE`), certificate
+due date (`DELETE_CERTIFICATE_DUE_DATE`) or evidence file (`DELETE_EVIDENCE`) appears under the CP; a
+deleted exchange rate (`DELETE_FX_RATE`) appears under **Exchange rates**.
 
 ### Tab: Loan system sync
 

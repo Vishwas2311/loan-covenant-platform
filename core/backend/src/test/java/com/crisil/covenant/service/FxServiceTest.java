@@ -3,6 +3,10 @@ package com.crisil.covenant.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,9 +31,10 @@ class FxServiceTest {
 
     @Mock private FxRateRepository repo;
     @Mock private ReportingSettingsService settings;
+    @Mock private OpsAuditService audit;
 
     private FxService service() {
-        return new FxService(repo, settings);
+        return new FxService(repo, settings, audit);
     }
 
     @Test
@@ -85,7 +90,9 @@ class FxServiceTest {
         when(repo.findById("r1")).thenReturn(Optional.of(existing));
         service().delete("r1");
         verify(repo).delete(existing);
+        verify(audit).recordSuccess(eq("DELETE_FX_RATE"), eq("FX_RATE"), eq("r1"), contains("/"), anyString());
         when(repo.findById("r2")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service().delete("r2")).isInstanceOf(ApiException.class);
+        verifyNoMoreInteractions(audit);
     }
 }

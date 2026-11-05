@@ -44,15 +44,18 @@ public class AttachmentService {
     private final CovenantAttachmentRepository attachmentRepo;
     private final ComplianceCertificateRepository certificateRepo;
     private final AppliedCovenantRepository appliedRepo;
+    private final OpsAuditService audit;
 
     public AttachmentService(FileUploadClient fileUploadClient,
                              CovenantAttachmentRepository attachmentRepo,
                              ComplianceCertificateRepository certificateRepo,
-                             AppliedCovenantRepository appliedRepo) {
+                             AppliedCovenantRepository appliedRepo,
+                             OpsAuditService audit) {
         this.fileUploadClient = fileUploadClient;
         this.attachmentRepo = attachmentRepo;
         this.certificateRepo = certificateRepo;
         this.appliedRepo = appliedRepo;
+        this.audit = audit;
     }
 
     /** Evidence attachments on one covenant row (US-MON-17 AC3), newest first. */
@@ -93,6 +96,9 @@ public class AttachmentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No attachment " + attachmentId + " on covenant " + appliedId));
         attachmentRepo.delete(existing);
+        attachmentRepo.flush();
+        audit.recordSuccess("DELETE_EVIDENCE", "CP", cpId, "appliedCovenantId=" + appliedId,
+                "Removed evidence " + existing.getFileName() + " (" + attachmentId + ")");
         return attachmentsForCovenant(appliedId);
     }
 
@@ -137,6 +143,9 @@ public class AttachmentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No compliance certificate " + certificateId + " on CP " + cpId));
         certificateRepo.delete(existing);
+        certificateRepo.flush();
+        audit.recordSuccess("DELETE_CERTIFICATE", "CP", cpId, "periodEnd=" + existing.getPeriodEnd(),
+                "Removed compliance certificate " + existing.getFileName() + " (" + certificateId + ")");
         return certificatesForCp(cpId);
     }
 

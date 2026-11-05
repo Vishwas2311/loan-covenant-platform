@@ -25,12 +25,14 @@ public class CertificateRequirementService {
     private final CertificateRequirementRepository repo;
     private final AttachmentService attachmentService;
     private final Clock clock;
+    private final OpsAuditService audit;
 
     public CertificateRequirementService(CertificateRequirementRepository repo, AttachmentService attachmentService,
-                                         Clock clock) {
+                                         Clock clock, OpsAuditService audit) {
         this.repo = repo;
         this.attachmentService = attachmentService;
         this.clock = clock;
+        this.audit = audit;
     }
 
     public List<CertificateRequirementView> forCp(String cpId) {
@@ -62,6 +64,9 @@ public class CertificateRequirementService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "REQUIREMENT_NOT_FOUND",
                         "No certificate requirement " + id + " on CP " + cpId));
         repo.delete(r);
+        repo.flush();
+        audit.recordSuccess("DELETE_CERTIFICATE_DUE_DATE", "CP", cpId, "periodEnd=" + r.getPeriodEnd(),
+                "Removed certificate due date " + r.getDueDate() + " (" + id + ")");
     }
 
     static CertificateRequirementView view(CertificateRequirement r, List<AttachmentView> certificates,

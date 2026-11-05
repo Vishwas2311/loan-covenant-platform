@@ -28,10 +28,12 @@ public class FxService {
 
     private final FxRateRepository repo;
     private final ReportingSettingsService settings;
+    private final OpsAuditService audit;
 
-    public FxService(FxRateRepository repo, ReportingSettingsService settings) {
+    public FxService(FxRateRepository repo, ReportingSettingsService settings, OpsAuditService audit) {
         this.repo = repo;
         this.settings = settings;
+        this.audit = audit;
     }
 
     public List<FxRateView> rates() {
@@ -57,6 +59,10 @@ public class FxService {
         FxRate rate = repo.findById(id).orElseThrow(() ->
                 new ApiException(HttpStatus.NOT_FOUND, "FX_RATE_NOT_FOUND", "No FX rate " + id));
         repo.delete(rate);
+        repo.flush();
+        audit.recordSuccess("DELETE_FX_RATE", "FX_RATE", id,
+                rate.getFromCurrency() + "/" + rate.getToCurrency() + " on " + rate.getRateDate(),
+                "Deleted rate " + rate.getRate());
     }
 
     /** Converts to the organisation's reporting currency. */

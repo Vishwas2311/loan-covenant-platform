@@ -93,14 +93,15 @@ function Diagnostics() {
 }
 
 function AuditLog() {
-  const [type, setType] = useState('cp');
+  const [type, setType] = useState('CP');
   const [id, setId] = useState('');
   const log = useMutation({ mutationFn: () => r3.opsAudit(type, id.trim() || undefined) });
   return (
     <Stack>
       <Group align="end">
         <Select label="About" w={200} value={type} allowDeselect={false} onChange={(v) => v && setType(v)}
-          data={[{ value: 'cp', label: 'A CP' }, { value: 'applied_covenant', label: 'A covenant on a CP' }]} />
+          data={[{ value: 'CP', label: 'A CP' }, { value: 'APPLIED_COVENANT', label: 'A covenant on a CP' },
+            { value: 'FX_RATE', label: 'Exchange rates' }]} />
         <TextInput label="Id (optional)" value={id} onChange={(e) => setId(e.currentTarget.value)} />
         <Button onClick={() => log.mutate()} loading={log.isPending}>Show</Button>
       </Group>

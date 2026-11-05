@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,9 +41,10 @@ class AttachmentServiceTest {
     @Mock private CovenantAttachmentRepository attachmentRepo;
     @Mock private ComplianceCertificateRepository certificateRepo;
     @Mock private AppliedCovenantRepository appliedRepo;
+    @Mock private OpsAuditService audit;
 
     private AttachmentService service() {
-        return new AttachmentService(fileUploadClient, attachmentRepo, certificateRepo, appliedRepo);
+        return new AttachmentService(fileUploadClient, attachmentRepo, certificateRepo, appliedRepo, audit);
     }
 
     private static MockMultipartFile pdf() {
@@ -145,6 +147,8 @@ class AttachmentServiceTest {
 
         assertThat(service().removeAttachment("CP-1", "10", "5")).isEmpty();
         verify(attachmentRepo).delete(att);
+        verify(audit).recordSuccess(eq("DELETE_EVIDENCE"), eq("CP"), eq("CP-1"), eq("appliedCovenantId=10"),
+                anyString());
     }
 
     @Test
@@ -153,6 +157,7 @@ class AttachmentServiceTest {
 
         assertThatThrownBy(() -> service().removeAttachment("CP-1", "10", "5"))
                 .satisfies(t -> assertStatus(t, 404));
+        verifyNoInteractions(audit);
     }
 
     @Test
@@ -198,6 +203,7 @@ class AttachmentServiceTest {
 
         assertThat(service().removeCertificate("CP-1", "7")).isEmpty();
         verify(certificateRepo).delete(cert);
+        verify(audit).recordSuccess(eq("DELETE_CERTIFICATE"), eq("CP"), eq("CP-1"), anyString(), anyString());
     }
 
     @Test
@@ -206,6 +212,7 @@ class AttachmentServiceTest {
 
         assertThatThrownBy(() -> service().removeCertificate("CP-1", "7"))
                 .satisfies(t -> assertStatus(t, 404));
+        verifyNoInteractions(audit);
     }
 
     @Test
