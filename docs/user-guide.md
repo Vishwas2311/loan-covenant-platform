@@ -365,9 +365,10 @@ Others see "Only an approver can enter values by hand."
 
 ### Tab: AI suggestions
 
-Press **Get AI suggestions**. The model reads this CP's covenants and figures and suggests a status per
-covenant, with its confidence and reasoning. It is advice only: nothing changes unless a person acts. If
-the AI service is not available, it says so.
+Press **Get AI suggestions**. Core sends this CP's covenants and figures to the AI suggestion service,
+which suggests a status per covenant with its confidence and reasoning. By default that is the bank's own
+service (a stand-in on the local stack); with `COVENANT_AI_PROVIDER=dps` it is DPS on Azure OpenAI. It is
+advice only: nothing changes unless a person acts. If the service is not available, it says so.
 
 ### Tab: Cycles
 

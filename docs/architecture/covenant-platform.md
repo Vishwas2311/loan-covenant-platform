@@ -4,7 +4,7 @@
 |---|---|
 | Built by | Our team, on top of [covenanttrackingphase1.2](covenanttrackingphase1.2.md) and [covenant-monitoring](covenant-monitoring.md) |
 | Location | `C:\Users\vishw\covenant-platform`, GitHub `Vishwas2311/loan-covenant-platform` |
-| Folders | `core/` (Java service), `dps/` (Python service), `ui/` (React app), `deploy/` (Docker Compose, Keycloak realm, stubs, mail bridge), `golden-set/` (extraction test set), `loadtest/`, `docs/` |
+| Folders | `core/` (Java service), `dps/` (Python service), `ui/` (React app), `deploy/` (Docker Compose files, Keycloak realm, stack-init, mail bridge, smoke test), `contracts/` (OpenAPI contracts, Redocly lint), `golden-set/` (extraction test set, review tool), `loadtest/`, `scripts/` (line-ending fixer, demo-data reset), `.github/workflows/` (CI, Security, E2E), `docs/`, `outputs/` (readiness review), `graphify-out/` (code knowledge graph) |
 | In one line | covenant-monitoring became **Core**, the system of record that decides compliance; covenanttrackingphase1.2 became the **Document Processing Service (DPS)**, which reads agreements and statements; a new UI, real sign-in, borrower portal and production packaging were built around them |
 
 Back to the [overview](README.md). What each page does for a user: [user-guide.md](../user-guide.md).
@@ -17,12 +17,14 @@ Back to the [overview](README.md). What each page does for a user: [user-guide.m
 | Sign-in | OpenID Connect: **Keycloak 26** locally, **Microsoft Entra ID** in production; JWT on every call; roles RM, APPROVER, AUTHOR, ADMIN, AUDITOR, SUPPORT, BORROWER | New |
 | Core | Java 17, Spring Boot 3.5, Spring Security (JWT resource server), JPA, Quartz (clustered in production), formula engine, Flyway `V1`–`V32` | covenant-monitoring, extended |
 | DPS | Python 3.12, FastAPI, **CrewAI Flows** (Flow A agreements, Flow B statements), SQLAlchemy + Alembic, pypdf, RapidOCR, **Docling** (heavy pool), openpyxl, xlrd | covenanttrackingphase1.2, rebuilt |
-| AI | **Azure OpenAI**: Ask AI, agreement questions, narratives, AI suggestions; token use stored per call | Both, consolidated |
+| AI | **Azure OpenAI** through DPS: Ask AI, agreement questions, statement narratives; token use stored per call; per-user rate limits on calls that cost money. Core's AI status suggestions (C3) call an external service by default (WireMock locally) and use DPS only when `COVENANT_AI_PROVIDER=dps` | Both, consolidated |
+| ML thresholds | Core asks an ML service for suggested thresholds at onboarding; locally a mock inside Core answers (`/internal/mock-ml`) | covenant-monitoring |
 | Database | **SQL Server 2022** (Core's `covenant` database and DPS's tables), `READ_COMMITTED_SNAPSHOT` on | covenant-monitoring |
 | Files | Document store volume for original PDFs and spreadsheets | New |
-| Bank services | Credit-proposal, loan, notification, workflow, file and ML services; **WireMock** stand-ins locally | covenant-monitoring |
+| Bank services | Credit proposals (CP details, RM / WRM, loan status — also used by the nightly loan sync), covenant attributes, data API + data catalogue (REST data sources), customer SQL Server tables (MSSQL data sources), notification, workflow-case and file services; **WireMock** stand-ins locally, with OAuth client-credentials or a fixed token per service | covenant-monitoring |
+| API contracts | OpenAPI files `contracts/dps-api.yaml` and `contracts/core-additions.yaml`, linted with Redocly | New |
 | Packaging | Docker images for Core, DPS (standard and heavy) and UI; Docker Compose; optional Mailpit and two-node files | New |
-| CI | GitHub Actions: build and tests, coverage gates, SpotBugs, golden-set gate, bandit, semgrep, pip-audit, npm audit, Trivy image scan | New |
+| CI | GitHub Actions: build and tests, coverage gates, SpotBugs, golden-set gate, DPS on SQL Server, image builds; Security workflow (bandit, semgrep, pip-audit, npm audit, Trivy); scheduled E2E workflow (Playwright on the full stack) | New |
 
 ## 2. Deployment (local Docker stack)
 
@@ -35,15 +37,15 @@ flowchart TB
         direction TB
         ui["ui — nginx :8080<br/>React app + gateway<br/>/api → core · /dps → dps-api"]
         kc["keycloak :8180<br/>realm 'covenant', test users<br/>(docker-compose.real.yml)"]
-        core["core — Spring Boot :9310<br/>actuator :9320 (internal)"]
+        core["core — Spring Boot :9310<br/>actuator :9320 (internal)<br/>mock ML endpoint /internal/mock-ml (local only)"]
         dpsapi["dps-api — FastAPI :9400"]
         w1["dps-worker<br/>standard pool"]
         w2["dps-worker-heavy<br/>heavy pool (Docling)"]
-        sql[("sqlserver :1433<br/>SQL Server 2022")]
+        sql[("sqlserver :1433 — SQL Server 2022<br/>covenant DB · DPS tables<br/>demo customer tables (MSSQL data sources)")]
         init["stack-init<br/>creates databases and logins"]
-        stubs["bank-stubs — WireMock :9311<br/>CP, loan, notification, workflow, file, ML"]
+        stubs["bank-stubs — WireMock :9311<br/>CP + RM/WRM · covenant attributes · data catalogue + values<br/>obligor values · notifications · workflow cases<br/>file upload / download · AI suggestions"]
         vol[("document store volume")]
-        mp["mailpit :8025 + mail-bridge<br/>(docker-compose.mail.yml, optional)"]
+        mp["mail-bridge :8090 → mailpit :8025<br/>(docker-compose.mail.yml, optional)"]
     end
 
     aoai{{"Azure OpenAI<br/>(internet)"}}
@@ -61,6 +63,7 @@ flowchart TB
     w2 --> vol
     init --> sql
     core --> stubs
+    core -->|reads customer tables| sql
     core -. e-mails .-> mp
     core <--> dpsapi
     dpsapi --> aoai
@@ -97,6 +100,9 @@ flowchart TB
         dapi["API: uploads, documents, term review,<br/>values (C2), recommendations (C1), Ask AI, AI usage"]
         acc["Access check: asks Core whether this user may see this CP<br/>(answers cached 30 s; 503 when Core is busy)"]
         fa["Flow A — agreements<br/>parse → extract → normalise → validate<br/>→ publish / needs review / failed / heavy"]
+        parse["ParserEngine<br/>pypdf text → RapidOCR → Docling (heavy)"]
+        ai2["advisor · ask · agreement_qa<br/>advisory only, rate-limited"]
+        fp["Flow state checkpoints<br/>dps_flow_state"]
         fb["Flow B — statements<br/>parse → extract and calculate → validate<br/>→ report / needs review / failed / heavy"]
         wk["Workers: standard + heavy pools,<br/>job queue with leases and 3 attempts"]
         ob["Event outbox → Core<br/>DATA_EVENT after new figures"]
@@ -115,15 +121,93 @@ flowchart TB
     sec --> kept & added
     q --> kept & added
     kept & added --> sql
-    added -->|C1, C2, C3| dapi
+    added -->|"C1 recommendations · C2 values · C3 AI (opt-in)"| dapi
     dapi --> acc -->|is this CP yours?| sec
     dapi --> wk --> fa & fb
+    fa & fb --> parse
+    fa & fb -.-> fp
+    dapi --> ai2 --> aoai
     fa & fb --> store
     fb --> ob -->|DATA_EVENT| sec
     dapi & fa & fb --> sql
-    dapi & added --> aoai
     added --> bank
 ```
+
+## 3b. Inside Core — every controller and the services behind it
+
+| Area | Controllers (`/api/v1/...`) | Main services | Kept / new |
+|---|---|---|---|
+| Covenant library | `CovenantMasterController` (`/covenants`), `FormulaController` (`/formulas`), `CronValidationController` (`/schedules/validate-cron`) | `CovenantMasterService`, `CovenantConditionValidator`, `RuleRecheckService` (re-check every CP when a rule changes), `FormulaEngine` | Kept; re-check new |
+| Measures and data sources | `MeasureController`, `DataSourceController`, `DataSourceTableController` | `MeasureService`, `MeasureCatalogService`, `MeasureChangeListener`, `DataSourceService`, `DataSourceTableService`, `ColumnDiscoveryService`, `JdbcDataSourceRegistry` | Kept |
+| Onboarding | `RecommendationController` (`/credit-proposals/{cpId}/...`), `AppliedCovenantController`, `MlThresholdController`, `MockMlThresholdController` (`/internal/mock-ml`, local) | `RecommendationService`, `OnboardingRecommendationService`, `ExtractionRecommendationService` + `WebClientExtractionRecommender` (C1), `MlThresholdService`, `AppliedCovenantService`, `ObligorMappingService` | Kept; C1 new |
+| Checking | `AssessmentController` (`/assessments/run`), `DataEventController` (`/data-events`, C5) | `AssessmentService`, `FormulaMeasureBinder`, `MeasureAggregationResolver`, `IngestionOrchestrationService`, `StagingIngestionService`, `IngestionPreStageService`, `DataEventService`, `ScheduleService` | Kept; data events, stale fallback new |
+| Monitoring and review | `MonitoringController`, `CovenantAssessmentController` (review grid, status, waiver decision, attachments), `CpCycleController`, `AlertController`, `AnalyticsController` | `MonitoringService`, `ReviewService`, `CpDirectoryService`, `PortfolioCache`, `CpChangeListener`, `AlertService`, `AnalyticsService`, `TrendService`, `CpLineageService`, `CpCycleService`, `AiSuggestionService` | Kept; cache, alerts, analytics new |
+| Tasks | `WorkQueueController` (`/tasks`) | `WorkQueueService`, `TaskSyncJob`, `TaskSyncTracker` | New |
+| Certificates, borrowers, letters | `CertificateRequirementController`, `BorrowerReminderController`, `PortalAccessController`, `PortalController` (`/portal`), `LetterController` | `CertificateRequirementService`, `ReminderService`, `PortalService`, `LetterService` (+ `DocxWriter`), `AttachmentService` | New (attachments kept) |
+| Reports and exports | `ReportController` (`/reports/open-breaches` + `.pdf` / `.xlsx`), `SavedReportController`, `ExportController` (`comparison.xlsx`, `covenants/export.xlsx`) | `BreachReportService` (+ `TextPdfWriter`), `ScheduledReportService`, `ComparisonService` (+ `XlsxWriter`) | New |
+| Notifications and runs | `NotificationRunController` (`/monitoring/notification-runs`, manual run + status) | `BreachNotificationService`, `ManualRunService` (`cov_manual_run`), `EscalationService`, `DailyBreachRunJob`, `DailyRunInitializer`, `LoanSyncService` | Kept; manual run, escalation, loan sync new |
+| Settings | `ReportingSettingsController`, `FxController` (`/fx/rates`) | `ReportingSettingsService`, `FxService` | Kept; FX new |
+| Support (support token) | `OpsDiagnosticsController`, `OpsRemediationController`, `OpsHealthController`, `OpsAuditController` (audit, sent e-mails), `OpsCleanupController` | `OpsDiagnosticsService`, `OpsRemediationService`, `OpsHealthService`, `OpsAuditService`, `CpDataCleanupService`, `SupportEntityKeyResolver` | Kept |
+
+Cross-cutting pieces:
+
+| Piece | Classes | What it does |
+|---|---|---|
+| Sign-in | `SecurityConfig`, `JwtAuthConverter`, `Roles`, `SecurityProperties` | Checks the JWT (issuer, audience, signature) and maps its roles |
+| Dev mode | `DevHeaderAuthenticationFilter`, `CurrentUserContext` | "Act as" header sign-in for development only; refused with the prod profile |
+| CP isolation | `CpAccessGuard` | Every CP-scoped call checks that the user may see that CP |
+| Support gate | `SupportTokenInterceptor`, `SupportTokenStartupCheck`, `SupportProperties` | `/api/v1/ops/**` needs the support token; Core will not start without one |
+| Internal port | `ManagementPort` | Actuator (health, metrics, Prometheus) only on port 9320 |
+| Request logging | `RequestLogContextFilter` | Adds the request id and user to every log line |
+| Bank-service clients | 9 `WebClient*` clients, `WebClientsConfig`, `ClientsProperties`, `ClientCredentialsTokenProvider`, resilience4j | Credit proposals, attributes, data API, data catalogue, workflow, notifications, files, ML, AI suggestions — with retries and circuit breakers |
+| Retries | `TransientRetry` | Re-runs a whole transaction that SQL Server chose as a deadlock victim |
+| Health | `DataSourceHealthIndicator` | Reports each data source in `/actuator/health` |
+| Dev stubs | `WireMockDevConfig` | Starts WireMock inside Core for the dev profile |
+
+## 3c. Inside DPS — every module
+
+| Module | What it does |
+|---|---|
+| `main.py`, `settings.py`, `db.py` | App factory, configuration, database sessions; refuses SQL Server without `READ_COMMITTED_SNAPSHOT` |
+| `api.py`, `errors.py` | All `/dps/v1` endpoints and the error envelope |
+| `auth.py`, `access.py` | Checks the user's JWT; asks Core whether the user may see each CP (cached 30 s) |
+| `service_auth.py`, `core_client.py` | DPS's own client-credentials token, and its calls to Core (library, measures, data events) |
+| `ratelimit.py` | Per-user limits on Ask AI, agreement questions and uploads |
+| `jobs.py`, `worker.py` | Job queue on `dps_job` (leases, 3 attempts, heavy pool); the worker process and the event outbox sender |
+| `flows/intake.py` | Flow A — loan agreements |
+| `flows/statement.py` | Flow B — financial statements |
+| `flows/persistence.py` | Saves flow checkpoints in `dps_flow_state`, so a review can resume the flow |
+| `parsing.py` | ParserEngine: pypdf text first, RapidOCR for pages without text, Docling in the heavy pool |
+| `extraction/agreement.py`, `extraction/mapping.py`, `extraction/validation.py` | Find covenants; map them to Core's library; citation, confidence and operator checks |
+| `extraction/terms_info.py` | Agreement facts that are not covenants (testing basis, cure periods, definitions) |
+| `extraction/statement.py`, `catalog.py` | Read statement line items (PDF, XLSX, XLS, CSV) and the line-item catalogue served to Core |
+| `services.py` | Recommendations (C1, amendments replace earlier terms), values (C2), removal, spreads |
+| `advisor.py`, `ask.py`, `agreement_qa.py` | AI suggestions (C3), Ask AI over the user's own portfolio, questions about one agreement — all advisory |
+| `usage.py` | Tokens and cost of every model call (`dps_ai_usage`) |
+| `storage.py` | Content-addressed document store (to be replaced by the bank's file service) |
+| `models.py` | The `dps_*` tables (Alembic migrations in `dps/migrations`) |
+
+## 3d. Inside the UI
+
+| Part | Files | What it does |
+|---|---|---|
+| Shell and menu | `App.tsx`, `auth/access.ts` | Menu by role, "not for your role" page, route guards |
+| Sign-in | `auth/oidc.ts`, `auth/identity.ts`, `auth/useIdentity.ts` | OIDC with PKCE in real mode; "Act as" picker in dev mode; borrower-only users get the portal |
+| API layer | `api/client.ts`, `api/endpoints*.ts`, `api/types*.ts` | Typed calls to `/api` and `/dps` with the token |
+| Pages | `Portfolio`, `MyTasks`, `CpWorkspace` (+ `CovenantPanel`, `CpExtras`, `CpMore`), `Onboarding` (+ `CpQueues`), `Documents`, `Library`, `Reports` (+ `Charts`, `Phase3`), `Measures`, `DataSources`, `Settings`, `Ops` (document jobs, Ask AI), `Support`, `Portal`, `Phase4` | One page per menu item |
+| Shared components | `AlertBell`, `CpPicker`, `Board` (KPIs, chart cards), `charts.tsx`, `Status`, `ColorSchemeToggle`, `BrandMark` | Alerts, CP search, charts, light / dark |
+
+## 3e. Contracts between Core and DPS
+
+| Contract | Direction | Endpoint | Purpose |
+|---|---|---|---|
+| C1 | Core → DPS | `POST /dps/v1/recommendations` | Published agreement covenants for onboarding |
+| C2 | Core → DPS | `POST /dps/v1/values`, `GET /dps/v1/catalog` | Statement figures, through Core's REST data-source contract |
+| C3 | Core → DPS (opt-in) | `POST /dps/v1/ai-suggestions` | Advisory AI status suggestions, when `COVENANT_AI_PROVIDER=dps` |
+| C4 | DPS → Core | Core library and measures APIs | Map extracted terms to library covenants and measures |
+| C5 | DPS → Core | `POST /api/v1/data-events` | "New figures for this CP and period" — Core re-checks the covenants that use them |
+| C6 | Core → bank | file service | Evidence and certificate files (DPS keeps its own document store for now) |
+| Access check | DPS → Core | Core's CP access check | One rule for who may see a CP, applied by both services |
 
 ## 4. Journey A — loan agreement to monitored covenants
 
@@ -307,6 +391,7 @@ New Core tables: `cov_work_task`, `cov_saved_report`, `cov_certificate_requireme
 %%{init: {"flowchart": {"wrappingWidth": 420}}}%%
 flowchart LR
     push["git push"] --> ci & secw
+    nightly["schedule / manual"] --> e2e
     subgraph ci["CI workflow"]
         b1["Core: Maven verify<br/>unit + integration, JaCoCo, SpotBugs"]
         b2["DPS: ruff, pytest 90%+ coverage"]
@@ -321,6 +406,11 @@ flowchart LR
         s3["pip-audit (DPS)"]
         s4["npm audit (UI)"]
         s5["Trivy: Core, DPS, UI images"]
+    end
+    subgraph e2e["E2E workflow"]
+        e1["Full stack in Docker<br/>throwaway secrets, Keycloak"]
+        e2["Playwright: 58 tests<br/>roles, journeys, accessibility"]
+        e1 --> e2
     end
 ```
 
