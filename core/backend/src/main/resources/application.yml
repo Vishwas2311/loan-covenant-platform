@@ -117,6 +117,11 @@ covenant:
   # DailyRunInitializer; 06:00 every day by default. Overridable per environment.
   notifications:
     cron: "0 0 6 * * ?"
+  # FR-31: breaches unhandled longer than after-days go to these addresses (comma-separated, e.g. the
+  # credit head) in one digest after the daily run. Empty switches escalation off.
+  escalation:
+    recipients: ${COVENANT_ESCALATION_RECIPIENTS:}
+    after-days: ${COVENANT_ESCALATION_AFTER_DAYS:14}
   security:
     # R0/T1 authentication. JWT (default) validates Entra ID bearer tokens. Configure via env:
     # COVENANT_JWT_ISSUER (e.g. https://login.microsoftonline.com/<tenant>/v2.0),

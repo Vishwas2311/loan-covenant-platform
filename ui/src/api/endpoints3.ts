@@ -3,7 +3,7 @@ import type { Frequency, NewCovenant } from './types';
 import type {
   AiSuggestion, Alert, AppliedChange, TrendPoint, AppliedCovenant, Assessment, Attachment, CovenantDetail, CovenantUsage,
   CpDiagnostics, Cycle, DataColumn, DataSource, DataSourceTable, DataSourceWrite, DefinitionChange, ExpressionChange,
-  HealthReport, MeasureDetail, MeasureWrite, OpsAudit, TableWrite, Remediation, RunResult, ScheduleEvent, SentNotification,
+  HealthReport, ManualRun, MeasureDetail, MeasureWrite, OpsAudit, TableWrite, Remediation, ScheduleEvent, SentNotification,
   TestConnection, ThresholdSuggestion,
 } from './types3';
 
@@ -130,6 +130,7 @@ export const r3 = {
   sendReminders: () => api<{ contacts: number; sent: number; failed: number }>('/api/v1/monitoring/reminder-runs',
     { method: 'POST' }),
   sendScheduledReports: () => api<{ sent: number }>('/api/v1/reports/scheduled-runs', { method: 'POST' }),
-  sendDailyEmail: () => api<RunResult>('/api/v1/monitoring/notification-runs', { method: 'POST' }),
+  sendDailyEmail: () => api<ManualRun>('/api/v1/monitoring/notification-runs', { method: 'POST' }),
+  dailyRun: (runId: string) => api<ManualRun>(`/api/v1/monitoring/notification-runs/${encodeURIComponent(runId)}`),
   notifications: () => api<SentNotification[]>('/api/v1/ops/notifications', ops()),
 };

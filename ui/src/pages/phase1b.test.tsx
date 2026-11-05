@@ -69,7 +69,13 @@ describe('support tools, the rest', () => {
             tableCount: 1, stagingRowCount: 9, lastIngestAt: null, message: 'refused' }] } };
       }
       if (url.endsWith('/notification-runs') && init.method === 'POST') {
-        return { body: { runId: 'r', covenantsAssessed: 7, cpsTouched: 2, notificationsSent: 2, notificationsFailed: 1 } };
+        return { status: 202, body: { runId: 'r', status: 'RUNNING', runDate: '2026-11-03', startedBy: 'support-1',
+          startedAt: '2026-11-03T10:00:00Z', finishedAt: null, result: null, error: null } };
+      }
+      if (url.endsWith('/notification-runs/r')) {
+        return { body: { runId: 'r', status: 'DONE', runDate: '2026-11-03', startedBy: 'support-1',
+          startedAt: '2026-11-03T10:00:00Z', finishedAt: '2026-11-03T10:05:00Z', error: null,
+          result: { runId: 'r', covenantsAssessed: 7, cpsTouched: 2, notificationsSent: 2, notificationsFailed: 1 } } };
       }
       return { body: [] };
     });
@@ -97,6 +103,7 @@ describe('support tools, the rest', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Sent e-mails' }));
     expect(await screen.findByText('No e-mails sent yet.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Send today/ }));
+    expect(await screen.findByText(/check has started/)).toBeInTheDocument();
     expect(await screen.findByText('7 covenant(s) checked, 2 e-mail(s) sent, 1 failed')).toBeInTheDocument();
   });
 });

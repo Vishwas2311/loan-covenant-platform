@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./dps.db"
     storage_dir: Path = Path("./storage")
     max_upload_mb: int = 50
+    max_pages: int = 500  # FR-01: longer PDFs are refused at upload
     # Per-user calls a minute (0 switches a limit off): AI answers cost money, uploads queue work.
     ask_per_minute: int = 20
     uploads_per_minute: int = 30

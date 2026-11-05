@@ -19,13 +19,13 @@ Every bug below was reproduced, with evidence in `test-results.md`. No product c
 | BUG-04 | High | DPS | Concurrent uploads deadlock on SQL Server (the production database) | Fixed |
 | BUG-05 | High | Core | "My tasks" returns 500 after a large daily run (SQL 8003) | Fixed |
 | BUG-06 | Medium | Core | A CP onboarded without the recommendation step is missing from its RM's portfolio | Fixed |
-| BUG-07 | Medium | DPS | DPS answers "CP not found" when Core is only slow | Open (phase 2) |
-| BUG-08 | Medium | Core | All covenant schedules fire in the same second | Open (phase 2) |
-| BUG-09 | Medium | Core | 2,800 schedules still run in UTC | Open (phase 2) |
-| BUG-10 | Medium | Core / UI | A manual daily run through the gateway ends with 504 | Open (phase 2) |
-| BUG-11 | Medium | DPS | The 500-page limit (FR-01) is not enforced | Open (phase 2) |
-| BUG-12 | Medium | AI | Agreement Q&A returns planted or irrelevant text as the answer | Open (phase 2) |
-| BUG-13 | Low | DPS / UI | The RM sees "Failed" with no reason | Open (phase 2) |
+| BUG-07 | Medium | DPS | DPS answers "CP not found" when Core is only slow | Fixed (phase 2) |
+| BUG-08 | Medium | Core | All covenant schedules fire in the same second | Fixed (phase 2) |
+| BUG-09 | Medium | Core | 2,800 schedules still run in UTC | Fixed (phase 2) |
+| BUG-10 | Medium | Core / UI | A manual daily run through the gateway ends with 504 | Fixed (phase 2) |
+| BUG-11 | Medium | DPS | The 500-page limit (FR-01) is not enforced | Fixed (phase 2) |
+| BUG-12 | Medium | AI | Agreement Q&A returns planted or irrelevant text as the answer | Fixed (phase 2) |
+| BUG-13 | Low | DPS / UI | The RM sees "Failed" with no reason | Fixed (phase 2) |
 | BUG-14 | Low | Config | The local stack uses a 10-connection database pool | Fixed (pool 20 in every profile) |
 | BUG-15 | High | Core | Bank-wide task sync was quadratic (found in re-test) | Fixed |
 | BUG-16 | High | Deploy | Core heap could take 75% of the host and starve SQL Server (found in re-test) | Fixed |
@@ -167,11 +167,11 @@ Every bug below was reproduced, with evidence in `test-results.md`. No product c
 | ID | Severity | Gap |
 |---|---|---|
 | GAP-01 | High | Golden set: 10 agreements, 0 statements. The PRD asks for at least 20 of each, labelled by credit analysts. The labels are extractor drafts, so the gate cannot find extractor errors (BUG-01). |
-| GAP-02 | Medium | FR-31: escalations show in reports and tasks, but no notification is sent. |
+| GAP-02 | Closed (phase 2) | FR-31: escalations show in reports and tasks, but no notification is sent. Now a daily digest goes to `COVENANT_ESCALATION_RECIPIENTS`. |
 | GAP-03 | Medium | Reliability wording: with DPS down, assessments run on Core's staged copy (`cov_staging_value`), within `max_age_days`, instead of failing with `DATA_SOURCE_FAILURE`. Core stays up; the stale-copy path needs a decision and a test. |
 | GAP-04 | Medium | Quality gate: no bandit or semgrep step in CI. |
 | GAP-05 | Medium | Observability: LLM tokens and cost per job are not recorded. |
-| GAP-06 | Medium | The notification client sends no authentication to the bank's notification service. |
+| GAP-06 | Closed (phase 2) | The notification client sent no authentication. Every bank-service client now uses OAuth client credentials (or a fixed token) when configured. |
 | GAP-07 | Medium | Not verified: Entra ID SSO, the bank gateway, the bank's CP, loan, notification and workflow services (the workflow client logs "placeholder for case case-dev-mock-1"). |
 | GAP-08 | Low | FR-25: no industry risk treemap or exposure-by-sector figure. |
 | GAP-09 | Low | FR-28 financial news not built (optional). |
@@ -226,3 +226,18 @@ Per-covenant triggers and the daily sweep both write SCHEDULED assessments. 7,60
 | BUG-15 | Reads sync inline only for portfolios up to 300 CPs, clearing the persistence context after each CP. `TaskSyncJob` (clustered Quartz, every 5 minutes) syncs every CP in its own transaction. | `WorkQueueService`, `TaskSyncJob`, `ScheduleService`, `DailyRunInitializer`, `TaskSyncTracker` |
 | BUG-16 | `mem_limit: ${CORE_MEM_LIMIT:-2g}` on Core, so `MaxRAMPercentage=75` applies to 2 GB (heap 1.6 GB). | `deploy/docker-compose.yml` |
 | BUG-17 | CP-name misses remembered for 10 minutes. | `CpDirectoryService` |
+
+## Phase 2 fixes
+
+| Item | Change | Where | Live check |
+|---|---|---|---|
+| BUG-07 | Core time-out, connection error or 5xx gives 503 `ACCESS_CHECK_UNAVAILABLE`, not 404. A "yes" is cached for 30 s per (user, roles, CP, read/write), so DPS no longer asks Core on every call. | `dps/src/dps/access.py` | Load test, section 10 of `test-results.md` |
+| BUG-08 | A frequency's default cron gets a second and minute within its hour from the covenant id (`ScheduleService.spread`). | `ScheduleService` | 9,060 triggers spread over 3,304 distinct times |
+| BUG-09 | At start-up, triggers still bunched or in another zone are rebuilt in the server zone, in the background. | `ScheduleService.realignCovenantTriggers`, `DailyRunInitializer` | "Realigned 9057 covenant triggers"; all 9,060 on Asia/Kolkata |
+| BUG-10 | The manual run starts in the background; POST answers 202 with a run id, GET reports RUNNING/DONE/FAILED from table `cov_manual_run` (V32), so any instance can answer; one run at a time. The Support screen follows the run. | `ManualRunService`, `NotificationRunController`, `Support.tsx` | 202 in 0.39 s; 9,052 covenants DONE after 311 s, no 504 |
+| BUG-11 | PDFs over `DPS_MAX_PAGES` (500) refused with 400 `TOO_MANY_PAGES`. | `dps/src/dps/api.py` | 600 pages: 400 with "Split it and upload the parts" |
+| BUG-12 | Q&A ranks covenant clauses first, matches metric aliases and min/max wording, drops text addressed to an AI model (also from the model's extracts), and answers "does not appear to state that" below a relevance floor. | `dps/src/dps/agreement_qa.py` | Planted "DSCR minimum 0.10" no longer answers; CRISIL rating question gets "not found" |
+| BUG-13 | Failed documents carry `failureReason` in plain words; the document page shows it to the RM. | `dps/src/dps/api.py`, `Documents.tsx` | Encrypted PDF: "This PDF is password-protected. Upload a copy without a password." |
+| GAP-02 | Daily escalation digest to the configured recipients, audited with the other notifications. | `EscalationService`, `DailyBreachRunJob` | Unit tests (needs the bank's template `Cov_Escalation`) |
+| GAP-06 | OAuth client credentials or a fixed token for every bank-service client. | `WebClientsConfig.bankClient` | WireMock tests: token fetched and sent |
+| Capacity | Portfolio summaries and review rows cached for up to 30 s, dropped on any write the change listener sees. | `PortfolioCache`, `MonitoringService`, `ReviewService` | Section 10 of `test-results.md` |

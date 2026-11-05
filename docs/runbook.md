@@ -59,8 +59,16 @@ Both services refuse to start with an unsafe setting, so a mistake shows up at d
 | `COVENANT_DS_<NAME>` | password of each MSSQL data source, named by its `secretRef` | *secret* |
 | `COVENANT_CLIENTS_CREDIT_PROPOSAL_BASE_URL` | bank service | also `..._ATTRIBUTES_...`, `..._DATA_API_...`, `..._WORKFLOW_...`, `..._ML_...`, `..._NOTIFICATION_...`, `..._FILE_UPLOAD_...`, `..._AI_SUGGESTION_...` |
 | `COVENANT_AI_PROVIDER` | `external` (bank service) or `dps` | which service writes AI suggestions |
+| `COVENANT_CLIENTS_<SERVICE>_OAUTH_TOKEN_URI`, `..._OAUTH_CLIENT_ID`, `..._OAUTH_CLIENT_SECRET`, `..._OAUTH_SCOPE` | per bank service (`NOTIFICATION`, `CREDIT_PROPOSAL`, `ATTRIBUTES`, `DATA_API`, `WORKFLOW`, `ML`, `FILE_UPLOAD`, `AI_SUGGESTION`) | *secret*; when set, Core fetches and refreshes a client-credentials token for that service. `..._SERVICE_TOKEN` is the fixed-token alternative |
+| `COVENANT_ESCALATION_RECIPIENTS` | comma-separated, for example the credit head | FR-31 digest of breaches unhandled longer than `COVENANT_ESCALATION_AFTER_DAYS` (default 14), sent after the daily run with template `Cov_Escalation`; empty switches it off |
 
 The daily breach run fires at 06:00 server time (`covenant.notifications.cron`); one instance runs it, thanks to Quartz clustering.
+
+Covenant schedules: a frequency's default cron (`0 0 2 * * ?`) fires at a second and minute within that hour fixed per covenant, so a large book spreads over the hour. At start-up Core rebuilds any covenant trigger still bunched at the top of the hour or in another time zone and logs `Realigned N covenant triggers`.
+
+Manual daily run (Support, "Send today's e-mails now"): `POST /api/v1/monitoring/notification-runs` answers 202 with a run id; `GET /api/v1/monitoring/notification-runs/{runId}` shows RUNNING, DONE with counts, or FAILED with the reason. A second start while one is running returns that run.
+
+Portfolio pages keep their aggregates for up to 30 seconds; any write on the same Core instance drops them at once. With two instances, a write on one shows on the other within 30 seconds.
 
 Task lists: a read by an RM or approver syncs that person's CPs first (up to 300 CPs). Bank-wide roles and CPs nobody opens are kept current by the background task sync: changed CPs within 5 minutes, others every 30 minutes.
 
@@ -82,6 +90,9 @@ Task lists: a read by an RM or approver syncs that person's CPs first (up to 300
 | `DPS_WORKER_POOL` | `STANDARD` or `HEAVY` (workers only) | |
 | `DPS_AI_MODEL` | for example `azure/gpt-4o`, with `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` | empty: advisory AI runs on rules |
 | `DPS_MAX_UPLOAD_MB` | default `50` | keep the UI's nginx `client_max_body_size` (60m) above it |
+| `DPS_MAX_PAGES` | default `500` | longer PDFs are refused at upload (FR-01) |
+
+DPS asks Core whether a user may see a CP and remembers a "yes" for 30 seconds; a revoked CP is refused again within that time. When Core cannot answer, DPS returns 503 `ACCESS_CHECK_UNAVAILABLE` (retry), never "not found".
 
 Worker IDs default to the host name; leave `DPS_WORKER_ID` unset.
 

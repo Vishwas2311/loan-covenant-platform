@@ -58,14 +58,14 @@ a { color: var(--accent); }
 
 <main>
   <header>
-    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phase 1 fixes</span>
+    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phase 1 and phase 2 fixes</span>
     <h1>Covenexa: Core, DPS and UI on the local real stack</h1>
     <p class="muted">Keycloak, SQL Server 2022, Azure OpenAI, WireMock bank stubs, one 8-CPU host. The baseline review changed no code; phase 1 fixes followed and were re-tested.</p>
   </header>
 
   <section class="verdict" aria-label="Verdict" style="background:var(--high-bg);border-left-color:var(--high)">
     <b style="color:var(--high)">READY WITH CONDITIONS</b>
-    <p>The baseline verdict was NOT READY. Phase 1 fixed the critical bug and all five high-severity bugs, and re-tested them. Pilot use is fine. Full production needs four more things: an analyst-labelled golden set, tests against the bank's real systems, a penetration test, and a load test on production hardware.</p>
+    <p>The baseline verdict was NOT READY. Phases 1 and 2 fixed every bug the review found and re-tested them. Pilot use is fine. Full production needs four more things: an analyst-labelled golden set, tests against the bank's real systems, a penetration test, and a load test on production hardware.</p>
   </section>
 
   <section>
@@ -82,7 +82,25 @@ a { color: var(--accent); }
         <tr><td class="id">Re-test</td><td>Bank-wide task sync quadratic; Core could take 75% of host memory</td><td>Background sync job; 2 GB memory limit</td></tr>
       </tbody>
     </table></div>
-    <p class="muted">Core: 1,163 unit and 51 integration tests pass, coverage gate met, SpotBugs 0. DPS: 98% coverage. Playwright: 52 of 52.</p>
+  </section>
+
+  <section>
+    <h2>Phase 2: before and after</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>Item</th><th>Before</th><th>After (checked live)</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BUG-07</td><td>Slow Core made DPS say "CP not found"</td><td>503 "retry"; grants cached 30 s</td></tr>
+        <tr><td class="id">BUG-08/09</td><td>4,800 schedules at 02:00:00; 2,800 in UTC</td><td>9,060 spread over 3,304 times, all IST</td></tr>
+        <tr><td class="id">BUG-10</td><td>Manual run: 504 at the gateway</td><td>202 at once; done after 311 s</td></tr>
+        <tr><td class="id">BUG-11</td><td>600-page PDF accepted</td><td>Refused with a clear message</td></tr>
+        <tr><td class="id">BUG-12</td><td>Q&amp;A returned planted text</td><td>Right clause, or "not stated"</td></tr>
+        <tr><td class="id">BUG-13</td><td>RM saw only "Failed"</td><td>Plain reason, e.g. password-protected PDF</td></tr>
+        <tr><td class="id">FR-31</td><td>No escalation notification</td><td>Daily digest to configured recipients</td></tr>
+        <tr><td class="id">GAP-06</td><td>No credentials to bank services</td><td>OAuth client credentials or fixed token</td></tr>
+        <tr><td class="id">Capacity</td><td>100 users: p95 up to 5 s, SQL 422% CPU</td><td>p95 0.15–2.3 s, SQL 173% CPU</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Core: 1,176 unit and 53 integration tests pass, coverage gate met, SpotBugs 0. DPS: 98% coverage. UI: 123 unit tests. Playwright: 52 of 52. Above roughly 100–150 concurrent RMs on one 8-CPU host, add a second Core instance.</p>
   </section>
 
   <section>

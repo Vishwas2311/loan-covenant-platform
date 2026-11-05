@@ -277,6 +277,18 @@ export interface RunResult {
   notificationsFailed: number;
 }
 
+/** A manual daily run: RUNNING, then DONE with its counts or FAILED with the reason. */
+export interface ManualRun {
+  runId: string;
+  status: 'RUNNING' | 'DONE' | 'FAILED';
+  runDate: string;
+  startedBy: string;
+  startedAt: string;
+  finishedAt: string | null;
+  result: RunResult | null;
+  error: string | null;
+}
+
 export interface SentNotification {
   id: string;
   runId: string;

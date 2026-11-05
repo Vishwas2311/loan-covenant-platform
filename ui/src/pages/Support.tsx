@@ -4,7 +4,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { errorMessage } from '../api/client';
 import { r3, setSupportToken } from '../api/endpoints3';
 import type { SentNotification } from '../api/types3';
@@ -164,16 +164,36 @@ function Health() {
 function Emails() {
   const [open, setOpen] = useState<SentNotification | null>(null);
   const list = useQuery({ queryKey: ['sent-emails'], queryFn: r3.notifications });
+  // The run goes on in the background (a large book takes minutes); follow it until it finishes.
+  const [runId, setRunId] = useState<string | null>(null);
   const send = useMutation({
     mutationFn: r3.sendDailyEmail,
     onSuccess: (r) => {
-      notifications.show({ color: r.notificationsFailed ? 'orange' : 'green',
-        message: `${r.covenantsAssessed} covenant(s) checked, ${r.notificationsSent} e-mail(s) sent`
-          + (r.notificationsFailed ? `, ${r.notificationsFailed} failed` : '') });
-      list.refetch();
+      notifications.show({ message: 'Today\'s check has started. This page will tell you when it finishes.' });
+      setRunId(r.runId);
     },
     onError: fail,
   });
+  const run = useQuery({
+    queryKey: ['daily-run', runId], queryFn: () => r3.dailyRun(runId!), enabled: !!runId,
+    refetchInterval: (q) => (q.state.data?.status === 'RUNNING' ? 3000 : false),
+  });
+  useEffect(() => {
+    const r = run.data;
+    if (!r || r.status === 'RUNNING') {
+      return;
+    }
+    if (r.status === 'DONE' && r.result) {
+      const x = r.result;
+      notifications.show({ color: x.notificationsFailed ? 'orange' : 'green',
+        message: `${x.covenantsAssessed} covenant(s) checked, ${x.notificationsSent} e-mail(s) sent`
+          + (x.notificationsFailed ? `, ${x.notificationsFailed} failed` : '') });
+    } else {
+      notifications.show({ color: 'red', message: `Today's check failed: ${r.error ?? 'unknown error'}` });
+    }
+    setRunId(null);
+    list.refetch();
+  }, [run.data, list]);
   const reminders = useMutation({
     mutationFn: r3.sendReminders,
     onSuccess: (r) => {
@@ -201,7 +221,7 @@ function Emails() {
     <Stack>
       <Group>
         <Button onClick={() => window.confirm('Run today\'s check and send the summary e-mails now?') && send.mutate()}
-          loading={send.isPending}>Send today&apos;s e-mails now</Button>
+          loading={send.isPending || run.data?.status === 'RUNNING'}>Send today&apos;s e-mails now</Button>
         <Button variant="light" onClick={() => reminders.mutate()} loading={reminders.isPending}>Send borrower reminders now</Button>
         <Button variant="light" onClick={() => reports.mutate()} loading={reports.isPending}>Send scheduled reports now</Button>
       </Group>

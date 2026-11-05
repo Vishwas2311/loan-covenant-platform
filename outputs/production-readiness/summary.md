@@ -1,6 +1,6 @@
 # Production-readiness review: summary
 
-**Verdict after phase 1 fixes: READY WITH CONDITIONS**
+**Verdict after phase 1 and phase 2 fixes: READY WITH CONDITIONS**
 
 | | |
 |---|---|
@@ -17,7 +17,7 @@ The baseline found one critical bug and five high-severity bugs; all six are now
 3. **Security (RISK-04).** Complete a penetration test and an ASVS L2 review.
 4. **Capacity on production hardware (RISK-02).** Repeat the real-portfolio load test on production-like hosts, with the load generator on its own machine. Size Core, SQL Server and the connection pool from it.
 
-Phase 2 items (BUG-07 to BUG-13 and the open gaps) should be scheduled before a bank-wide rollout.
+Phase 2 is also done: BUG-07 to BUG-13, escalation notifications (FR-31) and bank-service credentials (GAP-06) are fixed and checked live; see "Phase 2" below.
 
 ## What phase 1 fixed
 
@@ -49,6 +49,22 @@ One 8-CPU host runs every service.
 
 At 250 users, SQL Server is the limit: portfolio aggregates are recomputed on every page. A short per-user cache of portfolio aggregates is planned for phase 2.
 
+## Phase 2
+
+| Item | Before | After (checked live) |
+|---|---|---|
+| BUG-07 DPS access check | Slow Core gave "CP not found" | 503 "retry"; grants cached 30 s |
+| BUG-08, BUG-09 Schedules | 4,800 covenants fired at 02:00:00; 2,800 in UTC | 9,060 triggers spread over 3,304 times, all IST |
+| BUG-10 Manual daily run | 504 at the gateway | 202 at once; finished after 311 s (9,052 covenants) |
+| BUG-11 Page limit | 600 pages accepted | Refused with a clear message |
+| BUG-12 Agreement Q&A | Planted text returned as the answer | Right clause, or "does not appear to state that" |
+| BUG-13 Failure reason | "Failed" only | "This PDF is password-protected. Upload a copy without a password." |
+| FR-31 Escalation | No notification | Daily digest to `COVENANT_ESCALATION_RECIPIENTS` |
+| GAP-06 Bank-service credentials | None sent | OAuth client credentials or a fixed token, per service |
+| Capacity | 100 users: p95 up to 5 s | 100 users: p95 0.15–2.3 s, SQL Server CPU down from 422% to 173% |
+
+Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit; add a second Core instance for more.
+
 ## Still true from the baseline
 
 - **PRD performance targets pass with wide margins.**
@@ -64,13 +80,13 @@ At 250 users, SQL Server is the limit: portfolio aggregates are recomputed on ev
 - **Calculations, units, security controls, Ask AI scoping, backup and restore, the nightly run and two-node Quartz** all pass.
 - **Correction:** GAP-10 was wrong. Certificate reminders and saved reports already run inside the daily 06:00 job.
 
-## Quality gates after the fixes
+## Quality gates after phase 2
 
 | Component | Result |
 |---|---|
-| Core | 1,163 unit and 51 integration tests pass, coverage gate met, SpotBugs 0 findings |
-| DPS | Tests pass, 98% coverage, golden-set gate 24 of 24, ruff clean |
-| UI | Playwright 52 of 52 pass; 122 unit tests (unchanged) |
+| Core | 1,176 unit and 53 integration tests pass, coverage gate met, SpotBugs 0 findings |
+| DPS | Tests pass, 98.13% coverage, golden-set gate 24 of 24, ruff clean |
+| UI | Playwright 52 of 52; 123 unit tests |
 
 ## Files
 

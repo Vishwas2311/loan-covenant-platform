@@ -115,6 +115,39 @@ def test_string_parameters_are_sent_as_varchar_on_sql_server():
     assert "CAST(" in sql and "AS VARCHAR(64))" in sql
 
 
+def test_a_pdf_over_the_page_limit_is_refused(client, app):
+    import io
+
+    from pypdf import PdfWriter
+
+    w = PdfWriter()
+    for _ in range(3):
+        w.add_blank_page(width=200, height=200)
+    buf = io.BytesIO()
+    w.write(buf)
+    app.state.settings.max_pages = 2
+    r = upload(client, data=buf.getvalue(), name="long.pdf")
+    assert r.status_code == 400 and r.json()["code"] == "TOO_MANY_PAGES"
+    assert "3 pages" in r.json()["message"]
+
+
+def test_a_failed_document_tells_the_rm_why(client, app):
+    from dps.api import failure_reason
+
+    doc_id = upload(client, data=PDF + b"%locked").json()["documentId"]
+    with session(app) as db:
+        doc = db.get(Document, doc_id)
+        doc.status = "FAILED"
+        db.get(Job, doc.latest_job_id).error = "Unreadable PDF: FileNotDecryptedError"
+        db.commit()
+    assert "password-protected" in client.get(f"/dps/v1/documents/{doc_id}", headers=h()).json()["failureReason"]
+    listed = client.get("/dps/v1/documents?cpId=CP-1", headers=h()).json()
+    assert "password-protected" in next(d for d in listed if d["id"] == doc_id)["failureReason"]
+    assert failure_reason(None) is None
+    assert "damaged" in failure_reason("Unreadable statement: BadZipFile")
+    assert "support" in failure_reason("something else")
+
+
 def test_upload_is_idempotent_and_adds_links(client):
     first = upload(client, cps=("CP-1",)).json()
     second = upload(client, cps=("CP-2",)).json()

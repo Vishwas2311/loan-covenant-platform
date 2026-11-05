@@ -47,10 +47,15 @@ public class BreachReportService {
     }
 
     public List<BreachReportRow> openBreaches(String user, int escalationDays) {
+        return openBreachesFor(monitoringService.summary(user), escalationDays);
+    }
+
+    /** {@link #openBreaches} over a given portfolio summary (the daily escalation uses the whole bank). */
+    public List<BreachReportRow> openBreachesFor(List<CpMonitoringSummary> portfolio, int escalationDays) {
         LocalDate today = LocalDate.now(clock);
         List<String> cpOf = new ArrayList<>();
         List<CpReviewRow> rows = new ArrayList<>();
-        List<String> withProblems = monitoringService.summary(user).stream()
+        List<String> withProblems = portfolio.stream()
                 .filter(cp -> cp.breached() > 0 || cp.error() > 0).map(CpMonitoringSummary::cpId).toList();
         reviewService.reviewRowsFor(withProblems).forEach((cpId, cpRows) -> {
             for (CpReviewRow r : cpRows) {

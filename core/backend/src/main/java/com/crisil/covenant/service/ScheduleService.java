@@ -4,7 +4,9 @@ import com.crisil.covenant.entity.AppliedCovenant;
 import com.crisil.covenant.exception.ApiException;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.TimeZone;
 import org.quartz.CronScheduleBuilder;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.quartz.CronTrigger;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -48,8 +50,34 @@ public class ScheduleService {
         this.repository = repository;
     }
 
+    /** Quartz key prefix of the per-covenant assessment jobs and triggers. */
+    static final String ASSESSMENT_KEY_PREFIX = "assessment-";
+
+    /**
+     * The cron a covenant's trigger fires on. A frequency's default cron fires at the top of an hour
+     * ({@code 0 0 2 * * ?}); thousands of covenants on it all fired in the same second (review BUG-08: 4,800
+     * at 02:00:00, a 17-minute backlog). Such a cron gets a second and minute within that hour, fixed per
+     * covenant by its id, so the run spreads over the hour. Any other cron is kept as written.
+     */
+    static String spread(String cron, String appliedCovenantId) {
+        String[] f = cron.trim().split("\\s+");
+        if (f.length < 6 || !"0".equals(f[0]) || !"0".equals(f[1]) || !f[2].matches("\\d{1,2}")) {
+            return cron;
+        }
+        int slot = Math.floorMod(appliedCovenantId.hashCode(), 3600);
+        f[0] = String.valueOf(slot % 60);
+        f[1] = String.valueOf(slot / 60);
+        return String.join(" ", f);
+    }
+
+    private static CronScheduleBuilder covenantSchedule(String cron, String appliedCovenantId) {
+        return CronScheduleBuilder.cronSchedule(spread(cron, appliedCovenantId))
+                .inTimeZone(TimeZone.getDefault())
+                .withMisfireHandlingInstructionFireAndProceed();
+    }
+
     public MonitoringSchedule createSchedule(AppliedCovenant applied) {
-        String jobKey = "assessment-" + applied.getId();
+        String jobKey = ASSESSMENT_KEY_PREFIX + applied.getId();
         JobDetail jobDetail = JobBuilder.newJob(AssessmentJob.class)
                 .withIdentity(jobKey, JOB_GROUP)
                 // The JDBC job store runs with useProperties=true (see application.yml), which
@@ -63,8 +91,7 @@ public class ScheduleService {
             trigger = TriggerBuilder.newTrigger()
                     .withIdentity(jobKey, TRIGGER_GROUP)
                     .forJob(jobDetail)
-                    .withSchedule(CronScheduleBuilder.cronSchedule(applied.getCronExpression())
-                            .withMisfireHandlingInstructionFireAndProceed())
+                    .withSchedule(covenantSchedule(applied.getCronExpression(), String.valueOf(applied.getId())))
                     .build();
         } catch (RuntimeException e) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CRON",
@@ -166,11 +193,13 @@ public class ScheduleService {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CRON",
                         "Invalid cron: " + newCron);
             }
+            String key = schedule.getQuartzJobKey();
+            String appliedId = key.startsWith(ASSESSMENT_KEY_PREFIX)
+                    ? key.substring(ASSESSMENT_KEY_PREFIX.length()) : key;
             CronTrigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(schedule.getQuartzJobKey(), TRIGGER_GROUP)
-                    .forJob(schedule.getQuartzJobKey(), JOB_GROUP)
-                    .withSchedule(CronScheduleBuilder.cronSchedule(newCron)
-                            .withMisfireHandlingInstructionFireAndProceed())
+                    .withIdentity(key, TRIGGER_GROUP)
+                    .forJob(key, JOB_GROUP)
+                    .withSchedule(covenantSchedule(newCron, appliedId))
                     .build();
             scheduler.rescheduleJob(new TriggerKey(schedule.getQuartzJobKey(), TRIGGER_GROUP), trigger);
             schedule.setCronExpression(newCron);
@@ -184,6 +213,39 @@ public class ScheduleService {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "RESCHEDULE_FAILED",
                     "Failed to reschedule job");
         }
+    }
+
+    /**
+     * Rebuilds per-covenant triggers made before {@link #spread} or in another time zone (review BUG-09:
+     * 2,800 triggers created before the time-zone setting still fired on UTC). Idempotent: a trigger that is
+     * already spread and in the server's zone is left alone. Returns how many were rebuilt.
+     */
+    public int realignCovenantTriggers() {
+        String zone = TimeZone.getDefault().getID();
+        int rebuilt = 0;
+        try {
+            for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(TRIGGER_GROUP))) {
+                if (!key.getName().startsWith(ASSESSMENT_KEY_PREFIX)
+                        || !(scheduler.getTrigger(key) instanceof CronTrigger current)) {
+                    continue;
+                }
+                String appliedId = key.getName().substring(ASSESSMENT_KEY_PREFIX.length());
+                String target = spread(current.getCronExpression(), appliedId);
+                if (target.equals(current.getCronExpression()) && zone.equals(current.getTimeZone().getID())) {
+                    continue;
+                }
+                CronTrigger fresh = TriggerBuilder.newTrigger()
+                        .withIdentity(key)
+                        .forJob(current.getJobKey())
+                        .withSchedule(covenantSchedule(target, appliedId))
+                        .build();
+                scheduler.rescheduleJob(key, fresh);
+                rebuilt++;
+            }
+        } catch (SchedulerException e) {
+            LOG.error("Realigning covenant triggers stopped early", e);
+        }
+        return rebuilt;
     }
 
     public void pause(MonitoringSchedule schedule) {

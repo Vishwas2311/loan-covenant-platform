@@ -1,5 +1,7 @@
 package com.crisil.covenant.service;
 
+import java.time.Duration;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Collection;
 import com.crisil.covenant.util.IdBatches;
@@ -131,6 +133,13 @@ public class ReviewService {
      * about eight per CP, keyed by CP id in the order given. For portfolio-wide reports and alerts.
      */
     public Map<String, List<CpReviewRow>> reviewRowsFor(Collection<String> cpIds) {
+        return rowsCache.get(List.copyOf(cpIds), () -> Collections.unmodifiableMap(loadRows(cpIds)));
+    }
+
+    private final PortfolioCache<List<String>, Map<String, List<CpReviewRow>>> rowsCache =
+            new PortfolioCache<>(Duration.ofSeconds(30), 500);
+
+    private Map<String, List<CpReviewRow>> loadRows(Collection<String> cpIds) {
         Map<String, List<CovenantOnCp>> covenantsByCp = monitoringService.covenantsForCps(cpIds);
         List<CovenantOnCp> all = covenantsByCp.values().stream().flatMap(List::stream).toList();
         Map<String, CovenantDisposition> dispByAc = new HashMap<>();
@@ -161,7 +170,7 @@ public class ReviewService {
                         masterById.get(c.covenantMasterId()),
                         attByAc.getOrDefault(c.appliedCovenantId(), List.of()), atRiskPercent));
             }
-            out.put(cp, rows);
+            out.put(cp, List.copyOf(rows));
         });
         return out;
     }

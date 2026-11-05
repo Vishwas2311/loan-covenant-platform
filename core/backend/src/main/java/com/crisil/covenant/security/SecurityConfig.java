@@ -101,6 +101,8 @@ public class SecurityConfig {
             a.requestMatchers(HttpMethod.POST, "/api/v1/monitoring/notification-runs", "/api/v1/monitoring/reminder-runs",
                             "/api/v1/reports/scheduled-runs")
                     .hasAnyRole(Roles.ADMIN, Roles.SUPPORT, Roles.SERVICE);
+            a.requestMatchers(HttpMethod.GET, "/api/v1/monitoring/notification-runs/*")
+                    .hasAnyRole(Roles.ADMIN, Roles.SUPPORT, Roles.SERVICE);
             for (HttpMethod method : List.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE)) {
                 // Connections to bank systems (hosts, accounts) are an administrator's job, not an author's.
                 a.requestMatchers(method, "/api/v1/data-sources/**").hasRole(Roles.ADMIN);

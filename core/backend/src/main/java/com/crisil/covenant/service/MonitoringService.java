@@ -1,6 +1,5 @@
 package com.crisil.covenant.service;
 
-import java.util.LinkedHashMap;
 import com.crisil.covenant.config.CurrentUserContext;
 import com.crisil.covenant.domain.CovenantOnCp;
 import com.crisil.covenant.domain.CpMonitoringSummary;
@@ -24,6 +23,7 @@ import com.crisil.covenant.security.Roles;
 import com.crisil.covenant.util.DispositionRules;
 import com.crisil.covenant.util.IdBatches;
 import com.crisil.covenant.util.MonitoringTimingCalculator;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -112,10 +113,22 @@ public class MonitoringService {
         return summaryOf(ownedCpIds(user));
     }
 
+    /** Every cached CP's summary, whoever asks: for system jobs such as the daily escalation. */
+    public List<CpMonitoringSummary> allSummary() {
+        return summaryOf(new HashSet<>(cacheRepo.findAllCpIds()));
+    }
+
+    private final PortfolioCache<Set<String>, List<CpMonitoringSummary>> summaries =
+            new PortfolioCache<>(Duration.ofSeconds(30), 500);
+
     private List<CpMonitoringSummary> summaryOf(Set<String> owned) {
         if (owned.isEmpty()) {
             return List.of();
         }
+        return summaries.get(Set.copyOf(owned), () -> computeSummary(owned));
+    }
+
+    private List<CpMonitoringSummary> computeSummary(Set<String> owned) {
         Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(IdBatches.fetch(owned, dispositionRepo::findByCpIdIn));
         Map<String, long[]> byCp = new TreeMap<>();
         List<AppliedCovenant> applied = appliedOn(owned);

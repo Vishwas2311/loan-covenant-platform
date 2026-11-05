@@ -15,7 +15,7 @@ Every user-facing feature found in the UI routes, the Core and DPS controllers a
 | F-09 | Extraction correctness: operators | AI-07 with five common phrasings | Floors give `>=`, ceilings `<=` | Before: `<`. After phase 1: `>=`, and a wrong-direction operator goes to review | Pass | FIX-01, FIX-02 |
 | F-10 | Citation check (FR-03) | AI-01 on 10 golden agreements | Quote on page, threshold in quote | 0 failures | Pass | AI-01 |
 | F-11 | Extraction coverage | AI-02 | All covenants found | Non-ratio numeric clauses missed | Partial | RISK-01 |
-| F-12 | Prompt injection in an agreement | AI-03 | Extraction and answers ignore it | Extraction ignores it; Q&A returns it | Partial | AI-03, BUG-12 |
+| F-12 | Prompt injection in an agreement | AI-03 | Extraction and answers ignore it | Extraction ignores it; after phase 2 the Q&A drops it too | Pass | AI-03, BUG-12 fixed |
 | F-13 | Extraction review: edit, approve, reject | E2E 4; UI unit tests | Actions saved and audited | As expected | Pass | E2E 4 |
 | F-14 | Onboarding with EXTRACTED rows (FR-06) | E2E 4 | Rows labelled EXTRACTED with source link | As expected | Pass | E2E 4 |
 | F-15 | Onboarding visibility in portfolio | Apply covenants by API without the recommendation step | CP appears in RM portfolio | Before: missing. After phase 1: cached and visible at once | Pass | FIX-06 |
@@ -35,26 +35,26 @@ Every user-facing feature found in the UI routes, the Core and DPS controllers a
 | F-29 | Custom saved report | E2E 28 | Runs, saves, downloads, deletes | As expected; scheduled reports run in the daily job | Pass | E2E 28 |
 | F-30 | Breach notice as Word | E2E 27 | .docx downloads | As expected | Pass | E2E 27 |
 | F-31 | Open-breaches report with escalation | LOAD-10 | Report lists escalations | After phase 1: 0.2 s for 60 CPs; 4.3 s bank-wide at 2,285 CPs | Pass | FIX-03, FIX-04 |
-| F-32 | Escalation notification (FR-31) | Code review | Notification to credit head | Not built | **Fail** | GAP-02 |
+| F-32 | Escalation notification (FR-31) | Unit tests | Notification to credit head | Daily digest after phase 2 | Pass | GAP-02 closed |
 | F-33 | Analytics and alerts (FR-25) | E2E 22 | Treemap, exposure by sector, entity mix | Breach-rate charts only | Partial | GAP-08 |
 | F-34 | Trend indicator (FR-26) | E2E 15 | Improving / stable / worsening | As expected | Pass | E2E 15 |
 | F-35 | Ask AI (FR-27) | E2E 10; AI-06 | Portfolio-scoped, cited, refuses outside scope | As expected | Pass | AI-06 |
-| F-36 | Ask a question about an agreement | E2E 26; AI-03, AI-04 | Answer from the right clause or "not stated" | Returns planted or irrelevant text | **Fail** | BUG-12 |
+| F-36 | Ask a question about an agreement | E2E 26; AI-03, AI-04 | Answer from the right clause or "not stated" | After phase 2: right clause, or "does not appear to state that" | Pass | BUG-12 fixed |
 | F-37 | Advisory narrative label (FR-15) | UI check | "AI-generated, not a decision" | As expected | Pass | AI-09 |
 | F-38 | Financial news (FR-28) | n/a | Optional | Not built | Not verified | GAP-09 |
 | F-39 | Covenant library, usage, measures, data sources | E2E 11, 17, 18 | Lists, downloads, where-used | As expected | Pass | E2E 11, 17, 18 |
 | F-40 | My tasks | E2E 24; LOAD runs | Task list and notes | After phase 1: batched (no SQL 8003), 0.04 s for 60 CPs, background sync for bank-wide | Pass | FIX-04, FIX-07 |
 | F-41 | Document removal | E2E 23 | Removed with reason, history kept | As expected | Pass | E2E 23 |
-| F-42 | File validation | DOC-01..DOC-10 | Bad files refused or fail cleanly; ≤ 500 pages | All clean except 600 pages accepted | Partial | BUG-11 |
-| F-43 | Failure reason for the RM | DOC-01 | RM told why a file failed | Only "Failed" | **Fail** | BUG-13 |
+| F-42 | File validation | DOC-01..DOC-10 | Bad files refused or fail cleanly; ≤ 500 pages | All clean; 600 pages refused after phase 2 | Pass | BUG-11 fixed |
+| F-43 | Failure reason for the RM | DOC-01 | RM told why a file failed | After phase 2: plain-language reason shown | Pass | BUG-13 fixed |
 | F-44 | Concurrent uploads on SQL Server | LOAD-06, LOAD-06b | Uploads succeed under load | Before: 22–70% deadlocks. After phase 1: 235 uploads, 0 deadlocks | Pass | FIX-05 |
 | F-45 | Support: document jobs, diagnose a CP, sent e-mails (FR-17) | E2E 12, 19 | Failed jobs, step errors, retry, e-mail log | As expected | Pass | E2E 12, 19 |
 | F-46 | Loan-system sync | E2E 32 | Sync runs and records changes | As expected | Pass | E2E 32 |
 | F-47 | Settings (admin only) | E2E 13 | Only admin sees Settings | As expected | Pass | E2E 13 |
 | F-48 | Read-only roles cannot change a loan | roles.spec:125 | No change buttons for auditor and support | As expected | Pass | roles.spec |
 | F-49 | Daily run and e-mails | OPS-02, OPS-04 | Runs at 06:00 IST, e-mails sent | As expected | Pass | OPS-02, OPS-04 |
-| F-50 | Manual daily run | OPS-05 | Starts and reports completion | 504 at the gateway | **Fail** | BUG-10 |
-| F-51 | Per-covenant schedules | OPS-06 | Spread out, in IST | Same second; 2,800 in UTC | **Fail** | BUG-08, BUG-09 |
+| F-50 | Manual daily run | OPS-05 | Starts and reports completion | After phase 2: 202 at once, DONE after 311 s | Pass | BUG-10 fixed |
+| F-51 | Per-covenant schedules | OPS-06 | Spread out, in IST | After phase 2: 3,304 distinct times, all in IST | Pass | BUG-08, BUG-09 fixed |
 | F-52 | Core without DPS | RES-01 | Core stays up | Stays up; staged values used | Partial | GAP-03 |
 | F-53 | Backup and restore | OPS-01 | Identical data and files | Identical | Pass | OPS-01 |
 | F-54 | Two Core nodes | OPS-03 | One fire per trigger | As expected | Pass | OPS-03 |

@@ -146,3 +146,34 @@ Same tests before phase 1: 100 users 21.4% errors, 250 users 58.5%.
 | Core `mvn verify` | 1,163 unit + 51 integration tests pass; coverage gate met; SpotBugs 0 |
 | DPS pytest | All pass, 98.06% coverage; ruff clean; golden set 24 of 24 |
 | Playwright end-to-end | 52 of 52 pass (8.1 min) |
+
+## 10. Phase 2 re-test
+
+| ID | Test | Before | After |
+|---|---|---|---|
+| P2-01 | Covenant triggers after start-up realignment | 4,800 at 02:00:00; 2,800 in Etc/UTC | "Realigned 9057 covenant triggers"; all 9,060 in Asia/Kolkata, spread over 3,304 distinct fire times |
+| P2-02 | Manual daily run through the gateway (admin) | 504 after the proxy timeout | 202 in 0.39 s; a second start returns the same run; RM gets 403 on its status; DONE after 311 s with 9,052 covenants, 2,272 CPs, 28 e-mails sent, 1 failed |
+| P2-03 | 600-page PDF | Accepted | 400 `TOO_MANY_PAGES`: "This PDF has 600 pages; the limit is 500. Split it and upload the parts." |
+| P2-04 | Encrypted PDF, RM view | `FAILED`, no reason | `failureReason`: "This PDF is password-protected. Upload a copy without a password." |
+| P2-05 | Agreement Q&A with a planted instruction (rules mode) | Planted "DSCR minimum 0.10" returned | Clause 9.1 (1.35) returned; planted text never quoted; "credit rating from CRISIL" answered "not found" |
+| P2-06 | DPS access check when Core is slow | 404 CP_NOT_FOUND to the CP's own RM | 503 `ACCESS_CHECK_UNAVAILABLE` (retry); grants cached 30 s |
+| P2-07 | Escalation digest (FR-31) | Not sent | Unit-tested: escalated breaches only, audited, off without recipients |
+| P2-08 | Bank-service credentials (GAP-06) | None sent | WireMock tests: OAuth token fetched and sent; fixed token; none when not configured |
+
+### Load with real 60-CP portfolios, 3–8 s pauses (one 8-CPU host)
+
+| Users | Phase 1 | Phase 2 (per-CP aggregate cache) |
+|---|---|---|
+| 100 | 16.4 req/s, 0 errors, p50 0.07–0.46 s, p95 0.7–5.0 s, SQL Server 422% CPU | 17.7 req/s, 0.40% errors (dropped connections only), p50 0.02–0.10 s, p95 0.15–2.3 s, SQL Server 173% CPU |
+| 250 | 25.6 req/s, 2.74% errors | 18.4 req/s, 8.05% errors: 139 are DPS 503 "retry" answers (Core too busy to answer the access check), the rest dropped connections and time-outs. Core at 400–520% CPU and at its 2 GiB memory limit |
+
+Reading: 100 concurrent RMs are now comfortable on one host. 250 exceeds a single 8-CPU host running every service; production needs a second Core instance or a larger host, sized by the production load test (RISK-02). A first version of the cache, dropped on every write anywhere, gave no benefit (100 users 1.07% errors, 250 users 15.9%) and was replaced by per-CP invalidation.
+
+### Suites after phase 2
+
+| Suite | Result |
+|---|---|
+| Core `mvn verify` | 1,176 unit + 53 integration tests pass; coverage gate met; SpotBugs 0 |
+| DPS pytest | All pass, 98.13% coverage; ruff clean; golden set 24 of 24 |
+| UI unit tests | 123 of 123 |
+| Playwright end-to-end | 52 of 52 (8.5 min) |

@@ -38,6 +38,9 @@ public class DailyBreachRunJob extends QuartzJobBean {
     @Autowired
     private ScheduledReportService scheduledReportService;
 
+    @Autowired
+    private EscalationService escalationService;
+
     @Override
     protected void executeInternal(JobExecutionContext context) {
         LOG.info("Running daily breach-assessment sweep");
@@ -71,6 +74,12 @@ public class DailyBreachRunJob extends QuartzJobBean {
             scheduledReportService.sendDue(AuditingConfig.SYSTEM_USER);
         } catch (RuntimeException ex) {
             LOG.error("Daily scheduled reports failed: {}", ex.getClass().getSimpleName());
+        }
+        // FR-31 last, so it sees the breaches this run found.
+        try {
+            escalationService.run(AuditingConfig.SYSTEM_USER);
+        } catch (RuntimeException ex) {
+            LOG.error("Daily escalation failed: {}", ex.getClass().getSimpleName());
         }
     }
 }

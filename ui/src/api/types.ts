@@ -155,6 +155,8 @@ export interface DpsDocument {
   uploadedAt: string;
   /** C7: the agreement this one amends. */
   amendsDocumentId?: string | null;
+  /** For a FAILED document: what went wrong, in words the uploader can act on. */
+  failureReason?: string | null;
 }
 
 export interface ExtractedTerm {

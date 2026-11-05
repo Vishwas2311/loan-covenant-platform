@@ -15,7 +15,7 @@ Order: first what can produce a wrong decision, then what fails at a real bank's
 
 Phase 1 status: items 1 and 3–6 are done and re-tested (`test-results.md` section 9). Problems found during the re-test were fixed as well: bank-wide task sync moved to a background job, a Core memory limit, the CP-name miss cache, and covering index V31. Item 2, the analyst-labelled golden set, needs credit analysts and remains a condition for production.
 
-## Phase 2: fix before a bank-wide rollout
+## Phase 2: fix before a bank-wide rollout (done 5 November 2026, except item 16)
 
 | # | Finding | Change | Proof | Size |
 |---|---|---|---|---|
@@ -52,3 +52,5 @@ Run the review again after phase 1. READY WITH CONDITIONS needs all of these:
 - LOAD-09 within target.
 - Golden-set gate on analyst labels.
 - Phase 2 items scheduled before the bank-wide rollout.
+
+Phase 2 status: items 7–15 and 16a are done and checked live (section 10 of `test-results.md`). Item 16 (what Core does while DPS is down) remains a product decision: assessments keep using Core's staged copy within each measure's `max_age_days`, which is documented in the runbook.

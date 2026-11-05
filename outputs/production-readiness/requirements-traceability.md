@@ -18,7 +18,7 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 
 | ID | Requirement | Status | Evidence | Gap |
 |---|---|---|---|---|
-| FR-01 | Upload agreement / statement / evidence; ≤ 50 MB, ≤ 500 pages; type and asOfDate required; job id and status | Partial | E2E 3, 5, 23; DOC-01..DOC-11 | 600-page PDF accepted (BUG-11); concurrent uploads deadlock on SQL Server (BUG-04). |
+| FR-01 | Upload agreement / statement / evidence; ≤ 50 MB, ≤ 500 pages; type and asOfDate required; job id and status | Pass after phase 2 | E2E 3, 5, 23; DOC-01..DOC-11; FIX-05 | 600-page PDF refused (BUG-11 fixed); uploads no longer deadlock (BUG-04 fixed); failures explained to the RM (BUG-13 fixed). |
 | FR-02 | Flow A extraction: metric, operator, threshold, unit, formula, frequency, page, quote, confidence, method | Pass after phase 1 | AI-07, FIX-01, FIX-02; golden-set gate 24/24 | BUG-01 fixed. Recall is unproven until analysts label the golden set (GAP-01). |
 | FR-03 | Citation check; failures go to NEEDS_REVIEW | Pass | AI-01: 0 citation failures over 10 agreements | The check does not test the operator, so BUG-01 passes it. |
 | FR-04 | Mapping to the library; unmatched become custom candidates | Pass | DPS mapping tests; E2E 4 | |
@@ -44,11 +44,11 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 | FR-24 | Period comparison and Excel exports | Pass | E2E 9, 11; Core tests | |
 | FR-25 | Industry risk treemap, exposure by sector, entity mix | Partial | E2E 22 | No treemap and no exposure figure; only breach rate by segment and sector. |
 | FR-26 | Trend indicator per covenant | Pass | E2E 15 | |
-| FR-27 | Ask AI scoped to the portfolio, cites records, refuses outside scope | Pass | E2E 10; AI-06 | Agreement Q&A (E2E 26) returns planted or irrelevant text (BUG-12). |
+| FR-27 | Ask AI scoped to the portfolio, cites records, refuses outside scope | Pass | E2E 10; AI-06 | Agreement Q&A fixed in phase 2 (BUG-12). |
 | FR-28 | Financial news (optional, R3) | Not built | | Optional and off by default in the PRD. |
 | FR-29 | Agreement terms beyond thresholds (display) | Pass | DPS tests; UI extraction review | Machine-usable form is R3. |
 | FR-30 | Facility dates from agreement or CP service, never invented | Pass | DPS and Core tests | |
-| FR-31 | Escalation via the notification service | Partial | Reports and task queue show escalations | No escalation notification is sent. |
+| FR-31 | Escalation via the notification service | Pass after phase 2 | `EscalationService` tests | Daily digest to `COVENANT_ESCALATION_RECIPIENTS`; the bank must provide template `Cov_Escalation`. |
 | FR-32 | Management reports, Excel and PDF, role-scoped | Pass after phase 1 | E2E 9, 28; FIX-03, FIX-04 | Bank-wide breach report 4.3 s at 2,285 CPs; 0.2 s for 60 CPs. |
 
 ## Non-functional requirements

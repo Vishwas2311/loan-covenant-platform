@@ -1,7 +1,9 @@
 package com.crisil.covenant.entity;
 
+import com.crisil.covenant.service.CpChangeListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -15,6 +17,7 @@ import org.hibernate.annotations.UuidGenerator;
  */
 @Entity
 @Table(name = "cov_covenant_attachment")
+@EntityListeners(CpChangeListener.class)
 public class CovenantAttachment {
 
     @Id

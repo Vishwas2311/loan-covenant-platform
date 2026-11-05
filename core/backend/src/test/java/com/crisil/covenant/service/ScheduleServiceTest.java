@@ -223,6 +223,49 @@ class ScheduleServiceTest {
     }
 
     @Test
+    void defaultCronsAreSpreadOverTheHourAndOtherCronsAreKept() {
+        String daily = ScheduleService.spread("0 0 2 * * ?", "ac-1");
+        assertThat(daily).endsWith(" 2 * * ?").isEqualTo(ScheduleService.spread("0 0 2 * * ?", "ac-1"));
+        assertThat(org.quartz.CronExpression.isValidExpression(daily)).isTrue();
+        assertThat(ScheduleService.spread("0 0 2 1 1,4,7,10 ?", "ac-1")).endsWith(" 2 1 1,4,7,10 ?");
+        assertThat(ScheduleService.spread("0 30 5 * * ?", "ac-1")).isEqualTo("0 30 5 * * ?");
+        assertThat(ScheduleService.spread("0 0/5 * * * ?", "ac-1")).isEqualTo("0 0/5 * * * ?");
+        assertThat(ScheduleService.spread("bad", "ac-1")).isEqualTo("bad");
+        long distinct = java.util.stream.IntStream.range(0, 1000)
+                .mapToObj(i -> ScheduleService.spread("0 0 2 * * ?", "covenant-" + i)).distinct().count();
+        assertThat(distinct).isGreaterThan(800); // 1,000 covenants no longer share one second
+    }
+
+    @Test
+    void realignRebuildsBunchedOrForeignZoneTriggersOnly() throws Exception {
+        TriggerKey old = new TriggerKey("assessment-1", ScheduleService.TRIGGER_GROUP);
+        TriggerKey done = new TriggerKey("assessment-2", ScheduleService.TRIGGER_GROUP);
+        TriggerKey daily = new TriggerKey(ScheduleService.DAILY_RUN_KEY, ScheduleService.TRIGGER_GROUP);
+        when(scheduler.getTriggerKeys(any())).thenReturn(java.util.Set.of(old, done, daily));
+        when(scheduler.getTrigger(old)).thenReturn(cron(old, "0 0 2 * * ?", "Etc/UTC"));
+        when(scheduler.getTrigger(done)).thenReturn(cron(done, ScheduleService.spread("0 0 2 * * ?", "2"),
+                java.util.TimeZone.getDefault().getID()));
+
+        assertThat(service.realignCovenantTriggers()).isEqualTo(1);
+
+        ArgumentCaptor<Trigger> fresh = ArgumentCaptor.forClass(Trigger.class);
+        verify(scheduler).rescheduleJob(org.mockito.ArgumentMatchers.eq(old), fresh.capture());
+        org.quartz.CronTrigger rebuilt = (org.quartz.CronTrigger) fresh.getValue();
+        assertThat(rebuilt.getCronExpression()).isEqualTo(ScheduleService.spread("0 0 2 * * ?", "1"));
+        assertThat(rebuilt.getTimeZone()).isEqualTo(java.util.TimeZone.getDefault());
+
+        when(scheduler.getTriggerKeys(any())).thenThrow(new SchedulerException("store down"));
+        assertThat(service.realignCovenantTriggers()).isZero();
+    }
+
+    private static org.quartz.CronTrigger cron(TriggerKey key, String expr, String zone) {
+        return org.quartz.TriggerBuilder.newTrigger().withIdentity(key).forJob(key.getName(), ScheduleService.JOB_GROUP)
+                .withSchedule(org.quartz.CronScheduleBuilder.cronSchedule(expr)
+                        .inTimeZone(java.util.TimeZone.getTimeZone(zone)))
+                .build();
+    }
+
+    @Test
     void registerTaskSyncRunSchedulesTheBackgroundTaskSyncJob() throws Exception {
         when(scheduler.checkExists(any(TriggerKey.class))).thenReturn(false);
 

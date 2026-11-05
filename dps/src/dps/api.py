@@ -92,13 +92,43 @@ class ManualValue(BaseModel):
 
 # ---------- views ----------
 
-def document_view(d: Document) -> dict:
+# What an RM can do about a failed document, by a marker in the worker's error (support sees the raw error).
+_FAILURE_REASONS: list[tuple[str, str]] = [
+    ("FileNotDecryptedError", "This PDF is password-protected. Upload a copy without a password."),
+    ("Unreadable PDF", "This PDF could not be read; it may be damaged. Export or scan it again and upload "
+                       "the new copy."),
+    ("Unreadable statement", "This spreadsheet could not be read; it may be damaged. Save it again as .xlsx or .csv "
+                             "and upload it."),
+    ("statements are not supported", "This file type cannot be read as a statement. Upload a PDF, .xlsx or .csv."),
+]
+
+
+def failure_reason(error: str | None) -> str | None:
+    if not error:
+        return None
+    for marker, reason in _FAILURE_REASONS:
+        if marker in error:
+            return reason
+    return "Processing failed. Upload the file again; if it fails again, support can see the details."
+
+
+def _failures(db: Session, docs: list[Document]) -> dict[str, str | None]:
+    """Plain-language reasons for the failed documents among ``docs``, in one query."""
+    failed = {d.latest_job_id: d.id for d in docs if d.status == "FAILED" and d.latest_job_id}
+    if not failed:
+        return {}
+    jobs = db.execute(select(Job.id, Job.error).where(Job.id.in_(list(failed)))).all()
+    return {failed[job_id]: failure_reason(error) for job_id, error in jobs}
+
+
+def document_view(d: Document, failure: str | None = None) -> dict:
     return {
         "id": d.id, "type": d.type, "fileName": d.file_name, "fileId": d.file_id, "sha256": d.sha256,
         "pageCount": d.page_count, "asOfDate": d.as_of_date.isoformat() if d.as_of_date else None,
         "status": d.status, "cpIds": d.active_cp_ids(), "latestJobId": d.latest_job_id,
         "uploadedBy": d.uploaded_by, "uploadedAt": d.uploaded_at.isoformat(),
         "amendsDocumentId": d.amends_document_id,
+        "failureReason": failure,
     }
 
 
@@ -247,6 +277,9 @@ def upload_document(
 
     digest, rel = store.put(data, ext)
     pages = page_count(store.path(rel))
+    if pages is not None and pages > settings.max_pages:
+        raise ApiError(400, "TOO_MANY_PAGES",
+                       f"This PDF has {pages} pages; the limit is {settings.max_pages}. Split it and upload the parts.")
     for attempt in (1, 2):  # a lock lost to a concurrent upload is retried once (SQL Server deadlock 1205)
         try:
             doc = _record_upload(db, type, name, rel, digest, len(data), pages, asOfDate, amendsDocumentId,
@@ -300,15 +333,16 @@ def list_documents(cpId: str, db: DB, user: User, checker: Checker) -> list[dict
     require_cp(checker, user, cpId, read_only=True)
     docs = db.scalars(select(Document).join(DocumentCpLink)
                       .where(DocumentCpLink.cp_id == cpId, DocumentCpLink.unlinked_at.is_(None))
-                      .order_by(Document.uploaded_at.desc())).unique()
-    return [document_view(d) for d in docs]
+                      .order_by(Document.uploaded_at.desc())).unique().all()
+    reasons = _failures(db, docs)
+    return [document_view(d, reasons.get(d.id)) for d in docs]
 
 
 @router.get("/dps/v1/documents/{document_id}")
 def get_document(document_id: str, db: DB, user: User, checker: Checker) -> dict:
     doc = load_document(db, document_id)
     require_document_access(checker, user, doc, read_only=True)
-    return document_view(doc)
+    return document_view(doc, _failures(db, [doc]).get(doc.id))
 
 
 class RemoveRequest(BaseModel):

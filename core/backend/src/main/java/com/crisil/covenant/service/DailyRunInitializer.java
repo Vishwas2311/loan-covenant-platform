@@ -71,5 +71,19 @@ public class DailyRunInitializer implements ApplicationRunner {
             // Reads by RMs and approvers still sync their own CPs; only the background catch-up is missing.
             LOG.error("Could not register the background task-sync trigger at startup", ex);
         }
+        // Rebuild covenant triggers left bunched at the top of the hour or in another time zone. Thousands
+        // of reschedules take a while, so they run beside start-up rather than delaying it.
+        Thread realign = new Thread(() -> {
+            try {
+                int rebuilt = scheduleService.realignCovenantTriggers();
+                if (rebuilt > 0) {
+                    LOG.info("Realigned {} covenant triggers", rebuilt);
+                }
+            } catch (RuntimeException ex) {
+                LOG.error("Realigning covenant triggers failed: {}", ex.getClass().getSimpleName());
+            }
+        }, "covenant-trigger-realign");
+        realign.setDaemon(true);
+        realign.start();
     }
 }

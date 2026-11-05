@@ -257,6 +257,25 @@ describe('Documents', () => {
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/resume'))).toBe(true));
   });
 
+  it('a failed document tells the RM why, even without access to the job', async () => {
+    setIdentity({ user: 'rm-anil', roles: ['RM'] });
+    mockFetch((url) => {
+      if (url.startsWith('/dps/v1/documents?cpId')) {
+        return { body: [{ id: 'D2', type: 'LOAN_AGREEMENT', fileName: 'locked.pdf', pageCount: null, asOfDate: null,
+          status: 'FAILED', cpIds: ['CP-1'], latestJobId: 'J2', uploadedBy: 'rm-anil',
+          uploadedAt: '2026-11-02T10:00:00Z',
+          failureReason: 'This PDF is password-protected. Upload a copy without a password.' }] };
+      }
+      if (url.startsWith('/dps/v1/jobs/J2')) {
+        return { status: 403, body: { code: 'FORBIDDEN', message: 'Forbidden' } };
+      }
+      return { body: [] };
+    });
+    renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
+    fireEvent.click(await screen.findByRole('cell', { name: /^locked.pdf/ }));
+    expect(await screen.findByText(/password-protected/)).toBeInTheDocument();
+  });
+
   it('upload needs a file, CPs and a period for statements', async () => {
     mockFetch(() => ({ body: [] }));
     renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);

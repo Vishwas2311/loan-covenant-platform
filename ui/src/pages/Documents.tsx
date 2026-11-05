@@ -323,6 +323,7 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
       )}
       {cited && <SourcePage documentId={doc.id} page={cited.page} quote={cited.quote} onClose={() => setCited(null)} />}
       {job.data?.error && <Text c="var(--text-bad)" size="sm">{job.data.error}</Text>}
+      {doc.failureReason && !job.data?.error && <Text c="var(--text-bad)" size="sm">{doc.failureReason}</Text>}
       <DocumentLinks doc={doc} canEdit={canReview} />
       {doc.type === 'LOAN_AGREEMENT' && (terms.isLoading ? <Loading /> : (
         <Table withTableBorder>

@@ -9,8 +9,9 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
-from dps.access import CoreCpAccessChecker
+from dps.access import AccessCheckUnavailable, CoreCpAccessChecker, require_cp
 from dps.auth import Authenticator, Principal
+from dps.errors import ApiError
 from dps.main import create_app
 from dps.settings import AuthMode, Settings
 from dps.storage import FileStore
@@ -136,7 +137,41 @@ def test_core_checker_dev_headers_bypass_and_errors():
     def boom(req):
         raise httpx.ConnectError("down")
 
-    assert not checker_with(boom).allowed(Principal("rm", frozenset({"RM"})), "CP-1", True)
+    with pytest.raises(AccessCheckUnavailable):  # Core unreachable is not a "no" (review BUG-07)
+        checker_with(boom).allowed(Principal("rm", frozenset({"RM"})), "CP-1", True)
+
+
+def test_core_checker_caches_grants_not_refusals_and_treats_5xx_as_unavailable():
+    calls = []
+    answers = iter([200, 404, 404, 503])
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        calls.append(req.url.path)
+        return httpx.Response(next(answers))
+
+    c = checker_with(handler)
+    rm = Principal("rm-anil", frozenset({"RM"}))
+    assert c.allowed(rm, "CP-1", True) and c.allowed(rm, "CP-1", True)  # the second answer comes from the cache
+    assert not c.allowed(rm, "CP-2", True) and not c.allowed(rm, "CP-2", True)  # refusals are asked again
+    assert len(calls) == 3
+    with pytest.raises(AccessCheckUnavailable):
+        c.allowed(rm, "CP-3", True)
+    c.MAX_ENTRIES = 1
+    c._granted[("x",)] = 0.0  # an expired grant is pruned when the cache is full
+    answers2 = iter([200])
+    c._client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(next(answers2))),
+                             base_url="http://core")
+    assert c.allowed(rm, "CP-4", False)
+
+
+def test_require_cp_answers_503_when_core_cannot_answer():
+    class Down:
+        def allowed(self, principal, cp_id, read_only):
+            raise AccessCheckUnavailable
+
+    with pytest.raises(ApiError) as err:
+        require_cp(Down(), Principal("rm", frozenset({"RM"})), "CP-1")
+    assert err.value.status == 503 and err.value.code == "ACCESS_CHECK_UNAVAILABLE"
 
 
 def test_file_store_rejects_escape(tmp_path):
