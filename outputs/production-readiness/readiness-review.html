@@ -1,0 +1,162 @@
+<title>Covenexa Readiness Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column, like a credit committee memo; verdict first, then evidence tables. */
+:root {
+  --bg: #f6f7f5; --surface: #ffffff; --fg: #1d2420; --muted: #56615a; --line: #d9ded9;
+  --accent: #1f5c4a; --crit: #a8251b; --crit-bg: #fbe9e6; --high: #9a5a00; --high-bg: #fdf1dc;
+  --med: #3d5a80; --med-bg: #e8eef6; --ok: #2c6e3f; --ok-bg: #e5f2e8;
+  --display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141917; --surface: #1c2320; --fg: #e4e9e5; --muted: #9ba7a0; --line: #2f3833;
+  --accent: #7cc4a8; --crit: #ff8f80; --crit-bg: #3a1f1c; --high: #f0b45c; --high-bg: #35290f;
+  --med: #9cb8e0; --med-bg: #1f2a3a; --ok: #8fd4a2; --ok-bg: #1b2e22; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141917; --surface: #1c2320; --fg: #e4e9e5; --muted: #9ba7a0; --line: #2f3833;
+  --accent: #7cc4a8; --crit: #ff8f80; --crit-bg: #3a1f1c; --high: #f0b45c; --high-bg: #35290f;
+  --med: #9cb8e0; --med-bg: #1f2a3a; --ok: #8fd4a2; --ok-bg: #1b2e22; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); }
+main { max-width: 960px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 36px; }
+header { display: grid; gap: 10px; }
+.kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 700 clamp(28px, 5vw, 40px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 22px/1.25 var(--display); margin: 0 0 12px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+.verdict { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: var(--crit-bg);
+  border-left: 4px solid var(--crit); padding: 18px 20px; border-radius: 4px; }
+.verdict b { font: 700 22px/1 var(--display); color: var(--crit); letter-spacing: .02em; white-space: nowrap; }
+@media (max-width: 560px) { .verdict { grid-template-columns: 1fr; } }
+ol.why { margin: 0; padding-left: 1.2em; display: grid; gap: 12px; max-width: 72ch; }
+ol.why strong { font-weight: 600; }
+.wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 12px/1.3 var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+code, .id { font-family: var(--mono); font-size: 13px; }
+.id { white-space: nowrap; }
+.sev { display: inline-block; font: 600 11px/1 var(--body); padding: 4px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.s-crit { color: var(--crit); background: var(--crit-bg); } .s-high { color: var(--high); background: var(--high-bg); }
+.s-med { color: var(--med); background: var(--med-bg); } .s-low { color: var(--muted); background: var(--bg); border: 1px solid var(--line); }
+.s-pass { color: var(--ok); background: var(--ok-bg); } .s-fail { color: var(--crit); background: var(--crit-bg); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.cols > * { min-width: 0; }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+ul.plain { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.note { border-left: 3px solid var(--high); padding: 10px 14px; background: var(--high-bg); border-radius: 3px; }
+.muted { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+</style>
+
+<main>
+  <header>
+    <span class="kicker">Production-readiness review · 5 November 2026</span>
+    <h1>Covenexa: Core, DPS and UI on the local real stack</h1>
+    <p class="muted">Keycloak, SQL Server 2022, Azure OpenAI, WireMock bank stubs, one 8-CPU host. No product code was changed during the review.</p>
+  </header>
+
+  <section class="verdict" aria-label="Verdict">
+    <b>NOT READY</b>
+    <p>One critical requirement fails (covenant direction in extraction), and three high-severity failures appear at a real bank's size. The fixes are contained and planned; a second review follows phase 1.</p>
+  </section>
+
+  <section>
+    <h2>Why not ready</h2>
+    <ol class="why">
+      <li><strong>Wrong covenant direction (Critical).</strong> "The DSCR shall not be less than 1.35" is extracted as <code>DSCR &lt; 1.35</code>. A floor becomes a ceiling, so compliant borrowers show as breached and the reverse. The citation check passes and confidence is 0.85; only the RM's review catches it.</li>
+      <li><strong>Bank-wide pages fail above 2,100 CPs (High).</strong> With 2,225 CPs, admin and auditor get HTTP 500 on portfolio, CP list, tasks and the breach report: SQL Server's 2,100-parameter limit.</li>
+      <li><strong>Capacity with real portfolios (High).</strong> One RM with 60 CPs waits 4–6 s for the breach report; 25 such RMs at once exhaust the database pool (10–58% errors, 66 s time-outs).</li>
+      <li><strong>Uploads deadlock on SQL Server (High).</strong> 22–70% of concurrent uploads fail with deadlock 1205 on the production database. DPS sends NVARCHAR strings to VARCHAR columns. The local stack's SQLite hid it.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Findings</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>ID</th><th>Severity</th><th>Finding</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BUG-01</td><td><span class="sev s-crit">Critical</span></td><td>"shall not be less than" extracted as <code>&lt;</code>; "shall not be more than" as <code>&gt;</code></td><td><code>agreement.py:73-77</code></td></tr>
+        <tr><td class="id">BUG-02</td><td><span class="sev s-high">High</span></td><td>Bank-wide pages return 500 above 2,100 CPs</td><td>8 of 8 pages, SQL 8003</td></tr>
+        <tr><td class="id">BUG-03</td><td><span class="sev s-high">High</span></td><td>Portfolio pages slow with portfolio size; N+1 lookups and table scans</td><td>406,867 schedule lookups in 10 min</td></tr>
+        <tr><td class="id">BUG-04</td><td><span class="sev s-high">High</span></td><td>Concurrent uploads deadlock on SQL Server</td><td>79 of 113 uploads failed</td></tr>
+        <tr><td class="id">BUG-05</td><td><span class="sev s-high">High</span></td><td>"My tasks" returns 500 after a large daily run</td><td><code>WorkQueueService.java:143</code></td></tr>
+        <tr><td class="id">BUG-06</td><td><span class="sev s-med">Medium</span></td><td>CPs onboarded without the recommendation step are missing from portfolios</td><td>2,200 CPs invisible to their RMs</td></tr>
+        <tr><td class="id">BUG-07</td><td><span class="sev s-med">Medium</span></td><td>DPS says "CP not found" when Core is only slow</td><td>112 time-outs returned as 404</td></tr>
+        <tr><td class="id">BUG-08</td><td><span class="sev s-med">Medium</span></td><td>All covenant schedules fire in the same second</td><td>4,800 at 02:00:00, 17.5 min backlog</td></tr>
+        <tr><td class="id">BUG-09</td><td><span class="sev s-med">Medium</span></td><td>2,800 schedules still run in UTC</td><td><code>QRTZ_CRON_TRIGGERS</code></td></tr>
+        <tr><td class="id">BUG-10</td><td><span class="sev s-med">Medium</span></td><td>Manual daily run ends with 504 at the gateway</td><td>about 5 min inside one request</td></tr>
+        <tr><td class="id">BUG-11</td><td><span class="sev s-med">Medium</span></td><td>500-page limit not enforced</td><td>600-page PDF accepted</td></tr>
+        <tr><td class="id">BUG-12</td><td><span class="sev s-med">Medium</span></td><td>Agreement Q&amp;A returns planted or irrelevant text</td><td>3 of 3 answers quoted the planted line</td></tr>
+        <tr><td class="id">BUG-13</td><td><span class="sev s-low">Low</span></td><td>RM sees "Failed" with no reason</td><td>Encrypted PDF</td></tr>
+        <tr><td class="id">BUG-14</td><td><span class="sev s-low">Low</span></td><td>Local stack uses a 10-connection pool</td><td>Prod default is 20</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>PRD targets</h2>
+      <div class="wrap"><table>
+        <thead><tr><th>Target</th><th class="num">Measured</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Flow A, 50 pages, p95 ≤ 90 s</td><td class="num">4–9 s</td><td><span class="sev s-pass">Pass</span></td></tr>
+          <tr><td>Flow B, p95 ≤ 60 s</td><td class="num">2–3 s</td><td><span class="sev s-pass">Pass</span></td></tr>
+          <tr><td>Re-assess ≤ 5 min</td><td class="num">0.2–1.9 s</td><td><span class="sev s-pass">Pass</span></td></tr>
+          <tr><td>Values API p95 ≤ 500 ms</td><td class="num">83 ms</td><td><span class="sev s-pass">Pass</span></td></tr>
+          <tr><td>10k covenants ≤ 30 min</td><td class="num">7,612 in 5 min</td><td><span class="sev s-pass">Pass</span></td></tr>
+          <tr><td>Scale to a bank's portfolio</td><td class="num">25 RMs</td><td><span class="sev s-fail">Fail</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+    <section>
+      <h2>What works</h2>
+      <ul class="plain">
+        <li>Assessment results match source data; lakhs convert to crore; missing data never breaches.</li>
+        <li>Authentication, role gates and CP isolation hold in Core and DPS.</li>
+        <li>Ask AI stays in the RM's portfolio, cites records, refuses other RMs' CPs.</li>
+        <li>A planted instruction did not change extracted thresholds.</li>
+        <li>Restore is byte-identical; nightly run, e-mail hand-off and two-node Quartz work.</li>
+        <li>Core stays up when DPS is down.</li>
+        <li>1,202 Core tests, DPS 98% coverage, 52 Playwright tests, 0 accessibility violations.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section>
+    <h2>Load results</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>Run</th><th class="num">Users</th><th>Pauses</th><th class="num">req/s</th><th class="num">Errors</th><th>Main cause</th></tr></thead>
+      <tbody>
+        <tr><td>Real 60-CP portfolios</td><td class="num">25</td><td>none</td><td class="num">1.8</td><td class="num">10.8%</td><td>Pool exhausted by slow portfolio queries</td></tr>
+        <tr><td>Real 60-CP portfolios</td><td class="num">100</td><td>3–8 s</td><td class="num">3.4</td><td class="num">21.4%</td><td>Pool time-outs, 504s</td></tr>
+        <tr><td>Real 60-CP portfolios</td><td class="num">250</td><td>3–8 s</td><td class="num">6.0</td><td class="num">58.5%</td><td>Pool time-outs, dropped connections</td></tr>
+        <tr><td>Empty portfolio lists, pool 20</td><td class="num">100</td><td>none</td><td class="num">68</td><td class="num">0.04%</td><td>Overstated; see the note below</td></tr>
+        <tr><td>DPS on SQL Server, uploads</td><td class="num">50</td><td>none</td><td class="num">52</td><td class="num">70% of uploads</td><td>Deadlock 1205</td></tr>
+        <tr><td>Bank-wide at 2,225 CPs</td><td class="num">admin, auditor</td><td>n/a</td><td class="num">n/a</td><td class="num">8 of 8 pages</td><td>SQL 8003</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Earlier figures of 117 req/s and 250 users under 400 ms came from load-test RMs whose portfolio lists were empty (BUG-06). They hold only for pages that do not list a portfolio. Plan with the real-portfolio runs.</p>
+  </section>
+
+  <section>
+    <h2>Path to "ready with conditions"</h2>
+    <ol class="why">
+      <li>Fix the operator wording and add an operator-sanity check; credit analysts label at least 20 agreements and 20 statements.</li>
+      <li>Batch every id list in 500s; bank-wide reads without an id list.</li>
+      <li>Remove the N+1 lookups and table scans on portfolio pages; cache library data.</li>
+      <li>Match DPS bind types to the columns; retry deadlocks; test DPS on SQL Server in CI.</li>
+      <li>Write the CP cache whenever covenants are applied.</li>
+      <li>Repeat the real-portfolio, bank-wide and upload load tests, then review again.</li>
+    </ol>
+  </section>
+
+  <p class="muted">Full report in the repository: <code>outputs/production-readiness/</code> (summary, requirements traceability, feature test matrix, bugs and risks, test results, improvement plan, raw evidence).</p>
+</main>

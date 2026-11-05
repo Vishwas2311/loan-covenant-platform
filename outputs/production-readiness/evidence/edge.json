@@ -1,0 +1,58 @@
+[
+ {
+  "case": "encrypted PDF",
+  "expect": "rejected or FAILED with a clear reason",
+  "http": 202,
+  "final": "FAILED",
+  "leak": false,
+  "detail": "3s error="
+ },
+ {
+  "case": "truncated PDF",
+  "expect": "FAILED or NEEDS_REVIEW, no crash",
+  "http": 202,
+  "final": "FAILED",
+  "leak": false,
+  "detail": "3s error="
+ },
+ {
+  "case": "600-page PDF",
+  "expect": "rejected (limit 500 pages)",
+  "http": 202,
+  "final": null,
+  "leak": false,
+  "detail": "size=262 KB pageCount=600 accepted=True"
+ },
+ {
+  "case": "corrupt .xls statement",
+  "expect": "accepted type; fails cleanly",
+  "http": 202,
+  "final": "FAILED",
+  "leak": false,
+  "detail": "40s"
+ },
+ {
+  "case": "corrupt .xlsx statement",
+  "expect": "FAILED cleanly",
+  "http": 202,
+  "final": "FAILED",
+  "leak": false,
+  "detail": "3s"
+ },
+ {
+  "case": "statement without asOfDate",
+  "expect": "400 AS_OF_DATE_REQUIRED",
+  "http": 400,
+  "final": null,
+  "leak": false,
+  "detail": "AS_OF_DATE_REQUIRED"
+ },
+ {
+  "case": "duplicate upload",
+  "expect": "same documentId (idempotent)",
+  "http": 202,
+  "final": null,
+  "leak": false,
+  "detail": "first=202 same_id=True"
+ }
+]

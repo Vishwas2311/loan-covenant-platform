@@ -1,0 +1,202 @@
+{
+ "up": {
+  "cb88a3e1-42bf-44d0-8bab-8301e8a42e2c": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "b67fc92b-5546-423f-9239-0f1b617511ff": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "1ae2fc55-4c93-472d-b341-848707e4d75a": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "3d673642-aaeb-4d6c-8623-09930e991666": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000001": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000002": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000003": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000004": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "9beb0c34-1846-4945-97a3-b76ce7140111": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "e194fab9-d836-4723-9f06-1de0d418244a": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "a100ebcd-241b-4fda-b52d-cce7f7ec8c2b": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "c76d78d6-1dc6-44c4-92cb-f688e838e8a3": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "0f78db6f-d3f1-491f-9084-a212c08d4aae": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "88003c90-6e63-4793-8b64-1d0b6500e73b": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "d4e51763-2605-460c-b838-3449e14e21db": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "63fa41fa-492c-4387-b08d-e433147beed0": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "ba325139-b09c-4eb0-ac44-0999024178e5": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ]
+ },
+ "down": {
+  "cb88a3e1-42bf-44d0-8bab-8301e8a42e2c": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "b67fc92b-5546-423f-9239-0f1b617511ff": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "1ae2fc55-4c93-472d-b341-848707e4d75a": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "3d673642-aaeb-4d6c-8623-09930e991666": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000001": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000002": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000003": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "ac000000-0000-0000-0000-000000000004": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "9beb0c34-1846-4945-97a3-b76ce7140111": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "e194fab9-d836-4723-9f06-1de0d418244a": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "a100ebcd-241b-4fda-b52d-cce7f7ec8c2b": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "c76d78d6-1dc6-44c4-92cb-f688e838e8a3": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "0f78db6f-d3f1-491f-9084-a212c08d4aae": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "88003c90-6e63-4793-8b64-1d0b6500e73b": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "d4e51763-2605-460c-b838-3449e14e21db": [
+   200,
+   "COMPLIANT",
+   ""
+  ],
+  "63fa41fa-492c-4387-b08d-e433147beed0": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ],
+  "ba325139-b09c-4eb0-ac44-0999024178e5": [
+   200,
+   "PENDING_REVIEW",
+   ""
+  ]
+ },
+ "pages": {
+  "/api/v1/monitoring/summary": [
+   200,
+   159
+  ],
+  "/api/v1/monitoring/cp/CP-1001/review": [
+   200,
+   57
+  ],
+  "/api/v1/onboarding/CP-1001": [
+   404,
+   82
+  ],
+  "/api/v1/assessments?cpId=CP-1001": [
+   200,
+   743
+  ],
+  "/api/v1/covenants?page=0&size=5": [
+   200,
+   22
+  ],
+  "/dps/v1/documents?cpId=CP-1001": [
+   502,
+   4046
+  ]
+ }
+}

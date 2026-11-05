@@ -1,6 +1,11 @@
-"""Seeds load-test CPs (LT-0001...) into the running local stack (deploy/docker-compose.yml).
+"""Seeds load-test CPs into the running local stack (deploy/docker-compose.yml).
 
-Usage:  python loadtest/seed.py --cps 500
+Usage:  python loadtest/seed.py --rms 20 --per-rm 60      (1,200 CPs LT-01001 ... LT-20060)
+
+CP LT-RRNNN belongs to load-rm-RR (RM) and load-wrm-RR (approver); create those users first with
+loadtest/users.py. With the real-sign-in stack (docker-compose.real.yml) the script signs in as admin-1
+on the local-only covenant-cli client (KC_DEMO_PASSWORD from deploy/.env); in dev-header mode it sends
+X-User headers.
 
 For each CP it:
   1. answers the credit-proposal and attributes lookups through WireMock's admin API (one templated
@@ -9,7 +14,7 @@ For each CP it:
   3. applies the 4 CP-1002 covenants (DSCR, leverage, interest cover, tangible net worth) DAILY through
      Core's API, so Core registers the Quartz jobs as it does in production.
 
-Owners: rm-load (RM) and wrm-load (approver). Safe to re-run: existing CPs are skipped.
+Safe to re-run: existing CPs are skipped.
 """
 from __future__ import annotations
 
@@ -20,6 +25,7 @@ import random
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -27,12 +33,31 @@ from pathlib import Path
 CORE = "http://localhost:9310"
 WIREMOCK = "http://localhost:9311"
 MASTERS = [f"c0000000-0000-0000-0000-00000000000{i}" for i in range(1, 5)]
-ADMIN = {"X-User": "admin-1", "X-Roles": "ADMIN"}
 ENV_FILE = Path(__file__).resolve().parent.parent / "deploy" / ".env"
+TOKEN_URL = "http://localhost:8180/realms/covenant/protocol/openid-connect/token"
 
 
-def cp_id(n: int) -> str:
-    return f"LT-{n:04d}"
+def env(name: str) -> str:
+    return next(line.split("=", 1)[1].strip() for line in ENV_FILE.read_text().splitlines()
+                if line.startswith(f"{name}="))
+
+
+def admin_headers() -> dict:
+    """Bearer token for admin-1 when Keycloak runs, else the dev headers."""
+    try:
+        form = urllib.parse.urlencode({"grant_type": "password", "client_id": "covenant-cli", "username": "admin-1",
+                                       "password": env("KC_DEMO_PASSWORD"), "scope": "openid"}).encode()
+        with urllib.request.urlopen(urllib.request.Request(TOKEN_URL, data=form), timeout=10) as resp:
+            return {"Authorization": "Bearer " + json.load(resp)["access_token"]}
+    except (OSError, StopIteration, KeyError):
+        return {"X-User": "admin-1", "X-Roles": "ADMIN"}
+
+
+ADMIN: dict = {}
+
+
+def cp_id(rm: int, n: int) -> str:
+    return f"LT-{rm:02d}{n:03d}"
 
 
 def http(method: str, url: str, body: object | None = None, headers: dict | None = None) -> tuple[int, str]:
@@ -46,18 +71,28 @@ def http(method: str, url: str, body: object | None = None, headers: dict | None
         return err.code, err.read().decode()
 
 
-def stub_bank_services() -> None:
-    cp = {
-        "cpId": "{{request.pathSegments.[2]}}", "name": "Load Test {{request.pathSegments.[2]}}",
-        "businessSegment": "CORPORATE", "sector": "MANUFACTURING", "purpose": "Load test",
-        "approvalStatus": "APPROVED", "obligorId": "OBL-{{request.pathSegments.[2]}}", "tags": ["load-test"],
-        "rm": {"userId": "rm-load", "name": "Load RM", "email": "rm-load@example.com"},
-        "wrm": {"userId": "wrm-load", "name": "Load WRM", "email": "wrm-load@example.com"},
-    }
+def stub_bank_services(rms: int) -> None:
+    for rm in range(1, rms + 1):
+        cp = {
+            "cpId": "{{request.pathSegments.[2]}}", "name": "Load Test {{request.pathSegments.[2]}}",
+            "businessSegment": "CORPORATE", "sector": "MANUFACTURING", "purpose": "Load test",
+            "approvalStatus": "APPROVED", "obligorId": "OBL-{{request.pathSegments.[2]}}", "tags": ["load-test"],
+            "rm": {"userId": f"load-rm-{rm:02d}", "name": "Load RM", "email": f"load-rm-{rm:02d}@example.com"},
+            "wrm": {"userId": f"load-wrm-{rm:02d}", "name": "Load WRM", "email": f"load-wrm-{rm:02d}@example.com"},
+        }
+        mapping = {
+            "priority": 1,
+            "request": {"method": "GET", "urlPathPattern": f"/api/credit-proposals/LT-{rm:02d}[0-9]{{3}}"},
+            "response": {"status": 200, "headers": {"Content-Type": "application/json"},
+                         "jsonBody": cp, "transformers": ["response-template"]},
+        }
+        status, text = http("POST", f"{WIREMOCK}/__admin/mappings", mapping)
+        if status != 201:
+            sys.exit(f"WireMock stub for RM {rm} failed: {status} {text[:200]}")
     attrs = {"cpId": "{{request.pathSegments.[2]}}", "businessSegment": "CORPORATE", "sector": "MANUFACTURING",
              "attributes": {"ratingGrade": "A", "loanType": "TERM_LOAN", "facilityAmount": 500,
                             "facilityAmountUnit": "INR_CRORE", "tenorMonths": 60}}
-    for path, body in (("credit-proposals", cp), ("attributes", attrs)):
+    for path, body in (("attributes", attrs),):
         mapping = {
             "priority": 1,
             "request": {"method": "GET", "urlPathPattern": f"/api/{path}/LT-[0-9]+"},
@@ -83,14 +118,14 @@ def sql(statement: str) -> None:
         sys.exit("SQL failed: " + (result.stdout + result.stderr).decode(errors="replace")[:500])
 
 
-def seed_metrics(count: int) -> None:
+def seed_metrics(ids: list[str]) -> None:
     rnd = random.Random(42)
     rows = []
-    for n in range(1, count + 1):
+    for cp in ids:
         for as_of in ("2025-12-31", "2026-03-31"):
             # Mostly compliant, about one CP in six below a floor or above the leverage ceiling.
             weak = rnd.random() < 0.17
-            rows.append(f"('{cp_id(n)}','{as_of}',{1.05 if weak else rnd.uniform(1.3, 2.5):.4f},"
+            rows.append(f"('{cp}','{as_of}',{1.05 if weak else rnd.uniform(1.3, 2.5):.4f},"
                         f"{rnd.uniform(4.5, 6) if weak else rnd.uniform(1.5, 3.5):.4f},"
                         f"{rnd.uniform(1.8, 6):.4f},{rnd.uniform(500, 60000):.2f},1.0,1.0,1.2,1)")
     statements = ["DELETE FROM cp_metrics_demo WHERE cp_id LIKE 'LT-%';"]
@@ -101,9 +136,11 @@ def seed_metrics(count: int) -> None:
     sql("\n".join(statements) + "\nGO\n")
 
 
-def apply_covenants(n: int) -> str:
-    cp = cp_id(n)
+def apply_covenants(cp: str) -> str:
     status, text = http("GET", f"{CORE}/api/v1/credit-proposals/{cp}/applied-covenants", headers=ADMIN)
+    if status == 401:  # the 5-minute token ran out during a long seed
+        ADMIN.update(admin_headers())
+        status, text = http("GET", f"{CORE}/api/v1/credit-proposals/{cp}/applied-covenants", headers=ADMIN)
     if status == 200 and json.loads(text):
         return "skipped"
     # Start date defaults to today (past dates are refused), so run the sweep for tomorrow's date.
@@ -114,14 +151,17 @@ def apply_covenants(n: int) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cps", type=int, default=500)
+    parser.add_argument("--rms", type=int, default=20)
+    parser.add_argument("--per-rm", type=int, default=60)
     parser.add_argument("--workers", type=int, default=8)
     args = parser.parse_args()
 
-    stub_bank_services()
-    seed_metrics(args.cps)
+    ADMIN.update(admin_headers())
+    ids = [cp_id(rm, n) for rm in range(1, args.rms + 1) for n in range(1, args.per_rm + 1)]
+    stub_bank_services(args.rms)
+    seed_metrics(ids)
     with ThreadPoolExecutor(args.workers) as pool:
-        results = list(pool.map(apply_covenants, range(1, args.cps + 1)))
+        results = list(pool.map(apply_covenants, ids))
     failed = [r for r in results if r.startswith("failed")]
     print(f"applied={results.count('applied')} skipped={results.count('skipped')} failed={len(failed)}")
     for line in failed[:5]:

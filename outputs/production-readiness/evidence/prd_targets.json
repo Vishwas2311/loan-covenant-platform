@@ -1,0 +1,67 @@
+{
+ "flowA": [
+  {
+   "status": "PUBLISHED",
+   "seconds": 8.7
+  },
+  {
+   "status": "PUBLISHED",
+   "seconds": 4.3
+  },
+  {
+   "status": "PUBLISHED",
+   "seconds": 5.3
+  }
+ ],
+ "kept_statement": "a3cdb051-c986-4615-bc42-de868e021ae9",
+ "flowB": [
+  {
+   "status": "PUBLISHED",
+   "seconds": 2.2,
+   "reassess_after_publish_s": 1.9
+  },
+  {
+   "status": "PUBLISHED",
+   "seconds": 1.9,
+   "reassess_after_publish_s": 0.7
+  },
+  {
+   "status": "PUBLISHED",
+   "seconds": 3.2,
+   "reassess_after_publish_s": 0.2
+  },
+  {
+   "status": "PUBLISHED",
+   "seconds": 2.2,
+   "reassess_after_publish_s": 0.3
+  },
+  {
+   "status": "PUBLISHED",
+   "seconds": 2.1,
+   "reassess_after_publish_s": 0.2
+  }
+ ],
+ "c2": {
+  "codes": {
+   "200": 200
+  },
+  "p50": 52,
+  "p95": 83,
+  "max": 137,
+  "sample": {
+   "cpId": "CP-1001",
+   "points": [
+    {
+     "asOfDate": "2026-09-30",
+     "values": {
+      "TOTAL_DEBT": 10.0,
+      "NET_WORTH": 20.0,
+      "EBITDA": 5.14
+     }
+    }
+   ],
+   "missingKeys": [],
+   "sourceChangedAt": "2026-11-05T01:51:00.130000+00:00"
+  }
+ }
+}

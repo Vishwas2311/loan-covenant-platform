@@ -1,0 +1,781 @@
+[
+ {
+  "doc": "AGR-001",
+  "pages": 6,
+  "terms": 6,
+  "financial": 5,
+  "numeric_clauses_in_text": 10,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "4.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "4.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "NEGATIVE_PLEDGE",
+    "op": null,
+    "threshold": null,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "6.1 Without prior written consent of the Lender, the Borrower shall not:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-002",
+  "pages": 6,
+  "terms": 6,
+  "financial": 5,
+  "numeric_clauses_in_text": 10,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "4.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "4.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "NEGATIVE_PLEDGE",
+    "op": null,
+    "threshold": null,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "6.1 Without prior written consent of the Lender, the Borrower shall not:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-003",
+  "pages": 6,
+  "terms": 6,
+  "financial": 5,
+  "numeric_clauses_in_text": 10,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "4.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "4.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "NEGATIVE_PLEDGE",
+    "op": null,
+    "threshold": null,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "======= 6.1 Without prior written consent of the Lender, the Borrower shall not:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-004",
+  "pages": 6,
+  "terms": 6,
+  "financial": 5,
+  "numeric_clauses_in_text": 10,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "NEGATIVE_PLEDGE",
+    "op": null,
+    "threshold": null,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "6.1 Without prior written consent of the Lender, the Borrower shall not:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-005",
+  "pages": 6,
+  "terms": 6,
+  "financial": 5,
+  "numeric_clauses_in_text": 10,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "NEGATIVE_PLEDGE",
+    "op": null,
+    "threshold": null,
+    "page": 3,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "6.1 Without prior written consent of the Lender, the Borrower shall not:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-006",
+  "pages": 2,
+  "terms": 0,
+  "financial": 0,
+  "numeric_clauses_in_text": 0,
+  "checks": []
+ },
+ {
+  "doc": "AGR-007",
+  "pages": 85,
+  "terms": 12,
+  "financial": 6,
+  "numeric_clauses_in_text": 19,
+  "checks": [
+   {
+    "metric": "DEBT_TO_EQUITY",
+    "op": "<=",
+    "threshold": 2.0,
+    "page": 34,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.1 Debt-to-Equity Ratio The Borrower shall maintain a Debt-to-Equity Ratio not exceeding 2.0:1 at all times."
+   },
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.5,
+    "page": 34,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.2 Debt Service Coverage Ratio (DSCR) The Borrower shall maintain a Debt Service Coverage Ratio (DSCR) of not less than 1.5:1 at"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.5,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.3 Interest Coverage Ratio The Borrower shall maintain an Interest Coverage Ratio of not less than 2.5:1 at all times."
+   },
+   {
+    "metric": "MIN_NET_WORTH",
+    "op": ">=",
+    "threshold": 5000.0,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.4 Net Worth The Borrower shall at all times maintain a minimum Net Worth of INR 5,000 Crores (Indian"
+   },
+   {
+    "metric": "CURRENT_RATIO",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.5 Current Ratio The Borrower shall maintain a Current Ratio of not less than 1.25:1 at all times."
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 55,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.7,
+    "quote": "Debt to Equity Ratio Not more than 2:1 [Ratio] [Yes/No] Total Debt to EBITDA Not more than 3.5:1 [Ratio] [Yes/No]"
+   },
+   {
+    "metric": "INSURANCE_MAINTENANCE",
+    "op": null,
+    "threshold": null,
+    "page": 23,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "without the prior written consent of the Lender. 6.6.2 The Borrower shall insure and keep insured the Collateral and all assets"
+   },
+   {
+    "metric": "REPORTING_COVENANT",
+    "op": null,
+    "threshold": null,
+    "page": 28,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "The Borrower shall: 8.1.1 Financial Statements and Information:"
+   },
+   {
+    "metric": "BOOKS_AND_RECORDS",
+    "op": null,
+    "threshold": null,
+    "page": 29,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "5. The representations and warranties set out in Clause 7 are true and correct. 8.1.3 Books and Records:"
+   },
+   {
+    "metric": "REGULATORY_AND_TAX_COMPLIANCE",
+    "op": null,
+    "threshold": null,
+    "page": 30,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "necessary to lodge and pursue the insurance claim. 8.1.5 Compliance with Laws:"
+   },
+   {
+    "metric": "COMPLIANCE_CERTIFICATE",
+    "op": null,
+    "threshold": null,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "statements and unaudited quarterly financial statements of the Borrower. 9.6 Compliance Certificate"
+   },
+   {
+    "metric": "CHANGE_OF_CONTROL",
+    "op": null,
+    "threshold": null,
+    "page": 66,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "first Drawdown. 15.1.2 Mandatory Prepayment:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-008",
+  "pages": 85,
+  "terms": 11,
+  "financial": 5,
+  "numeric_clauses_in_text": 16,
+  "checks": [
+   {
+    "metric": "DEBT_TO_EQUITY",
+    "op": "<=",
+    "threshold": 2.0,
+    "page": 34,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.1 Debt-to-Equity Ratio The Borrower shall maintain a Debt-to-Equity Ratio not exceeding 2.0:1 at all times."
+   },
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.5,
+    "page": 34,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.2 Debt Service Coverage Ratio (DSCR) The Borrower shall maintain a Debt Service Coverage Ratio (DSCR) of not less than 1.5:1 at"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.5,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.3 Interest Coverage Ratio The Borrower shall maintain an Interest Coverage Ratio of not less than 2.5:1 at all times."
+   },
+   {
+    "metric": "MIN_NET_WORTH",
+    "op": ">=",
+    "threshold": 5000.0,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.4 Net Worth The Borrower shall at all times maintain a minimum Net Worth of INR 5,000 Crores (Indian"
+   },
+   {
+    "metric": "CURRENT_RATIO",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "9.5 Current Ratio The Borrower shall maintain a Current Ratio of not less than 1.25:1 at all times."
+   },
+   {
+    "metric": "INSURANCE_MAINTENANCE",
+    "op": null,
+    "threshold": null,
+    "page": 23,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "without the prior written consent of the Lender. 6.6.2 The Borrower shall insure and keep insured the Collateral and all assets"
+   },
+   {
+    "metric": "REPORTING_COVENANT",
+    "op": null,
+    "threshold": null,
+    "page": 28,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "The Borrower shall: 8.1.1 Financial Statements and Information:"
+   },
+   {
+    "metric": "BOOKS_AND_RECORDS",
+    "op": null,
+    "threshold": null,
+    "page": 29,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "5. The representations and warranties set out in Clause 7 are true and correct. 8.1.3 Books and Records:"
+   },
+   {
+    "metric": "REGULATORY_AND_TAX_COMPLIANCE",
+    "op": null,
+    "threshold": null,
+    "page": 30,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "necessary to lodge and pursue the insurance claim. 8.1.5 Compliance with Laws:"
+   },
+   {
+    "metric": "COMPLIANCE_CERTIFICATE",
+    "op": null,
+    "threshold": null,
+    "page": 35,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "statements and unaudited quarterly financial statements of the Borrower. 9.6 Compliance Certificate"
+   },
+   {
+    "metric": "CHANGE_OF_CONTROL",
+    "op": null,
+    "threshold": null,
+    "page": 65,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "first Drawdown. 15.1.2 Mandatory Prepayment:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-009",
+  "pages": 8,
+  "terms": 8,
+  "financial": 5,
+  "numeric_clauses_in_text": 10,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.1 Debt Service Coverage Ratio (DSCR) The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agre"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.2 Interest Coverage Ratio (ICR) The Borrower shall maintain an Interest Coverage Ratio (\"ICR\") of not less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 6,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "REPORTING_COVENANT",
+    "op": null,
+    "threshold": null,
+    "page": 6,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "The Borrower shall: 9.1.1 Financial Statements and Information:"
+   },
+   {
+    "metric": "COMPLIANCE_CERTIFICATE",
+    "op": null,
+    "threshold": null,
+    "page": 7,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "9.1.2 Compliance Certificate:"
+   },
+   {
+    "metric": "BOOKS_AND_RECORDS",
+    "op": null,
+    "threshold": null,
+    "page": 7,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "5. The representations and warranties set out in Clause 7 are true and correct. 9.1.3 Books and Records:"
+   }
+  ]
+ },
+ {
+  "doc": "AGR-010",
+  "pages": 8,
+  "terms": 8,
+  "financial": 5,
+  "numeric_clauses_in_text": 9,
+  "checks": [
+   {
+    "metric": "DSCR",
+    "op": ">=",
+    "threshold": 1.25,
+    "page": 5,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.1 Debt Service Coverage Ratio (DSCR) The Borrower shall maintain a Debt Service Coverage Ratio (\"DSCR\") of not less than 1.25 times. For purposes of this Agre"
+   },
+   {
+    "metric": "ICR",
+    "op": ">=",
+    "threshold": 2.0,
+    "page": 6,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "less than 2.00 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "DEBT_TO_EBITDA",
+    "op": "<=",
+    "threshold": 3.5,
+    "page": 6,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: lower is better. Required threshold: <= 3.50x."
+   },
+   {
+    "metric": "DEBT_TO_NET_WORTH",
+    "op": "<=",
+    "threshold": 2.5,
+    "page": 6,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.95,
+    "quote": "8.4 Debt to Net Worth Ratio The Borrower shall ensure that its Debt to Net Worth Ratio does not exceed 2.50 times. For purposes of this Agreement:"
+   },
+   {
+    "metric": "EBITDA_TO_EMI",
+    "op": ">=",
+    "threshold": 1.2,
+    "page": 6,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.85,
+    "quote": "Compliance standard: higher is better. Required threshold: >= 1.20x."
+   },
+   {
+    "metric": "NEGATIVE_PLEDGE",
+    "op": null,
+    "threshold": null,
+    "page": 4,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "======================================================================= 6.1 Without prior written consent of the Lender, the Borrower shall not:"
+   },
+   {
+    "metric": "REPORTING_COVENANT",
+    "op": null,
+    "threshold": null,
+    "page": 7,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "The Borrower shall: 9.1.1 Financial Statements and Information:"
+   },
+   {
+    "metric": "BOOKS_AND_RECORDS",
+    "op": null,
+    "threshold": null,
+    "page": 7,
+    "quote_on_page": true,
+    "threshold_in_quote": true,
+    "confidence": 0.8,
+    "quote": "5. The representations and warranties set out in Clause 7 are true and correct. 9.1.3 Books and Records:"
+   }
+  ]
+ }
+]
