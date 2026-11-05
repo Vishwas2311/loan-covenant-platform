@@ -1,0 +1,52 @@
+{
+ "documentId": "AGR-012",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-012.pdf",
+ "sha256": "5db1aef7544dd2bd81cd15cfb250b7581f47f17cc47e94c1e6cb41a6b6d7b909",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "DSCR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.2,
+   "unit": null,
+   "frequency": "YEARLY",
+   "page": 1,
+   "quote": "6.1 The DSCR of the Borrower shall not fall below 1.20 times for any Financial Year."
+  },
+  {
+   "metric": "CURRENT_RATIO",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.1,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "6.2 The Current Ratio shall not be less than 1.10 times."
+  },
+  {
+   "metric": "DEBT_TO_NET_WORTH",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 2.0,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "6.3 Total Debt to Net Worth shall not exceed 2.00 times."
+  },
+  {
+   "metric": "BOOKS_AND_RECORDS",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "7.1 The Borrower shall maintain proper books of account at its registered office."
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "documentId": "AGR-014",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-014.pdf",
+ "sha256": "064713906e6ec214c271e4f721678ccc858ed72708aa4d2a14025985702856c0",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "MIN_NET_WORTH",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 45000,
+   "unit": "lakhs",
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "5.1 The Borrower shall maintain a Net Worth of not less than INR 45,000 lakhs."
+  },
+  {
+   "metric": "DEBT_TO_EQUITY",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 1.75,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "5.2 Debt to Equity shall not be more than 1.75 times."
+  },
+  {
+   "metric": "ICR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 3.0,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "5.3 The Interest Coverage Ratio shall not be less than 3.00 times."
+  },
+  {
+   "metric": "NEGATIVE_PLEDGE",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "8.1 The Borrower shall not, without the prior written consent of the Lender, create any lien over its assets."
+  }
+ ]
+}

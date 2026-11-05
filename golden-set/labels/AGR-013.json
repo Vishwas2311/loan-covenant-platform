@@ -1,0 +1,42 @@
+{
+ "documentId": "AGR-013",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-013.pdf",
+ "sha256": "e2958a71568b589551573f27d23e4e56202df58fe376c8a8c69396bb0c8a9909",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "DSCR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.3,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "10.1 The Borrower shall ensure that its Debt Service Coverage Ratio is at least 1.30 times."
+  },
+  {
+   "metric": "NET_LEVERAGE_RATIO",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 4.75,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "10.2 The Net Debt to EBITDA ratio shall at no time exceed 4.75 times."
+  },
+  {
+   "metric": "FIXED_CHARGE_COVERAGE_RATIO",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.15,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "10.3 The Fixed Charge Coverage Ratio shall not be lower than 1.15 times."
+  }
+ ]
+}

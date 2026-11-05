@@ -14,7 +14,7 @@ from sqlalchemy import false, select, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
-from dps import __version__, services
+from dps import __version__, services, usage
 from dps.access import CpAccessChecker, require_cp
 from dps.auth import ADMIN, APPROVER, RM, SERVICE, SUPPORT, Principal, require_roles
 from dps.catalog import LINE_ITEMS
@@ -228,10 +228,12 @@ class AiStatusRequest(BaseModel):
 
 
 @router.post("/dps/v1/ai-suggestions")
-def ai_suggestions(body: AiStatusRequest, request: Request, user: User) -> list[dict]:
+def ai_suggestions(body: AiStatusRequest, request: Request, db: DB, user: User) -> list[dict]:
     """C3: advisory status suggestions for Core's AiStatusRecommender (empty when nothing to say)."""
     require_roles(user, SERVICE, ADMIN)
-    return request.app.state.advisor.suggest(body.cpId, body.covenants)
+    out = request.app.state.advisor.suggest(body.cpId, body.covenants)
+    usage.record(db, request.app.state.settings, "SUGGESTIONS", user.user, cp_id=body.cpId)
+    return out
 
 
 @router.post("/dps/v1/documents", status_code=202)
@@ -415,13 +417,15 @@ class AskRequest(BaseModel):
 
 
 @router.post("/dps/v1/ask")
-def ask_ai(body: AskRequest, request: Request, user: User) -> dict:
+def ask_ai(body: AskRequest, request: Request, db: DB, user: User) -> dict:
     """FR-27: answers about the caller's own portfolio only (Core data fetched with the caller's identity)."""
     from dps.ask import answer
 
     request.app.state.limiter.check(user.user, "ask", request.app.state.settings.ask_per_minute)
     advisor = request.app.state.advisor
-    return answer(body.question, user, request.app.state.core_fetch, advisor.completion)
+    out = answer(body.question, user, request.app.state.core_fetch, advisor.completion)
+    usage.record(db, request.app.state.settings, "ASK_AI", user.user)
+    return out
 
 
 @router.get("/dps/v1/documents/{document_id}/narrative")
@@ -434,7 +438,9 @@ def document_narrative(document_id: str, request: Request, db: DB, user: User, c
     seen: dict[str, dict] = {}
     for v in rows:
         seen.setdefault(v.key, {"key": v.key, "value": v.value})
-    return request.app.state.advisor.narrative(list(seen.values()))
+    out = request.app.state.advisor.narrative(list(seen.values()))
+    usage.record(db, request.app.state.settings, "NARRATIVE", user.user, document_id=doc.id)
+    return out
 
 
 @router.patch("/dps/v1/terms/{term_id}")
@@ -530,7 +536,16 @@ def ask_agreement(document_id: str, body: AgreementQuestion, request: Request, d
         raise ApiError(422, "UNREADABLE_PDF", "This agreement's text cannot be read") from ex
     services.audit(db, user.user, "ASK_AGREEMENT", "document", doc.id, question=body.question)
     db.commit()
-    return answer(body.question, pages, request.app.state.advisor.completion)
+    out = answer(body.question, pages, request.app.state.advisor.completion)
+    usage.record(db, request.app.state.settings, "AGREEMENT_QA", user.user, document_id=doc.id)
+    return out
+
+
+@router.get("/dps/v1/ai-usage")
+def ai_usage(db: DB, user: User, days: int = 30) -> dict:
+    """GAP-05: model tokens and cost over the last ``days`` days, per purpose (support and administrators)."""
+    require_roles(user, SUPPORT, ADMIN)
+    return usage.summary(db, max(1, min(days, 366)))
 
 
 @router.get("/dps/v1/documents/{document_id}/file")

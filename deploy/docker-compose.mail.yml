@@ -1,0 +1,19 @@
+# Real e-mail delivery for local testing. Core's notification calls go to a small bridge that turns them
+# into e-mails and delivers them to Mailpit, a local inbox: open http://localhost:8025 to read them.
+#   docker compose -f docker-compose.yml -f docker-compose.real.yml -f docker-compose.mail.yml up -d
+# Nothing leaves this machine. Escalations go to credit.head@covenant.local (FR-31).
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27.11
+    ports: ["8025:8025"]  # web inbox; SMTP (1025) stays inside the compose network
+  mail-bridge:
+    build: ./mailbridge
+    environment:
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    depends_on: [mailpit]
+  core:
+    environment:
+      COVENANT_CLIENTS_NOTIFICATION_BASE_URL: http://mail-bridge:8090
+      COVENANT_ESCALATION_RECIPIENTS: credit.head@covenant.local
+    depends_on: [mail-bridge]

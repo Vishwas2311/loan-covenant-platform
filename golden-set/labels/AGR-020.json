@@ -1,0 +1,52 @@
+{
+ "documentId": "AGR-020",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-020.pdf",
+ "sha256": "8e0a7beb8abe74f9ccc395972aea5c83cc30ac0845dda3aeac29c050033962f8",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "ICR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.75,
+   "unit": null,
+   "frequency": "YEARLY",
+   "page": 1,
+   "quote": "5.1 The Interest Coverage Ratio shall not be lower than 1.75 times for any Financial Year."
+  },
+  {
+   "metric": "DEBT_TO_EBITDA",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 4.0,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "5.2 Total Debt to EBITDA shall not be more than 4.00 times."
+  },
+  {
+   "metric": "MIN_NET_WORTH",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 9500,
+   "unit": "lakhs",
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "5.3 The Borrower shall maintain a Net Worth of not less than INR 9,500 lakhs."
+  },
+  {
+   "metric": "NEGATIVE_PLEDGE",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "6.1 The Borrower shall not create any lien over its tea estates without the consent of the Lender."
+  }
+ ]
+}

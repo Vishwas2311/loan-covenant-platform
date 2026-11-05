@@ -42,6 +42,9 @@ export interface AnalyticsGroup {
   error: number;
   dispositioned: number;
   breachRate: number;
+  /** FR-25: facility amount of the group's CPs in INR crore; null when none of them has one. */
+  exposureCrore?: number | null;
+  cpsWithExposure?: number;
 }
 
 export interface PortfolioAnalytics {

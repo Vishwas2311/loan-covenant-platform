@@ -80,6 +80,10 @@ _EXCLUDE = re.compile(r"\b(ratio|margin|%|per\s+share|growth|cover)\b", re.I)
 TO_CRORE = {"crore": 1.0, "lakh": 0.01, "million": 0.1, "billion": 100.0, "thousand": 0.0001, "rupee": 1e-7}
 _UNIT_HINT = re.compile(r"(?:in|amounts?\s+in|₹|rs\.?|inr)\s*(?:in\s+)?(crores?|cr\b|lakhs?|lacs?|millions?|mn\b|"
                         r"billions?|bn\b|thousands?|'000|rupees)", re.I)
+# "Amounts in INR" / "in rupees" with no scale word after it: plain rupees (golden set: such a statement
+# was read as crore, every amount 10^7 too large).
+_RUPEE_HINT = re.compile(r"(?:amounts?\s+in|figures?\s+in|in)\s+(?:inr|rs\.?|₹|rupees)\b(?!\s*(?:in\s+)?(?:crores?|"
+                         r"cr\b|lakhs?|lacs?|millions?|mn\b|billions?|bn\b|thousands?|'000))", re.I)
 _NUMBER = re.compile(r"\(?-?[0-9][0-9,]*(?:\.[0-9]+)?\)?")
 REQUIRED = ("EBITDA", "TOTAL_DEBT", "NET_WORTH")
 
@@ -106,9 +110,10 @@ class StatementResult:
 
 
 def _unit(text: str) -> str:
+    """The scale the statement states; "crore" when it states none (see :func:`unit_stated`)."""
     m = _UNIT_HINT.search(text or "")
     if not m:
-        return "crore"
+        return "rupee" if _RUPEE_HINT.search(text or "") else "crore"
     word = m.group(1).lower()
     if word.startswith(("cr",)):
         return "crore"
@@ -121,6 +126,10 @@ def _unit(text: str) -> str:
     if word.startswith(("thous", "'000")):
         return "thousand"
     return "rupee"
+
+
+def unit_stated(text: str) -> bool:
+    return bool(_UNIT_HINT.search(text or "") or _RUPEE_HINT.search(text or ""))
 
 
 def match_key(label: str) -> str | None:
@@ -227,6 +236,9 @@ def extract_values(rows: list[tuple[str, float, int | None, str | None]], header
     result = StatementResult(list(found.values()), scale)
     derive(result)
     check(result)
+    if found and not unit_stated(header_text):
+        # Assuming crore when nothing says so must not pass silently: a person confirms the scale.
+        result.issues.append("UNIT_NOT_STATED: amounts read as INR crore")
     return result
 
 
@@ -237,9 +249,10 @@ def _put(result: StatementResult, key: str, value: float, *inputs: str) -> None:
 def derive(result: StatementResult) -> None:
     """Calculate step: fill missing inputs from the ones reported."""
     v = {x.key: x.value for x in result.values}
-    if "TOTAL_DEBT" not in v and "ST_DEBT" in v and "LT_DEBT" in v:
-        v["TOTAL_DEBT"] = v["ST_DEBT"] + v["LT_DEBT"]
-        _put(result, "TOTAL_DEBT", v["TOTAL_DEBT"], "ST_DEBT", "LT_DEBT")
+    parts = [k for k in ("ST_DEBT", "LT_DEBT") if k in v]
+    if "TOTAL_DEBT" not in v and parts:  # a statement with no short-term line has none to add
+        v["TOTAL_DEBT"] = sum(v[k] for k in parts)
+        _put(result, "TOTAL_DEBT", v["TOTAL_DEBT"], *parts)
     if "EBITDA" not in v and "EBIT" in v and "DEPRECIATION" in v:
         v["EBITDA"] = v["EBIT"] + abs(v["DEPRECIATION"])
         _put(result, "EBITDA", v["EBITDA"], "EBIT", "DEPRECIATION")

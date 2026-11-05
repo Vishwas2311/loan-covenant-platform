@@ -181,3 +181,23 @@ def test_file_store_rejects_escape(tmp_path):
     assert store.put(b"abc", ".pdf") == (digest, rel)
     with pytest.raises(ValueError):
         store.path("../outside.pdf")
+
+
+def test_dps_refuses_sql_server_without_snapshot_isolation():
+    """GAP-11: like Core, DPS will not run on SQL Server with READ_COMMITTED_SNAPSHOT off."""
+    from unittest.mock import MagicMock
+
+    from dps.db import make_engine, require_snapshot_isolation
+
+    require_snapshot_isolation(make_engine("sqlite://"))  # other databases are not checked
+
+    def engine(snapshot_on):
+        e = MagicMock()
+        e.dialect.name = "mssql"
+        conn = e.connect.return_value.__enter__.return_value
+        conn.execute.return_value.scalar.side_effect = [snapshot_on, "dps"]
+        return e
+
+    require_snapshot_isolation(engine(True))
+    with pytest.raises(RuntimeError, match=r"ALTER DATABASE \[dps\] SET READ_COMMITTED_SNAPSHOT ON"):
+        require_snapshot_isolation(engine(False))

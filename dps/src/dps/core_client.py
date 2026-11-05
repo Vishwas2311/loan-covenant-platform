@@ -35,7 +35,8 @@ class CoreClient:
     """Sends a client-credentials token when ``oauth`` is given (production), else a fixed ``service_token``,
     else the SERVICE dev headers."""
 
-    def __init__(self, base_url: str, timeout: float, service_token: str = "",
+    # An empty service_token means "no fixed token" (the dev headers or OAuth are used instead).
+    def __init__(self, base_url: str, timeout: float, service_token: str = "",  # nosec B107
                  client: httpx.Client | None = None, oauth: ClientCredentialsToken | None = None) -> None:
         self._client = client or httpx.Client(base_url=base_url, timeout=timeout)
         self._oauth = oauth

@@ -191,6 +191,26 @@ class AuditEvent(Base):
     at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
 
 
+class AiUsage(Base):
+    """Tokens and cost of the model calls made for one request (review GAP-05)."""
+
+    __tablename__ = "dps_ai_usage"
+    __table_args__ = (Index("ix_dps_ai_usage_at", "at"),)
+
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
+    at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
+    purpose: Mapped[str] = mapped_column(Varchar(24))  # ASK_AI | AGREEMENT_QA | SUGGESTIONS | NARRATIVE
+    user: Mapped[str] = mapped_column(Varchar(255))
+    cp_id: Mapped[str | None] = mapped_column(Varchar(64))
+    document_id: Mapped[str | None] = mapped_column(Varchar(36))
+    job_id: Mapped[str | None] = mapped_column(Varchar(36))
+    model: Mapped[str] = mapped_column(Varchar(128))
+    calls: Mapped[int] = mapped_column(Integer, default=1)
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost: Mapped[float | None] = mapped_column(Float)  # in the currency of the configured rates
+
+
 class FlowState(Base):
     """Saved CrewAI Flow state (backing store for the SQL FlowPersistence, R1)."""
 

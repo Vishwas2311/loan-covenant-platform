@@ -2,6 +2,7 @@
 
 Usage:
     python evaluate.py --predictions <dir of {documentId}.json> [--labels labels] [--include-drafts]
+                       [--statuses VERIFIED,SYNTHETIC]
 
 Each prediction file has the same shape as a label file: {"documentId": ..., "covenants": [...]}.
 Matching is per document by (metric, category). Reported per document and overall:
@@ -9,9 +10,15 @@ Matching is per document by (metric, category). Reported per document and overal
   - covenant precision = matched predicted covenants / predicted covenants
   - threshold accuracy = matched financial covenants with the same operator and threshold / matched financial
   - page accuracy      = matched covenants whose page equals the labelled page / matched with a labelled page
-Only labels with status VERIFIED count unless --include-drafts is given.
+Statement labels (type FINANCIAL_STATEMENT) hold {"values": {KEY: amount in INR crore}}; a predicted value
+counts as correct within 0.5% (or 0.01). value accuracy = correct values / labelled values.
 
-Gate (initial, to be agreed): threshold accuracy >= 0.95 and covenant recall >= 0.85.
+Which labels count is chosen by status: VERIFIED by default (checked by a credit analyst); SYNTHETIC labels
+belong to documents generated from a written specification (make_synthetic.py), so their truth is known by
+construction; --include-drafts adds DRAFT_UNVERIFIED labels.
+
+Gate (initial, to be agreed): threshold accuracy >= 0.95 and covenant recall >= 0.85, and value accuracy
+>= 0.95 when statement labels count.
 """
 
 from __future__ import annotations
@@ -24,6 +31,7 @@ from pathlib import Path
 
 GATE_THRESHOLD_ACCURACY = 0.95
 GATE_RECALL = 0.85
+GATE_VALUE_ACCURACY = 0.95
 
 
 @dataclass
@@ -96,22 +104,44 @@ def score_document(label: dict, prediction: dict) -> Score:
     return s
 
 
-def evaluate(labels_dir: Path, predictions_dir: Path, include_drafts: bool = False) -> dict:
+def score_statement(label: dict, prediction: dict) -> tuple[int, int, list[str]]:
+    """(labelled values, correct values, mismatches) for one statement."""
+    gold = label.get("values") or {}
+    pred = prediction.get("values") or {}
+    wrong = []
+    for key, value in gold.items():
+        got = pred.get(key)
+        if got is None or abs(float(got) - float(value)) > max(0.01, abs(float(value)) * 0.005):
+            wrong.append(f"{key}: gold {value} vs {got}")
+    return len(gold), len(gold) - len(wrong), wrong
+
+
+def evaluate(labels_dir: Path, predictions_dir: Path, include_drafts: bool = False,
+             statuses: tuple[str, ...] = ("VERIFIED",)) -> dict:
     total = Score()
     per_doc = {}
+    values_labelled = values_correct = 0
+    counted = set(statuses) | ({"DRAFT_UNVERIFIED"} if include_drafts else set())
     for label_path in sorted(labels_dir.glob("*.json")):
         label = json.loads(label_path.read_text(encoding="utf-8"))
-        if label.get("status") != "VERIFIED" and not include_drafts:
+        if label.get("status") not in counted:
             continue
         pred_path = predictions_dir / label_path.name
         prediction = json.loads(pred_path.read_text(encoding="utf-8")) if pred_path.exists() else {"covenants": []}
+        if label.get("type") == "FINANCIAL_STATEMENT":
+            n, ok, wrong = score_statement(label, prediction)
+            values_labelled += n
+            values_correct += ok
+            per_doc[label["documentId"]] = {"value_accuracy": Score._ratio(ok, n), "wrong_values": wrong}
+            continue
         s = score_document(label, prediction)
         total.add(s)
         per_doc[label["documentId"]] = {**s.metrics(), "misses": s.misses, "extras": s.extras,
                                         "wrong_thresholds": s.wrong_thresholds}
-    overall = total.metrics()
+    overall = {**total.metrics(), "value_accuracy": Score._ratio(values_correct, values_labelled)}
     passed = (overall["threshold_accuracy"] is not None and overall["recall"] is not None
-              and overall["threshold_accuracy"] >= GATE_THRESHOLD_ACCURACY and overall["recall"] >= GATE_RECALL)
+              and overall["threshold_accuracy"] >= GATE_THRESHOLD_ACCURACY and overall["recall"] >= GATE_RECALL
+              and (overall["value_accuracy"] is None or overall["value_accuracy"] >= GATE_VALUE_ACCURACY))
     return {"documents": len(per_doc), "overall": overall, "gate_passed": passed, "per_document": per_doc}
 
 
@@ -120,8 +150,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--labels", type=Path, default=Path(__file__).parent / "labels")
     ap.add_argument("--predictions", type=Path, required=True)
     ap.add_argument("--include-drafts", action="store_true")
+    ap.add_argument("--statuses", default="VERIFIED", help="comma-separated label statuses to count")
     args = ap.parse_args(argv)
-    report = evaluate(args.labels, args.predictions, args.include_drafts)
+    report = evaluate(args.labels, args.predictions, args.include_drafts,
+                      tuple(s.strip() for s in args.statuses.split(",") if s.strip()))
     print(json.dumps(report, indent=2))
     return 0 if report["gate_passed"] else 1
 

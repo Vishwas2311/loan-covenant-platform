@@ -91,6 +91,9 @@ Task lists: a read by an RM or approver syncs that person's CPs first (up to 300
 | `DPS_AI_MODEL` | for example `azure/gpt-4o`, with `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` | empty: advisory AI runs on rules |
 | `DPS_MAX_UPLOAD_MB` | default `50` | keep the UI's nginx `client_max_body_size` (60m) above it |
 | `DPS_MAX_PAGES` | default `500` | longer PDFs are refused at upload (FR-01) |
+| `DPS_AI_PROMPT_COST_PER_1K`, `DPS_AI_COMPLETION_COST_PER_1K` | the bank's Azure OpenAI price per 1,000 tokens | every model call's tokens are recorded; with these set, its cost too. Support and admins read totals at `GET /dps/v1/ai-usage?days=30` |
+
+On SQL Server, DPS refuses to start unless `READ_COMMITTED_SNAPSHOT` is on for its database, and prints the statement a DBA must run.
 
 DPS asks Core whether a user may see a CP and remembers a "yes" for 30 seconds; a revoked CP is refused again within that time. When Core cannot answer, DPS returns 503 `ACCESS_CHECK_UNAVAILABLE` (retry), never "not found".
 
@@ -119,6 +122,18 @@ CI must be green on the commit (`master` requires the Core, DPS, UI and Docker i
 3. `GET /api/v1/ops/health/data-sources` (role SUPPORT, header `X-Support-Token`) shows every data source reachable.
 4. Upload a known agreement to a test CP; the job reaches `DONE` or `NEEDS_REVIEW` within a minute.
 5. Open the open-breach report and download its Excel file.
+
+## 5b. Testing e-mail locally
+
+`deploy/docker-compose.mail.yml` replaces the bank's notification service with a small test bridge that turns
+each notification into a real e-mail and delivers it to Mailpit, a local inbox:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.real.yml -f docker-compose.mail.yml up -d
+```
+
+Open http://localhost:8025 to read the RM summaries, borrower reminders, saved reports and escalation digests
+(escalations go to `credit.head@covenant.local`). Nothing leaves the machine. Never use this file in production.
 
 ## 5a. Time zone
 

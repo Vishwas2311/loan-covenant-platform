@@ -245,7 +245,8 @@ def test_flow_b_csv_needs_review_then_reports_on_resume(database):
     csv_data = b"Line item,FY26,FY25\nEBITDA,120,100\nNet worth,900,800\n"
     flow, doc_id = statement(database, csv_data, "fs.csv")
     assert flow.state.outcome == "NEEDS_REVIEW"
-    assert flow.state.issues == ["MISSING_LINE_ITEMS: TOTAL_DEBT"]
+    # No unit is stated, so the crore assumption is flagged for the reviewer too.
+    assert flow.state.issues == ["MISSING_LINE_ITEMS: TOTAL_DEBT", "UNIT_NOT_STATED: amounts read as INR crore"]
     assert doc_status(database, doc_id) == "NEEDS_REVIEW" and values(database) == {}
 
     deps = StatementDeps(database.session_factory, lambda d: csv_data, FakeParser([]), "ds-dps", True)

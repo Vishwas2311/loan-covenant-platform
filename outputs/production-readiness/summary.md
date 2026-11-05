@@ -1,6 +1,6 @@
 # Production-readiness review: summary
 
-**Verdict after phase 1 and phase 2 fixes: READY WITH CONDITIONS**
+**Verdict after phases 1–3: READY WITH CONDITIONS**
 
 | | |
 |---|---|
@@ -12,7 +12,7 @@ The baseline found one critical bug and five high-severity bugs; all six are now
 
 ## Conditions before full production
 
-1. **Analyst-labelled golden set (GAP-01).** Credit analysts label at least 20 agreements and 20 statements, including Indian bank wording, and the golden-set gate passes on their labels. The extraction bug fixed in BUG-01 was invisible to the current gate, whose labels were drafted by the extractor itself.
+1. **Analyst-labelled golden set (GAP-01).** Credit analysts label at least 20 real agreements and 20 statements and the gate passes on their labels. Everything they need is ready: `golden-set/ANALYST-GUIDE.md`, the review page, and `predict.py` plus `evaluate.py --statuses VERIFIED`.
 2. **Bank integrations (GAP-07).** Test against Entra ID, the bank gateway, and the bank's CP, loan, notification and workflow services. Only stubs exist in this environment.
 3. **Security (RISK-04).** Complete a penetration test and an ASVS L2 review.
 4. **Capacity on production hardware (RISK-02).** Repeat the real-portfolio load test on production-like hosts, with the load generator on its own machine. Size Core, SQL Server and the connection pool from it.
@@ -65,6 +65,15 @@ At 250 users, SQL Server is the limit: portfolio aggregates are recomputed on ev
 
 Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit; add a second Core instance for more.
 
+## Phase 3
+
+- **Code scanning in CI:** bandit (DPS) and semgrep, 0 findings; workflow actions pinned to commit SHAs.
+- **AI spend:** tokens (and cost, once rates are set) recorded for every model call; support sees totals.
+- **Exposure by sector (FR-25):** treemap of facility exposure shaded by breach rate.
+- **DPS safety check:** it will not start on SQL Server without snapshot isolation.
+- **Real e-mail tested:** through a local test bridge and Mailpit, 28 RM summaries and an escalation digest were delivered.
+- **Golden set ready for analysts:** 20 agreements and 10 statements, a one-page analyst guide, and an extraction regression gate in CI. On its first run the new synthetic set found four extraction bugs, all fixed. The worst (BUG-18, critical) read statements stated in plain rupees as crore.
+
 ## Still true from the baseline
 
 - **PRD performance targets pass with wide margins.**
@@ -86,7 +95,7 @@ Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit;
 |---|---|
 | Core | 1,176 unit and 53 integration tests pass, coverage gate met, SpotBugs 0 findings |
 | DPS | Tests pass, 98.13% coverage, golden-set gate 24 of 24, ruff clean |
-| UI | Playwright 52 of 52; 123 unit tests |
+| UI | Playwright 52 of 52; 127 unit tests |
 
 ## Files
 

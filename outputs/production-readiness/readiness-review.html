@@ -58,7 +58,7 @@ a { color: var(--accent); }
 
 <main>
   <header>
-    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phase 1 and phase 2 fixes</span>
+    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phases 1–3</span>
     <h1>Covenexa: Core, DPS and UI on the local real stack</h1>
     <p class="muted">Keycloak, SQL Server 2022, Azure OpenAI, WireMock bank stubs, one 8-CPU host. The baseline review changed no code; phase 1 fixes followed and were re-tested.</p>
   </header>
@@ -101,6 +101,21 @@ a { color: var(--accent); }
       </tbody>
     </table></div>
     <p class="muted">Core: 1,176 unit and 53 integration tests pass, coverage gate met, SpotBugs 0. DPS: 98% coverage. UI: 123 unit tests. Playwright: 52 of 52. Above roughly 100–150 concurrent RMs on one 8-CPU host, add a second Core instance.</p>
+  </section>
+
+  <section>
+    <h2>Phase 3</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>Item</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Code scanning</td><td>bandit and semgrep in CI, 0 findings; actions pinned to commit SHAs</td></tr>
+        <tr><td>AI spend</td><td>Tokens per call recorded (one Ask AI call: 4,048 + 166); cost once rates are set</td></tr>
+        <tr><td>Exposure by sector</td><td>Treemap of ₹ crore exposure shaded by breach rate</td></tr>
+        <tr><td>Real e-mail</td><td>28 RM summaries and 1 escalation digest delivered to a local inbox</td></tr>
+        <tr><td>Golden set</td><td>20 agreements, 10 statements, analyst guide, CI regression gate</td></tr>
+        <tr><td>Found by the new golden set</td><td><span class="sev s-crit">Critical</span> statements in plain rupees read as crore, and three smaller extraction bugs: all fixed</td></tr>
+      </tbody>
+    </table></div>
   </section>
 
   <section>

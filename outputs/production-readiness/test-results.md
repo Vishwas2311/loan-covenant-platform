@@ -177,3 +177,16 @@ Reading: 100 concurrent RMs are now comfortable on one host. 250 exceeds a singl
 | DPS pytest | All pass, 98.13% coverage; ruff clean; golden set 24 of 24 |
 | UI unit tests | 123 of 123 |
 | Playwright end-to-end | 52 of 52 (8.5 min) |
+
+## 11. Phase 3 checks
+
+| ID | Test | Result |
+|---|---|---|
+| P3-01 | bandit over `dps/src`, all severities | 0 findings |
+| P3-02 | semgrep `p/default` over the repository (as scoped by `.semgrepignore`) | 0 findings |
+| P3-03 | Synthetic golden set: 10 agreements, 10 statements, through DPS's own extractors | Recall 1.0, precision 1.0, threshold accuracy 1.0, page accuracy 1.0, value accuracy 1.0 (first run before fixes: value accuracy 0.81, recall 0.97, one phantom covenant) |
+| P3-04 | Real agreements AGR-001..010 against their draft labels | Recall 1.0, thresholds 1.0; one extra: AGR-007 Total Debt to EBITDA ≤ 3.5 (p.55), a real covenant missing from the draft |
+| P3-05 | Real e-mail through the test bridge and Mailpit | Manual run DONE (9,052 covenants): 28 RM summaries and 1 escalation digest delivered |
+| P3-06 | AI usage | One Ask AI call: 4,048 prompt + 166 completion tokens recorded; support summary 200, RM 403 |
+| P3-07 | Exposure treemap on Reports | Rendered in light, dark and phone widths; 67 of 85 CPs with a facility amount |
+| P3-08 | Suites after phase 3 | Core 1,177 unit + 54 integration, coverage met, SpotBugs 0; DPS 98.20%; golden set 28 of 28; UI 127 unit tests; Playwright 52 of 52 (7.2 min) |

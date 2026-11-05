@@ -70,9 +70,18 @@ def _parse(text: str, allowed_ids: set[str]) -> list[dict]:
 def crewai_completion(model: str, temperature: float | None = None) -> Completion:  # pragma: no cover - live model
     from crewai import LLM
 
-    # None keeps the model's default: newer Azure OpenAI models refuse any other temperature.
-    llm = LLM(model=model) if temperature is None else LLM(model=model, temperature=temperature)
-    return lambda messages: llm.call(messages)
+    from dps import usage
+
+    def call(messages: list[dict]) -> str:
+        # One LLM per call: its token counters then belong to this call alone, even under concurrency.
+        # None keeps the model's default: newer Azure OpenAI models refuse any other temperature.
+        llm = LLM(model=model) if temperature is None else LLM(model=model, temperature=temperature)
+        text = llm.call(messages)
+        spent = llm.get_token_usage_summary()
+        usage.note(model, spent.prompt_tokens, spent.completion_tokens)
+        return text
+
+    return call
 
 
 class Advisor:

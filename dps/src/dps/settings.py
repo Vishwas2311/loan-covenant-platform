@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     ai_model: str = ""
     # Empty: the model's default (required by newer Azure OpenAI models). Set e.g. 0 where the model allows it.
     ai_temperature: float | None = None
+    # Model price per 1,000 tokens (the bank's Azure OpenAI rates); empty leaves the recorded cost empty.
+    ai_prompt_cost_per_1k: float | None = None
+    ai_completion_cost_per_1k: float | None = None
 
 
 @lru_cache(maxsize=1)

@@ -1,0 +1,52 @@
+{
+ "documentId": "AGR-016",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-016.pdf",
+ "sha256": "dba241da796ffe7b6c38cfa61472a6eb60706b4fbbf3020e79903b63547f0c6a",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "ICR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 2.5,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "9.1 The Borrower shall ensure that the Interest Coverage Ratio does not fall below 2.50 times."
+  },
+  {
+   "metric": "MINIMUM_LIQUIDITY",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 40,
+   "unit": "crore",
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "9.2 The Borrower shall maintain Minimum Liquidity of not less than INR 40 crore in unencumbered cash at all times."
+  },
+  {
+   "metric": "DEBT_TO_NET_WORTH",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 1.5,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "9.3 The ratio of Total Debt to Net Worth shall not be more than 1.50 times."
+  },
+  {
+   "metric": "INSURANCE_MAINTENANCE",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "10.1 The Borrower shall maintain insurance over its plants with reputable insurers and keep the policies in force."
+  }
+ ]
+}

@@ -45,8 +45,9 @@ NON_FINANCIAL_RULES: list[tuple[str, list[str], list[str]]] = [
       r"\bprovide\s+(?:monthly|quarterly|annual|yearly)\s+(?:financial\s+)?statements?\b"],
      [r"\bfinancial\s+statements?\s+and\s+information\b", r"\bfinancial\s+information\b"]),
     ("NEGATIVE_PLEDGE",
-     [r"\bnegative\s+pledge\b", r"\bshall\s+not\s+create\s+(?:any\s+)?lien\b", r"\bno\s+encumbrance\b",
-      r"\bwithout\s+prior\s+written\s+consent\b"], []),
+     # "shall not, without the prior written consent of the Lender, create any lien" puts words in between.
+     [r"\bnegative\s+pledge\b", r"\bshall\s+not\b[^.]{0,80}?\bcreate\s+(?:any\s+)?(?:lien|charge|encumbrance)\b",
+      r"\bno\s+encumbrance\b", r"\bwithout\s+prior\s+written\s+consent\b"], []),
     ("DEBT_INCURRANCE_RESTRICTION",
      [r"\bshall\s+not\s+incur\s+additional\s+indebtedness\b", r"\bno\s+further\s+borrowing\b",
       r"\badditional\s+debt\s+requires\s+(?:prior\s+)?consent\b"], []),
@@ -270,14 +271,24 @@ def _financial(doc: _Doc, clauses: list[_Clause]) -> list[Term]:
     return list(terms.values())
 
 
+def _alias_pattern(phrase: str) -> str:
+    return r"\b" + r"[\s_\-]*".join(re.escape(w) for w in phrase.split()) + r"\b"
+
+
 def _scan_unnumbered(doc: _Doc, terms: dict[str, Term]) -> None:
     """Fallback for covenants written outside numbered clauses (tables, schedules, net-worth floors)."""
+    # Every alias match in the text, so a match inside a longer alias of another metric ("Debt to EBITDA" in
+    # "Net Debt to EBITDA") is not taken for a covenant of its own.
+    spans = [(m.start(), m.end(), other) for other, phrases in FINANCIAL_ALIASES.items() for phrase in phrases
+             for m in re.finditer(_alias_pattern(phrase), doc.text, re.I)]
     for metric, phrases in FINANCIAL_ALIASES.items():
         if metric in terms:
             continue
         for phrase in sorted(phrases, key=len, reverse=True):
-            pattern = r"\b" + r"[\s_\-]*".join(re.escape(w) for w in phrase.split()) + r"\b"
-            for m in re.finditer(pattern, doc.text, re.I):
+            for m in re.finditer(_alias_pattern(phrase), doc.text, re.I):
+                if any(o != metric and s <= m.start() and e >= m.end() and e - s > m.end() - m.start()
+                       for s, e, o in spans):
+                    continue
                 before = doc.text[max(0, m.start() - 20):m.start()].upper()
                 if metric in ("MIN_NET_WORTH", "MIN_TANGIBLE_NET_WORTH") and ("DEBT" in before or "TANGIBLE" in before
                                                                             and metric == "MIN_NET_WORTH"):

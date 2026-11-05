@@ -46,10 +46,13 @@ def read_label(root: Path, doc_id: str) -> dict:
 
 
 def document_list(root: Path) -> list[dict]:
+    """The agreements to review (statements are checked in their label files; see ANALYST-GUIDE.md)."""
     out = []
     for row in manifest_rows(root):
+        if row.get("type", "LOAN_AGREEMENT") != "LOAN_AGREEMENT":
+            continue
         label = read_label(root, row["documentId"])
-        out.append({"documentId": row["documentId"], "sourceFile": row["sourceFile"], "pages": int(row["pages"]),
+        out.append({"documentId": row["documentId"], "sourceFile": row["sourceFile"], "pages": int(row["pages"] or 0),
                     "covenants": len(label.get("covenants", [])), "status": label.get("status"),
                     "reviewedBy": label.get("reviewedBy")})
     return out

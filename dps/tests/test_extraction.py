@@ -287,3 +287,29 @@ def test_info_facts_dates_cure_ltm_and_steps():
     assert props["MATURITY_DATE"].expression == "2028-10-30" and props["MATURITY_DATE"].name == "Maturity date"
     assert props["CURE_PERIOD_DAYS"].expression == "30 days"
     assert validate(pages, list(props.values()), lambda e: ["never called for INFO"], 0.5) == PUBLISH
+
+
+def test_statement_units_and_debt_found_by_the_golden_set():
+    """Golden-set findings: plain-rupee statements were read as crore; one-part debt gave no TOTAL_DEBT."""
+    from dps.extraction.statement import extract_values
+
+    rupees = extract_values([("EBITDA", 113000000.0, None, "B2"), ("Long-term borrowings", 310000000.0, None, "B3")],
+                            "Amounts in INR,")
+    by = {v.key: v.value for v in rupees.values}
+    assert by["EBITDA"] == pytest.approx(11.3) and by["TOTAL_DEBT"] == pytest.approx(31.0)
+    assert not any(i.startswith("UNIT_NOT_STATED") for i in rupees.issues)
+    assert extract_values([("EBITDA", 5.0, None, None)], "Figures in Rs.")
+    lakhs = extract_values([("EBITDA", 514.0, None, None)], "Amounts in INR lakhs")
+    assert lakhs.values[0].value == pytest.approx(5.14)
+    unstated = extract_values([("EBITDA", 5.0, None, None)], "Balance sheet")
+    assert "UNIT_NOT_STATED: amounts read as INR crore" in unstated.issues
+
+
+def test_net_debt_to_ebitda_is_not_also_debt_to_ebitda_and_negative_pledge_with_words_between():
+    text = ("Schedule of covenants\nNet Debt to EBITDA shall not exceed 4.75 times.\n\n"
+            "7.1 Negative Pledge\nThe Borrower shall not, without the prior written consent of the Lender, create any "
+            "lien over its assets.\n")
+    terms = {t.metric: t for t in extract_terms([Page(1, text, "TEXT", 1.0)])}
+    assert terms["NET_LEVERAGE_RATIO"].threshold == 4.75
+    assert "DEBT_TO_EBITDA" not in terms
+    assert "NEGATIVE_PLEDGE" in terms

@@ -1,0 +1,72 @@
+{
+ "documentId": "AGR-011",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-011.pdf",
+ "sha256": "64ff2d5861b67bc5241dc7514ac1d0b9bd2041e5d052012868921be9714f9bc7",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "DSCR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.35,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.1 The Borrower shall ensure that the Debt Service Coverage Ratio shall not be less than 1.35 times, tested quarterly on a trailing twelve month basis."
+  },
+  {
+   "metric": "DEBT_TO_EBITDA",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 3.5,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.2 Total Debt to EBITDA shall not be more than 3.50 times on each test date."
+  },
+  {
+   "metric": "ICR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 2.25,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.3 The Interest Coverage Ratio shall at no time be lower than 2.25 times."
+  },
+  {
+   "metric": "MIN_TANGIBLE_NET_WORTH",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 600,
+   "unit": "crores",
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.4 The Borrower shall maintain a Tangible Net Worth of not less than INR 600 Crores at all times."
+  },
+  {
+   "metric": "NEGATIVE_PLEDGE",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "8.1 The Borrower shall not create any lien, charge or encumbrance over its assets without the prior written consent of the Lender."
+  },
+  {
+   "metric": "INSURANCE_MAINTENANCE",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "8.2 The Borrower shall keep its plant and stocks insured against all risks and shall maintain the insurance policies in force throughout the tenor."
+  }
+ ]
+}

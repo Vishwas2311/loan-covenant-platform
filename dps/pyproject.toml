@@ -37,6 +37,7 @@ dev = [
   "pytest==9.0.*",
   "pytest-cov==7.0.*",
   "ruff==0.14.*",
+  "bandit==1.8.*",
 ]
 # Production SQL Server driver (needs the Microsoft ODBC driver on the host).
 # SQL Server for production: DPS_DATABASE_URL=mssql+pymssql://user:password@host:1433/dps

@@ -38,12 +38,13 @@ export function niceTicks(min: number, max: number, target = 5): number[] {
 }
 
 /** Dot legend: a small round swatch beside each series name (names stay in text ink). */
-export function Legend({ items }: { items: { label: string; color: string }[] }) {
+export function Legend({ items }: { items: { label: string; color: string; ring?: boolean }[] }) {
   return (
     <Group gap="md" role="list" aria-label="Legend">
       {items.map((s) => (
         <Group key={s.label} gap={6} role="listitem" wrap="nowrap">
-          <span aria-hidden style={{ width: 9, height: 9, borderRadius: 999, background: s.color, display: 'inline-block' }} />
+          <span aria-hidden style={{ width: 9, height: 9, borderRadius: 999, background: s.color, display: 'inline-block',
+            boxShadow: s.ring ? '0 0 0 1px var(--app-border)' : undefined }} />
           <Text size="xs" c="dimmed">{s.label}</Text>
         </Group>
       ))}
@@ -239,6 +240,114 @@ export function StackedColumns({ points, ariaLabel, height = 200 }: { points: Co
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export interface TreemapTile {
+  key: string;
+  label: string;
+  /** Tile area. */
+  value: number;
+  /** Share breached, 0..1: shades the tile and is printed on it. */
+  rate: number;
+  detail?: string;
+}
+
+/** Four shades of one hue for the breach rate: none, under 10%, under 25%, 25% or more. */
+export const RATE_BANDS = [
+  { label: 'None breached', upTo: 0, color: 'color-mix(in oklab, var(--status-bad) 10%, var(--mantine-color-body))' },
+  { label: 'Under 10%', upTo: 0.1, color: 'color-mix(in oklab, var(--status-bad) 26%, var(--mantine-color-body))' },
+  { label: '10–25%', upTo: 0.25, color: 'color-mix(in oklab, var(--status-bad) 42%, var(--mantine-color-body))' },
+  { label: '25% or more', upTo: Infinity, color: 'color-mix(in oklab, var(--status-bad) 58%, var(--mantine-color-body))' },
+] as const;
+
+export function rateColor(rate: number): string {
+  return (RATE_BANDS.find((b) => (b.upTo === 0 ? rate === 0 : rate < b.upTo)) ?? RATE_BANDS[3]).color;
+}
+
+interface Rect { x: number; y: number; w: number; h: number }
+
+/** Squarified treemap layout (Bruls et al.) of positive values into a w x h box; returns one rect per value. */
+export function squarify(values: number[], box: Rect): Rect[] {
+  const total = values.reduce((s, v) => s + v, 0);
+  if (total <= 0 || values.length === 0) {
+    return values.map(() => ({ x: box.x, y: box.y, w: 0, h: 0 }));
+  }
+  const scale = (box.w * box.h) / total;
+  const areas = values.map((v) => v * scale);
+  const out: Rect[] = new Array(values.length);
+  let { x, y, w, h } = box;
+  let i = 0;
+  const worst = (row: number[], side: number) => {
+    const s = row.reduce((a, b) => a + b, 0);
+    const max = Math.max(...row);
+    const min = Math.min(...row);
+    return Math.max((side * side * max) / (s * s), (s * s) / (side * side * min));
+  };
+  while (i < areas.length) {
+    const side = Math.min(w, h);
+    const row = [areas[i]];
+    let j = i + 1;
+    while (j < areas.length && worst([...row, areas[j]], side) <= worst(row, side)) {
+      row.push(areas[j]);
+      j++;
+    }
+    const sum = row.reduce((a, b) => a + b, 0);
+    if (w >= h) { // lay the row down the left side
+      const rw = sum / h;
+      let yy = y;
+      row.forEach((a, k) => { out[i + k] = { x, y: yy, w: rw, h: a / rw }; yy += a / rw; });
+      x += rw;
+      w -= rw;
+    } else { // across the top
+      const rh = sum / w;
+      let xx = x;
+      row.forEach((a, k) => { out[i + k] = { x: xx, y, w: a / rh, h: rh }; xx += a / rh; });
+      y += rh;
+      h -= rh;
+    }
+    i = j;
+  }
+  return out;
+}
+
+/** Tiles sized by value and shaded by breach rate, with the name and rate written on each tile that fits. */
+export function Treemap({ tiles, ariaLabel, format = fmt, height = 260 }: {
+  tiles: TreemapTile[]; ariaLabel: string; format?: (n: number) => string; height?: number;
+}) {
+  const shown = tiles.filter((t) => t.value > 0).sort((a, b) => b.value - a.value);
+  if (shown.length === 0) {
+    return <Text size="sm" c="dimmed">Nothing to show yet.</Text>;
+  }
+  // Laid out in a 2:1 box, then placed in percentages so the chart stretches with its card.
+  const rects = squarify(shown.map((t) => t.value), { x: 0, y: 0, w: 200, h: 100 });
+  return (
+    <div className="chart" role="list" aria-label={ariaLabel} style={{ position: 'relative', height }}>
+      {shown.map((t, i) => {
+        const r = rects[i];
+        const roomy = r.w > 22 && r.h > 18;
+        return (
+          <Tooltip key={t.key} withArrow openDelay={60}
+            label={<>{t.label}: <b>{format(t.value)}</b> · {(t.rate * 100).toFixed(1)}% breached{t.detail ? ` · ${t.detail}` : ''}</>}>
+            <div role="listitem" tabIndex={0} className="mark"
+              aria-label={`${t.label}: ${format(t.value)}, ${(t.rate * 100).toFixed(1)}% breached`}
+              style={{ position: 'absolute', left: `${r.x / 2}%`, top: `${r.y}%`, width: `${r.w / 2}%`, height: `${r.h}%`,
+                padding: 1 }}>
+              <div style={{ width: '100%', height: '100%', borderRadius: 4, background: rateColor(t.rate),
+                boxShadow: 'inset 0 0 0 1px var(--app-border)',
+                padding: '4px 6px', overflow: 'hidden', boxSizing: 'border-box' }}>
+                {roomy && (
+                  <>
+                    <Text size="xs" fw={600} truncate="end">{t.label}</Text>
+                    <Text size="xs" className="num">{format(t.value)} · {(t.rate * 100).toFixed(0)}%</Text>
+                  </>
+                )}
+              </div>
+            </div>
+          </Tooltip>
+        );
+      })}
     </div>
   );
 }

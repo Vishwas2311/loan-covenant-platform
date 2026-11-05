@@ -1,0 +1,20 @@
+{
+ "documentId": "FS-010",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-010.csv",
+ "sha256": "738cf635830c933cd93b4f5fac5cbc7552b661fb61e2931f846092b1a51e311f",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "values": {
+  "REVENUE": 205.0,
+  "EBITDA": 26.5,
+  "INTEREST_PAID": 5.5,
+  "LT_DEBT": 88.0,
+  "ST_DEBT": 12.0,
+  "NET_WORTH": 130.0,
+  "CASH": 9.0,
+  "TOTAL_DEBT": 100.0
+ }
+}

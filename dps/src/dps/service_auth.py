@@ -32,7 +32,8 @@ class ClientCredentialsToken:
         self._client = client or httpx.Client(timeout=10)
         self._clock = clock
         self._lock = threading.Lock()
-        self._token = ""
+        # Empty until the first token is fetched.
+        self._token = ""  # nosec B105
         self._expires_at = 0.0
 
     def token(self) -> str:

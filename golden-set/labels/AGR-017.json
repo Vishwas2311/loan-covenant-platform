@@ -1,0 +1,32 @@
+{
+ "documentId": "AGR-017",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-017.pdf",
+ "sha256": "5f992cdd3cf27e5ef60955aa499093f02b616ec7e2f50fc8b69c6a27718a43a3",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "NET_LEVERAGE_RATIO",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 4.0,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.1 The Net Leverage Ratio shall not exceed 4.00 times until 31 March 2027 and shall not exceed 3.50 times thereafter."
+  },
+  {
+   "metric": "DSCR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.4,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.2 The DSCR shall at no time be less than 1.40 times."
+  }
+ ]
+}

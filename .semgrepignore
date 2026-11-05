@@ -1,0 +1,14 @@
+# semgrep scans the product: Core, DPS, the UI, deployment files and CI workflows.
+# Local test and operations scripts call fixed localhost URLs with urllib, which semgrep's dynamic-URL
+# rules cannot tell apart from user input; they are not shipped in any image.
+loadtest/
+deploy/smoke_real.py
+golden-set/
+scripts/
+**/tests/
+**/test/
+**/e2e/
+**/node_modules/
+graphify-out/
+outputs/
+**/target/

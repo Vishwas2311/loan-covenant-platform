@@ -169,14 +169,14 @@ Every bug below was reproduced, with evidence in `test-results.md`. No product c
 | GAP-01 | High | Golden set: 10 agreements, 0 statements. The PRD asks for at least 20 of each, labelled by credit analysts. The labels are extractor drafts, so the gate cannot find extractor errors (BUG-01). |
 | GAP-02 | Closed (phase 2) | FR-31: escalations show in reports and tasks, but no notification is sent. Now a daily digest goes to `COVENANT_ESCALATION_RECIPIENTS`. |
 | GAP-03 | Medium | Reliability wording: with DPS down, assessments run on Core's staged copy (`cov_staging_value`), within `max_age_days`, instead of failing with `DATA_SOURCE_FAILURE`. Core stays up; the stale-copy path needs a decision and a test. |
-| GAP-04 | Medium | Quality gate: no bandit or semgrep step in CI. |
-| GAP-05 | Medium | Observability: LLM tokens and cost per job are not recorded. |
+| GAP-04 | Closed (phase 3) | Quality gate: bandit (DPS, every severity) and semgrep (`p/default`) now run in CI; GitHub Actions pinned to commit SHAs. |
+| GAP-05 | Closed (phase 3) | Every model call's tokens are stored per request (`dps_ai_usage`); cost when the bank sets its rates; `GET /dps/v1/ai-usage` for support. |
 | GAP-06 | Closed (phase 2) | The notification client sent no authentication. Every bank-service client now uses OAuth client credentials (or a fixed token) when configured. |
 | GAP-07 | Medium | Not verified: Entra ID SSO, the bank gateway, the bank's CP, loan, notification and workflow services (the workflow client logs "placeholder for case case-dev-mock-1"). |
-| GAP-08 | Low | FR-25: no industry risk treemap or exposure-by-sector figure. |
+| GAP-08 | Closed (phase 3) | FR-25: exposure by sector (₹ crore, from the CP service's facility amount) as a treemap shaded by breach rate. |
 | GAP-09 | Low | FR-28 financial news not built (optional). |
 | GAP-10 | n/a | Withdrawn: certificate reminders and saved reports already run inside the daily 06:00 job (`DailyBreachRunJob`). |
-| GAP-11 | Low | DPS does not check `READ_COMMITTED_SNAPSHOT` at startup (Core does). |
+| GAP-11 | Closed (phase 3) | DPS refuses to start on SQL Server without `READ_COMMITTED_SNAPSHOT`, printing the statement for a DBA. |
 
 ## Risks
 
@@ -241,3 +241,24 @@ Per-covenant triggers and the daily sweep both write SCHEDULED assessments. 7,60
 | GAP-02 | Daily escalation digest to the configured recipients, audited with the other notifications. | `EscalationService`, `DailyBreachRunJob` | Unit tests (needs the bank's template `Cov_Escalation`) |
 | GAP-06 | OAuth client credentials or a fixed token for every bank-service client. | `WebClientsConfig.bankClient` | WireMock tests: token fetched and sent |
 | Capacity | Portfolio summaries and review rows cached for up to 30 s, dropped on any write the change listener sees. | `PortfolioCache`, `MonitoringService`, `ReviewService` | Section 10 of `test-results.md` |
+
+## Phase 3 fixes and golden-set findings
+
+| Item | Change | Evidence |
+|---|---|---|
+| GAP-04 | `bandit` and `semgrep` jobs in `security.yml`; two bandit false positives marked `# nosec` with reasons; nginx upstream lines marked `nosemgrep` (the upstream comes from the environment, not the request); `.semgrepignore` leaves out local test and ops scripts. All workflow actions pinned to commit SHAs (17 findings). | bandit 0, semgrep 0 |
+| GAP-05 | `dps/src/dps/usage.py`, table `dps_ai_usage` (Alembic `c4d8e2f1a7b3`), `GET /dps/v1/ai-usage`. One `LLM` instance per call so token counts belong to that call. | Live: one Ask AI call recorded 4,048 prompt and 166 completion tokens; RM gets 403 on the summary |
+| GAP-08 | `AnalyticsService` adds `exposureCrore` per group; `Treemap` (squarified) in the chart kit; "Exposure by sector" card on Reports. | Screenshots light, dark and phone; 67 of 85 CPs carry a facility amount |
+| GAP-11 | `require_snapshot_isolation` in `dps/src/dps/db.py`, called by the API and the workers. | Unit test |
+| RISK-06 | `roles.spec.ts:142` waits for the CP count to settle instead of reading it once. | Playwright suite |
+| E-mail | `deploy/docker-compose.mail.yml`: a test bridge turns Core's notification calls into real e-mails delivered to Mailpit. The manual run now also sends the escalation digest, as the daily job does. | Live: 28 RM summaries (RM in To, approver in Cc) and 1 escalation digest to `credit.head@covenant.local` |
+| GAP-01 (prepared) | 10 synthetic agreements and 10 statements with labels written from the specification (`make_synthetic.py`); `predict.py` runs DPS's extractors; CI gate `evaluate.py --statuses SYNTHETIC`; statement scoring; `ANALYST-GUIDE.md`. Analyst labelling of real documents is still needed. | Synthetic gate: recall, precision, thresholds, pages and values all 100% |
+
+The synthetic golden set found four extraction bugs on its first run, all fixed and covered by tests:
+
+| ID | Severity | Bug | Fix |
+|---|---|---|---|
+| BUG-18 | Critical | A statement in plain rupees ("Amounts in INR") was read as crore: every amount 10,000,000 times too large | Plain-rupee wording recognised; when no unit is stated at all the statement goes to review with `UNIT_NOT_STATED` |
+| BUG-19 | Medium | No TOTAL_DEBT when a statement has long-term but no short-term borrowings | Derived from the borrowings lines present |
+| BUG-20 | Medium | "Net Debt to EBITDA" also produced a Debt to EBITDA covenant | A match inside a longer alias of another metric is skipped |
+| BUG-21 | Low | Negative pledge missed when words sit between "shall not" and "create any lien" | Pattern allows up to 80 characters between them |

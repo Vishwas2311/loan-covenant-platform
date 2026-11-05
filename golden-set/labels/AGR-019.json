@@ -1,0 +1,42 @@
+{
+ "documentId": "AGR-019",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-019.pdf",
+ "sha256": "2019034008d79331c362186e3f61bfc618fe1df11bdf4914d70d854b03742780",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "DSCR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.15,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "12.1 The Borrower shall ensure that the Debt Service Coverage Ratio shall not be less than 1.15 times during construction and shall not be less than 1.30 times after commercial operation."
+  },
+  {
+   "metric": "DEBT_TO_EQUITY",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 3.0,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "12.2 Debt to Equity shall at no time exceed 3.00 times."
+  },
+  {
+   "metric": "MIN_TANGIBLE_NET_WORTH",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1200,
+   "unit": "crore",
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "12.3 The Borrower shall maintain a Tangible Net Worth of not less than INR 1,200 crore."
+  }
+ ]
+}

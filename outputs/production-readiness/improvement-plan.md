@@ -54,3 +54,8 @@ Run the review again after phase 1. READY WITH CONDITIONS needs all of these:
 - Phase 2 items scheduled before the bank-wide rollout.
 
 Phase 2 status: items 7–15 and 16a are done and checked live (section 10 of `test-results.md`). Item 16 (what Core does while DPS is down) remains a product decision: assessments keep using Core's staged copy within each measure's `max_age_days`, which is documented in the runbook.
+
+Phase 3 status (5 November 2026): items 18 (bandit, semgrep), 19 (AI tokens and cost), 22 (DPS snapshot check),
+23 (treemap and exposure) and 24 (flaky test) are done. The golden set is prepared for analysts (synthetic set,
+prediction script, CI gate, guide); the analysts' labelling, bank integrations (20), penetration test (21) and the
+production load test (17) remain.

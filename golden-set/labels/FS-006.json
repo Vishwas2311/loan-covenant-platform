@@ -1,0 +1,18 @@
+{
+ "documentId": "FS-006",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-006.csv",
+ "sha256": "b8a949a4aa55ad08d387ba3b8ff1702d0537e5c7c0845ab126ae7fd4351ea9dd",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "values": {
+  "REVENUE": 95.0,
+  "EBITDA": 9.5,
+  "INTEREST_PAID": 3.4,
+  "LT_DEBT": 41.0,
+  "NET_WORTH": 26.0,
+  "TOTAL_DEBT": 41.0
+ }
+}

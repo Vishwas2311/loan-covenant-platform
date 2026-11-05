@@ -33,13 +33,15 @@ public class ManualRunService {
     private static final Logger LOG = LoggerFactory.getLogger(ManualRunService.class);
 
     private final BreachNotificationService breachRun;
+    private final EscalationService escalation;
     private final JdbcTemplate jdbc;
     private final TaskExecutor executor;
     private final Clock clock;
 
-    public ManualRunService(BreachNotificationService breachRun, JdbcTemplate jdbc,
+    public ManualRunService(BreachNotificationService breachRun, EscalationService escalation, JdbcTemplate jdbc,
                             @Qualifier("applicationTaskExecutor") TaskExecutor executor, Clock clock) {
         this.breachRun = breachRun;
+        this.escalation = escalation;
         this.jdbc = jdbc;
         this.executor = executor;
         this.clock = clock;
@@ -70,6 +72,12 @@ public class ManualRunService {
     void execute(String id, LocalDate runDate, String user) {
         try {
             RunResult r = breachRun.run(runDate, user);
+            // The same e-mails as the daily job: the escalation digest follows the RM summaries (FR-31).
+            try {
+                escalation.run(user);
+            } catch (RuntimeException ex) {
+                LOG.error("Escalation after the manual run failed: {}", ex.getClass().getSimpleName());
+            }
             jdbc.update("update cov_manual_run set status = 'DONE', finished_at = ?, covenants_assessed = ?, "
                             + "cps_touched = ?, notifications_sent = ?, notifications_failed = ? where id = ?",
                     Timestamp.from(Instant.now(clock)), r.covenantsAssessed(), r.cpsTouched(), r.notificationsSent(),

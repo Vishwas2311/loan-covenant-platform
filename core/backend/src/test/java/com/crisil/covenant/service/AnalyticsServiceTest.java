@@ -53,6 +53,37 @@ class AnalyticsServiceTest {
     }
 
     @Test
+    void exposureAddsUpTheFacilityAmountsInCrore() throws Exception {
+        when(monitoringService.summary("rm")).thenReturn(List.of(
+                new CpMonitoringSummary("CP-1", 1, 1, 0, 0, 0, 0),
+                new CpMonitoringSummary("CP-2", 1, 1, 0, 0, 0, 0),
+                new CpMonitoringSummary("CP-3", 1, 1, 0, 0, 0, 0)));
+        CreditProposalCacheEntry a = entry("CP-1", "CORPORATE", "STEEL");
+        a.setAttributesJson("{\"facilityAmount\": 15000, \"facilityAmountUnit\": \"INR_CRORE\"}");
+        CreditProposalCacheEntry b = entry("CP-2", "CORPORATE", "STEEL");
+        b.setAttributesJson("{\"facilityAmount\": 2500, \"facilityAmountUnit\": \"INR_LAKH\"}");
+        CreditProposalCacheEntry c = entry("CP-3", "SME", "TEXTILES");
+        c.setAttributesJson("{\"facilityAmount\": 7, \"facilityAmountUnit\": \"USD_BN\"}"); // unknown unit
+        when(cacheRepo.findAllById(any())).thenReturn(List.of(a, b, c));
+
+        PortfolioAnalytics out = new AnalyticsService(monitoringService, cacheRepo).portfolio("rm");
+
+        assertThat(out.total().exposureCrore()).isEqualTo(15025.0);
+        assertThat(out.total().cpsWithExposure()).isEqualTo(2);
+        assertThat(out.bySector()).filteredOn(g -> g.key().equals("STEEL")).singleElement()
+                .satisfies(g -> assertThat(g.exposureCrore()).isEqualTo(15025.0));
+        assertThat(out.bySector()).filteredOn(g -> g.key().equals("TEXTILES")).singleElement()
+                .satisfies(g -> assertThat(g.exposureCrore()).isNull());
+        assertThat(AnalyticsService.exposureCrore(null)).isNull();
+        assertThat(AnalyticsService.exposureCrore("not json")).isNull();
+        assertThat(AnalyticsService.exposureCrore("{\"facilityAmount\": \"n/a\"}")).isNull();
+        assertThat(AnalyticsService.exposureCrore("{\"facilityAmount\": 40}")).isEqualTo(40.0); // crore by default
+        assertThat(AnalyticsService.exposureCrore("{\"facilityAmount\": \"1,50,000\", \"facilityAmountUnit\": \"INR_LAKH\"}"))
+                .isEqualTo(1500.0); // the cache stores text
+        assertThat(AnalyticsService.exposureCrore("{\"facilityAmount\": null}")).isNull();
+    }
+
+    @Test
     void emptyPortfolio() {
         when(monitoringService.summary(null)).thenReturn(List.of());
         PortfolioAnalytics out = new AnalyticsService(monitoringService, cacheRepo).portfolio(null);

@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from dps import jobs
 from dps.core_client import CoreClient, CoreUnavailable
-from dps.db import Database
+from dps.db import Database, require_snapshot_isolation
 from dps.models import Document, EventOutbox, Job, utcnow
 from dps.settings import Settings, get_settings
 from dps.storage import FileStore
@@ -175,6 +175,7 @@ def main() -> None:  # pragma: no cover - process entry point
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     settings = get_settings()
     database = Database(settings.database_url)
+    require_snapshot_isolation(database.engine)
     core = CoreClient.from_settings(settings)
     worker = Worker(settings, database.session_factory, core,
                     build_runners(settings, database, FileStore(settings.storage_dir), core))

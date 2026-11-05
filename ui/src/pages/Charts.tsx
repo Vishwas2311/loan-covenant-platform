@@ -7,7 +7,7 @@ import type { AnalyticsGroup } from '../api/types2';
 import type { TrendPoint } from '../api/types3';
 import { ChartCard } from '../components/Board';
 import { humanize } from '../components/CpPicker';
-import { Legend, MAGNITUDE, STATUS, StackedColumns } from '../components/charts';
+import { Legend, MAGNITUDE, RATE_BANDS, STATUS, StackedColumns, Treemap } from '../components/charts';
 import { ErrorNote, Loading } from '../components/Status';
 
 const SERIES = [
@@ -83,6 +83,28 @@ export function BreachRate({ bySegment, bySector }: { bySegment: AnalyticsGroup[
   );
 }
 
+const CRORE = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+const crore = (n: number) => `₹${CRORE.format(n)} cr`;
+
+/** FR-25: facility exposure by sector (tile size) and how much of it is breached (shade and label). */
+export function ExposureBySector({ bySector, total }: { bySector: AnalyticsGroup[]; total: AnalyticsGroup }) {
+  const tiles = bySector
+    .filter((g) => (g.exposureCrore ?? 0) > 0)
+    .map((g) => ({ key: g.key, label: humanize(g.key), value: g.exposureCrore ?? 0, rate: g.breachRate,
+      detail: `${g.cps} CP(s)` }));
+  const covered = total.cpsWithExposure ?? 0;
+  return (
+    <ChartCard title="Exposure by sector"
+      subtitle={`Facility amounts in ₹ crore; tile size is exposure, shade is the share of checks breached.${
+        covered < total.cps ? ` ${covered} of ${total.cps} CPs have a facility amount.` : ''}`}
+      actions={<Legend items={RATE_BANDS.map((b) => ({ label: b.label, color: b.color, ring: true }))} />}>
+      {tiles.length === 0
+        ? <Text size="sm" c="dimmed">No facility amounts yet: the CP service has not sent any.</Text>
+        : <Treemap tiles={tiles} ariaLabel="Facility exposure by sector" format={crore} />}
+    </ChartCard>
+  );
+}
+
 /** C9: the charts at the top of Reports. */
 export function Charts() {
   const trend = useQuery({ queryKey: ['trend', 12], queryFn: () => r3.trend(12) });
@@ -101,6 +123,11 @@ export function Charts() {
       <Grid.Col span={{ base: 12, lg: 5 }}>
         {analytics.data?.bySegment && <BreachRate bySegment={analytics.data.bySegment} bySector={analytics.data.bySector} />}
       </Grid.Col>
+      {analytics.data?.bySector && (
+        <Grid.Col span={12}>
+          <ExposureBySector bySector={analytics.data.bySector} total={analytics.data.total} />
+        </Grid.Col>
+      )}
     </Grid>
   );
 }

@@ -12,7 +12,7 @@ from dps.access import CoreCpAccessChecker, CpAccessChecker
 from dps.advisor import Advisor, crewai_completion
 from dps.api import router
 from dps.auth import Authenticator
-from dps.db import Base, Database
+from dps.db import Base, Database, require_snapshot_isolation
 from dps.ratelimit import RateLimiter
 from dps.settings import Settings, get_settings
 from dps.storage import FileStore
@@ -27,6 +27,7 @@ def create_app(settings: Settings | None = None, *, cp_checker: CpAccessChecker 
     app = FastAPI(title="Document Processing Service", version=__version__)
     app.state.settings = settings
     app.state.db = Database(settings.database_url)
+    require_snapshot_isolation(app.state.db.engine)
     app.state.store = FileStore(settings.storage_dir)
     app.state.limiter = RateLimiter()
     app.state.authenticator = Authenticator(settings)

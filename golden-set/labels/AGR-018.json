@@ -1,0 +1,52 @@
+{
+ "documentId": "AGR-018",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-018.pdf",
+ "sha256": "ea20d980560d2868bd95fc950b3fcec3587245c916a6f256a2903e5cfc4e2515",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "EBITDA_TO_EMI",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.5,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "6.1 EBITDA to EMI shall not be less than 1.50 times in any quarter."
+  },
+  {
+   "metric": "CURRENT_RATIO",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.33,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "6.2 The Current Ratio of the Borrower shall be at least 1.33 times."
+  },
+  {
+   "metric": "DEBT_TO_EBITDA",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 2.75,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "6.3 Total Debt to EBITDA shall not be more than 2.75 times."
+  },
+  {
+   "metric": "BOOKS_AND_RECORDS",
+   "category": "NON_FINANCIAL",
+   "operator": null,
+   "threshold": null,
+   "unit": null,
+   "frequency": null,
+   "page": 1,
+   "quote": "7.1 The Borrower shall maintain proper books of account and records in accordance with Indian Accounting Standards."
+  }
+ ]
+}

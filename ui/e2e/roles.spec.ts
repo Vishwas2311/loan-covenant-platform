@@ -147,8 +147,11 @@ test('a page outside the role explains itself, and bank-wide roles see the whole
   await page.goto('/');
   await expect(page).toHaveURL(/\/library$/);
   const auditor = await sessionAs(browser, 'auditor-1', '/cp');
-  await expect(auditor.getByRole('button', { name: /^Open CP-/ }).first()).toBeVisible();
-  expect(await auditor.getByRole('button', { name: /^Open CP-/ }).count()).toBeGreaterThan(12);
+  const cards = auditor.getByRole('button', { name: /^Open CP-/ });
+  await expect(cards.first()).toBeVisible({ timeout: 30_000 });
+  // The whole portfolio arrives in one list, but it can still be rendering when the first card shows:
+  // count again until it settles instead of reading it once (this failed once on a busy machine).
+  await expect(async () => expect(await cards.count()).toBeGreaterThan(12)).toPass({ timeout: 30_000 });
 });
 
 test('pages opened without a CP list the user CPs to choose from', async ({ page }) => {

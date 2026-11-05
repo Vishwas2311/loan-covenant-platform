@@ -1,0 +1,42 @@
+{
+ "documentId": "AGR-015",
+ "type": "LOAN_AGREEMENT",
+ "sourceFile": "AGR-015.pdf",
+ "sha256": "bc1fa26b702adbb6d28dff85961cf2536f31213a3f245171e3940d83288c1677",
+ "pages": 1,
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: make_synthetic.py (truth by construction)",
+ "reviewedBy": null,
+ "covenants": [
+  {
+   "metric": "DEBT_TO_EBITDA",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 3.0,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.1 Total Debt to EBITDA shall not be greater than 3.00:1 on each Quarter Date."
+  },
+  {
+   "metric": "DSCR",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 1.25,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.2 The Debt Service Coverage Ratio must be no less than 1.25 times."
+  },
+  {
+   "metric": "QUICK_RATIO",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 0.9,
+   "unit": null,
+   "frequency": "QUARTERLY",
+   "page": 1,
+   "quote": "7.3 The Quick Ratio shall not be less than 0.90 times."
+  }
+ ]
+}
