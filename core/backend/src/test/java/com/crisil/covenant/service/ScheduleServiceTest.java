@@ -223,6 +223,19 @@ class ScheduleServiceTest {
     }
 
     @Test
+    void registerTaskSyncRunSchedulesTheBackgroundTaskSyncJob() throws Exception {
+        when(scheduler.checkExists(any(TriggerKey.class))).thenReturn(false);
+
+        service.registerTaskSyncRun("0 0/5 * * * ?");
+
+        ArgumentCaptor<JobDetail> jobCaptor = ArgumentCaptor.forClass(JobDetail.class);
+        verify(scheduler).addJob(jobCaptor.capture(), org.mockito.ArgumentMatchers.eq(true));
+        assertThat(jobCaptor.getValue().getKey().getName()).isEqualTo(ScheduleService.TASK_SYNC_RUN_KEY);
+        assertThat(jobCaptor.getValue().getJobClass()).isEqualTo(TaskSyncJob.class);
+        verify(scheduler).scheduleJob(any(Trigger.class));
+    }
+
+    @Test
     void registerIngestionPreStageRunSchedulesDurableJobWhenTriggerAbsent() throws Exception {
         when(scheduler.checkExists(any(TriggerKey.class))).thenReturn(false);
 

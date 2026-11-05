@@ -35,6 +35,9 @@ public class ScheduleService {
     /** US-DS-13: shared key of the single due-driven pre-stage ingestion sweep (job + trigger). */
     public static final String PRE_STAGE_RUN_KEY = "ingestion-pre-stage-run";
 
+    /** Shared key of the single background task sync (job + trigger), see {@link TaskSyncJob}. */
+    public static final String TASK_SYNC_RUN_KEY = "task-sync-run";
+
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleService.class);
 
     private final Scheduler scheduler;
@@ -113,6 +116,12 @@ public class ScheduleService {
     public void registerIngestionPreStageRun(String cron) {
         registerDurableCronRun(PRE_STAGE_RUN_KEY, IngestionPreStageJob.class, cron,
                 "Invalid pre-stage cron expression", "Failed to register pre-stage ingestion job");
+    }
+
+    /** Register (or re-point on restart) the background task sync, on its own key and trigger. */
+    public void registerTaskSyncRun(String cron) {
+        registerDurableCronRun(TASK_SYNC_RUN_KEY, TaskSyncJob.class, cron,
+                "Invalid task-sync cron expression", "Failed to register task-sync job");
     }
 
     /**

@@ -31,6 +31,29 @@ class CachedCovenantAttributesServiceTest {
     @Mock private CreditProposalClient creditProposalClient;
 
     @Test
+    void ensureCachedAddsAMissingCpOnceAndNeverFails() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-05T10:00:00Z"), ZoneOffset.UTC);
+        CachedCovenantAttributesService svc = new CachedCovenantAttributesService(client, repo, creditProposalClient, clock);
+        when(repo.existsById("CP-1")).thenReturn(false);
+        when(repo.findById("CP-1")).thenReturn(Optional.empty());
+        when(client.fetch("CP-1")).thenReturn(new CovenantAttributes("CP-1", "RETAIL", "Consumer", Map.of()));
+        svc.ensureCached("CP-1");
+        verify(repo).save(org.mockito.ArgumentMatchers.any(CreditProposalCacheEntry.class));
+
+        when(repo.existsById("CP-2")).thenReturn(true);
+        svc.ensureCached("CP-2");
+        verify(client, never()).fetch("CP-2");
+
+        when(repo.existsById("CP-3")).thenReturn(false);
+        when(repo.findById("CP-3")).thenReturn(Optional.empty());
+        when(client.fetch("CP-3")).thenThrow(new IllegalStateException("attribute service down"));
+        svc.ensureCached("CP-3"); // logged, not thrown
+        svc.ensureCached(" ");
+        svc.ensureCached(null);
+        verify(repo, never()).existsById(" ");
+    }
+
+    @Test
     void firstCallFetchesFromUpstreamAndStoresCacheEntry() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-05T10:00:00Z"), ZoneOffset.UTC);
         CachedCovenantAttributesService svc = new CachedCovenantAttributesService(client, repo, creditProposalClient, clock);

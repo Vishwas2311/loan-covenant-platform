@@ -1,0 +1,74 @@
+{
+ "admin-1 /api/v1/analytics/cps": {
+  "status": 200,
+  "ms": 24628,
+  "kb": 455,
+  "items": 2285
+ },
+ "admin-1 /api/v1/monitoring/summary": {
+  "status": 200,
+  "ms": 2447,
+  "kb": 233,
+  "items": 2285
+ },
+ "admin-1 /api/v1/analytics": {
+  "status": 404,
+  "ms": 47,
+  "kb": 0,
+  "items": null
+ },
+ "admin-1 /api/v1/tasks": {
+  "status": 504,
+  "ms": 65205,
+  "kb": 0,
+  "items": null
+ },
+ "admin-1 /api/v1/reports/open-breaches?escalateAfterDays=14": {
+  "status": 200,
+  "ms": 34127,
+  "kb": 733,
+  "items": 2942
+ },
+ "admin-1 /api/v1/alerts": {
+  "status": 200,
+  "ms": 45,
+  "kb": 0,
+  "items": 0
+ },
+ "auditor-1 /api/v1/analytics/cps": {
+  "status": 200,
+  "ms": 6570,
+  "kb": 455,
+  "items": 2285
+ },
+ "auditor-1 /api/v1/monitoring/summary": {
+  "status": 200,
+  "ms": 1687,
+  "kb": 233,
+  "items": 2285
+ },
+ "auditor-1 /api/v1/analytics": {
+  "status": 404,
+  "ms": 12,
+  "kb": 0,
+  "items": null
+ },
+ "auditor-1 /api/v1/tasks": {
+  "status": 504,
+  "ms": 65125,
+  "kb": 0,
+  "items": null
+ },
+ "auditor-1 /api/v1/reports/open-breaches?escalateAfterDays=14": {
+  "status": 200,
+  "ms": 38806,
+  "kb": 733,
+  "items": 2942
+ },
+ "auditor-1 /api/v1/alerts": {
+  "status": 200,
+  "ms": 45,
+  "kb": 0,
+  "items": 0
+ }
+}

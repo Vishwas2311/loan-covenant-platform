@@ -1,10 +1,11 @@
 package com.crisil.covenant.service;
 
 import com.crisil.covenant.domain.CpMonitoringSummary;
-import com.crisil.covenant.dto.PortfolioAnalytics;
 import com.crisil.covenant.dto.PortfolioAnalytics.Group;
+import com.crisil.covenant.dto.PortfolioAnalytics;
 import com.crisil.covenant.entity.CreditProposalCacheEntry;
 import com.crisil.covenant.repository.CreditProposalCacheRepository;
+import com.crisil.covenant.util.IdBatches;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class AnalyticsService {
     public PortfolioAnalytics portfolio(String user) {
         List<CpMonitoringSummary> rows = monitoringService.summary(user);
         Map<String, CreditProposalCacheEntry> cache = new HashMap<>();
-        for (CreditProposalCacheEntry e : cacheRepo.findAllById(rows.stream().map(CpMonitoringSummary::cpId).toList())) {
+        for (CreditProposalCacheEntry e : IdBatches.fetch(rows.stream().map(CpMonitoringSummary::cpId).toList(), cacheRepo::findAllById)) {
             cache.put(e.getCpId(), e);
         }
         Function<CpMonitoringSummary, String> segment = r -> keyOf(cache.get(r.cpId()), true);

@@ -1,5 +1,6 @@
 package com.crisil.covenant.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,9 @@ import com.crisil.covenant.entity.CovenantAttachment;
 public interface CovenantAttachmentRepository extends JpaRepository<CovenantAttachment, String> {
 
     List<CovenantAttachment> findByCpIdOrderByUploadedAtDesc(String cpId);
+
+    /** Attachments of many CPs at once (callers keep the list under 2,100 ids), newest first. */
+    List<CovenantAttachment> findByCpIdInOrderByUploadedAtDesc(Collection<String> cpIds);
 
     List<CovenantAttachment> findByAppliedCovenantIdOrderByUploadedAtDesc(String appliedCovenantId);
 

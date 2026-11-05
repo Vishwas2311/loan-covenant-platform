@@ -39,11 +39,12 @@ public class AlertService {
     public List<AlertView> alertsFor(String user) {
         boolean approver = CurrentUserContext.hasAnyRole(Roles.APPROVER, Roles.ADMIN);
         List<AlertView> alerts = new ArrayList<>();
-        for (CpMonitoringSummary cp : monitoringService.ownedSummary(user)) {
-            for (CpReviewRow r : reviewService.reviewRows(cp.cpId())) {
-                alerts.addAll(alertsForRow(cp.cpId(), r, user, approver));
+        List<String> cps = monitoringService.ownedSummary(user).stream().map(CpMonitoringSummary::cpId).toList();
+        reviewService.reviewRowsFor(cps).forEach((cpId, rows) -> {
+            for (CpReviewRow r : rows) {
+                alerts.addAll(alertsForRow(cpId, r, user, approver));
             }
-        }
+        });
         alerts.sort(Comparator.comparing((AlertView a) -> ORDER.getOrDefault(a.kind(), 9))
                 .thenComparing(AlertView::cpId));
         return alerts;

@@ -1,6 +1,8 @@
 package com.crisil.covenant.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.crisil.covenant.enums.DataColumnType;
@@ -12,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import com.crisil.covenant.entity.Measure;
 import com.crisil.covenant.repository.MeasureRepository;
 
@@ -40,6 +44,30 @@ class MeasureCatalogServiceTest {
         assertThat(catalog.lookup("auditor").orElseThrow().type()).isEqualTo(FormulaType.STRING);
         assertThat(catalog.lookup("missing")).isEmpty();
         assertThat(catalog.names()).containsExactlyInAnyOrder("DSCR", "auditor");
+    }
+
+    @Test
+    void catalogIsCachedUntilAMeasureChangesAndAgainWhenTheTransactionEnds() {
+        when(repository.findByActiveTrueOrderByCodeAsc()).thenReturn(List.of(measure("DSCR", DataColumnType.NUMBER)));
+        service.activeCatalog();
+        service.activeCatalog();
+        verify(repository, times(1)).findByActiveTrueOrderByCodeAsc();
+
+        new MeasureChangeListener().changed(measure("NEW", DataColumnType.NUMBER));
+        service.activeCatalog();
+        verify(repository, times(2)).findByActiveTrueOrderByCodeAsc();
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            MeasureCatalogService.measuresChanged();
+            service.activeCatalog(); // read inside the writing transaction
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(s -> s.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+        service.activeCatalog(); // the rolled-back snapshot is not reused
+        verify(repository, times(4)).findByActiveTrueOrderByCodeAsc();
     }
 
     @Test

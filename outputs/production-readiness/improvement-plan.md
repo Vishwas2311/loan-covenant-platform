@@ -2,7 +2,7 @@
 
 Order: first what can produce a wrong decision, then what fails at a real bank's size, then the rest. Each item names its finding, the change, and the test that proves it. Sizes are rough: S is up to a day, M is 2–4 days, L is a week or more.
 
-## Phase 1: must fix before go-live
+## Phase 1: must fix before go-live (done 5 November 2026, except item 2)
 
 | # | Finding | Change | Proof | Size |
 |---|---|---|---|---|
@@ -12,6 +12,8 @@ Order: first what can produce a wrong decision, then what fails at a real bank's
 | 4 | BUG-03 portfolio speed | Batch the N+1 lookups (schedules, assessments, measures, masters). Rewrite `findByCpIdInOrderByIdAsc` and `findLatestOutcomes` to seek, using a join on an id table or a covering index with `OPTION (RECOMPILE)`. Cache library data. | LOAD-09 again: 25 RMs with 60 CPs each, p95 under 2 s, 0 pool time-outs | M |
 | 5 | BUG-04 upload deadlocks | Make DPS bind types match the VARCHAR columns, or move the columns to NVARCHAR. Retry once on 1205 and return 503 for lock failures. Run the DPS integration and load tests on SQL Server, not SQLite. | LOAD-06 again on SQL Server: 0 upload failures at 50 users | M |
 | 6 | BUG-06 portfolio cache | Write the CP cache entry whenever covenants are applied; the loan sync adds missing CPs. | Test: covenants applied by API make the CP appear in the RM's portfolio and tasks | S |
+
+Phase 1 status: items 1 and 3–6 are done and re-tested (`test-results.md` section 9). Problems found during the re-test were fixed as well: bank-wide task sync moved to a background job, a Core memory limit, the CP-name miss cache, and covering index V31. Item 2, the analyst-labelled golden set, needs credit analysts and remains a condition for production.
 
 ## Phase 2: fix before a bank-wide rollout
 
@@ -32,13 +34,14 @@ Order: first what can produce a wrong decision, then what fails at a real bank's
 
 | # | Finding | Change | Size |
 |---|---|---|---|
-| 17 | BUG-14, RISK-02 capacity | Same pool variable in every profile. After items 3–5, load-test on production-like hosts with the load generator on its own machine; set pool, CPU and memory sizes from it. | M |
+| 16a | Capacity at 250+ users | Short per-user cache of portfolio aggregates (summary, CP list, breach report), dropped on change marks, so pages stop recomputing the same aggregates. | M |
+| 17 | RISK-02 capacity (BUG-14 done) | After items 3–5, load-test on production-like hosts with the load generator on its own machine; set pool, CPU and memory sizes from it. | M |
 | 18 | GAP-04 code scanning | Add bandit (DPS) and semgrep (all) to CI | S |
 | 19 | GAP-05 LLM cost | Record prompt and completion tokens and cost per job and per Ask AI call | S |
 | 20 | GAP-07 integrations | Test with Entra ID, the bank gateway and the bank's CP, loan, notification and workflow sandboxes | L |
 | 21 | RISK-04 security | Penetration test and ASVS L2 review | L (external) |
 | 22 | GAP-11 | DPS refuses to start on SQL Server without `READ_COMMITTED_SNAPSHOT` | S |
-| 23 | GAP-08, GAP-10 | Treemap and exposure charts; schedules for reminders and saved reports | M |
+| 23 | GAP-08 | Treemap and exposure charts (GAP-10 withdrawn: reminders and saved reports already run in the daily job) | M |
 | 24 | RISK-06 | Make `roles.spec.ts:142` wait on data rather than time | S |
 
 ## Re-review gate

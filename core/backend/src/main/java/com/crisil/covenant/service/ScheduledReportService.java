@@ -1,6 +1,5 @@
 package com.crisil.covenant.service;
 
-import com.crisil.covenant.domain.CpMonitoringSummary;
 import com.crisil.covenant.dto.CpReviewRow;
 import com.crisil.covenant.dto.NotificationRequest;
 import com.crisil.covenant.dto.NotificationResult;
@@ -13,6 +12,7 @@ import com.crisil.covenant.entity.SavedReport;
 import com.crisil.covenant.repository.CreditProposalCacheRepository;
 import com.crisil.covenant.repository.NotificationAuditRepository;
 import com.crisil.covenant.repository.SavedReportRepository;
+import com.crisil.covenant.util.IdBatches;
 import com.crisil.covenant.util.XlsxWriter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,9 +71,9 @@ public class ScheduledReportService {
     /** The report's rows for {@code user}'s CPs, each a column → text map in the chosen order. */
     @Transactional(readOnly = true)
     public List<Map<String, String>> run(String user, ReportDefinition def) {
-        List<String> cps = monitoringService.summary(user).stream().map(CpMonitoringSummary::cpId).toList();
+        List<String> cps = monitoringService.visibleCpIds(user);
         Map<String, String> segment = new HashMap<>();
-        for (CreditProposalCacheEntry e : cacheRepo.findAllById(cps)) {
+        for (CreditProposalCacheEntry e : IdBatches.fetch(cps, cacheRepo::findAllById)) {
             segment.put(e.getCpId(), e.getBusinessSegment());
         }
         String cpFilter = def.cpFilter() == null ? "" : def.cpFilter().trim();

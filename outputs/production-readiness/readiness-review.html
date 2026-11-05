@@ -58,18 +58,35 @@ a { color: var(--accent); }
 
 <main>
   <header>
-    <span class="kicker">Production-readiness review · 5 November 2026</span>
+    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phase 1 fixes</span>
     <h1>Covenexa: Core, DPS and UI on the local real stack</h1>
-    <p class="muted">Keycloak, SQL Server 2022, Azure OpenAI, WireMock bank stubs, one 8-CPU host. No product code was changed during the review.</p>
+    <p class="muted">Keycloak, SQL Server 2022, Azure OpenAI, WireMock bank stubs, one 8-CPU host. The baseline review changed no code; phase 1 fixes followed and were re-tested.</p>
   </header>
 
-  <section class="verdict" aria-label="Verdict">
-    <b>NOT READY</b>
-    <p>One critical requirement fails (covenant direction in extraction), and three high-severity failures appear at a real bank's size. The fixes are contained and planned; a second review follows phase 1.</p>
+  <section class="verdict" aria-label="Verdict" style="background:var(--high-bg);border-left-color:var(--high)">
+    <b style="color:var(--high)">READY WITH CONDITIONS</b>
+    <p>The baseline verdict was NOT READY. Phase 1 fixed the critical bug and all five high-severity bugs, and re-tested them. Pilot use is fine. Full production needs four more things: an analyst-labelled golden set, tests against the bank's real systems, a penetration test, and a load test on production hardware.</p>
   </section>
 
   <section>
-    <h2>Why not ready</h2>
+    <h2>Phase 1: before and after</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>Bug</th><th>Before</th><th>After (re-tested)</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BUG-01</td><td>"shall not be less than 1.35" read as <code>&lt; 1.35</code></td><td><code>&gt;= 1.35</code>; a wrong-direction operator goes to review</td></tr>
+        <tr><td class="id">BUG-02</td><td>Bank-wide pages: HTTP 500 at 2,225 CPs</td><td>All 200 at 2,285 CPs (breach report 4.3 s)</td></tr>
+        <tr><td class="id">BUG-03</td><td>60-CP RM: breach report 4–6 s; 100 users 21% errors</td><td>0.2 s; 100 users <strong>0 errors</strong></td></tr>
+        <tr><td class="id">BUG-04</td><td>22–70% of uploads deadlock on SQL Server</td><td>235 uploads, 0 deadlocks</td></tr>
+        <tr><td class="id">BUG-05</td><td>Tasks return 500 after a big daily run</td><td>Batched; no SQL 8003 since</td></tr>
+        <tr><td class="id">BUG-06</td><td>API-applied CPs missing from portfolios</td><td>Cached and visible at once</td></tr>
+        <tr><td class="id">Re-test</td><td>Bank-wide task sync quadratic; Core could take 75% of host memory</td><td>Background sync job; 2 GB memory limit</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Core: 1,163 unit and 51 integration tests pass, coverage gate met, SpotBugs 0. DPS: 98% coverage. Playwright: 52 of 52.</p>
+  </section>
+
+  <section>
+    <h2>Baseline: why it was not ready</h2>
     <ol class="why">
       <li><strong>Wrong covenant direction (Critical).</strong> "The DSCR shall not be less than 1.35" is extracted as <code>DSCR &lt; 1.35</code>. A floor becomes a ceiling, so compliant borrowers show as breached and the reverse. The citation check passes and confidence is 0.85; only the RM's review catches it.</li>
       <li><strong>Bank-wide pages fail above 2,100 CPs (High).</strong> With 2,225 CPs, admin and auditor get HTTP 500 on portfolio, CP list, tasks and the breach report: SQL Server's 2,100-parameter limit.</li>

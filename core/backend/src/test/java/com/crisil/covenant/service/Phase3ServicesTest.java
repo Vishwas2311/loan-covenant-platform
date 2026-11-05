@@ -11,7 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.crisil.covenant.domain.CpMonitoringSummary;
 import com.crisil.covenant.dto.BorrowerContactRequest;
 import com.crisil.covenant.dto.CertificateRequirementView;
 import com.crisil.covenant.dto.CpReviewRow;
@@ -173,8 +172,7 @@ class Phase3ServicesTest {
 
     @Test
     void aReportFiltersRowsAndKeepsTheChosenColumnsInOrder() {
-        when(monitoringService.summary("rm-anil")).thenReturn(List.of(
-                new CpMonitoringSummary("CP-1001", 2, 1, 1, 0, 0, 0), new CpMonitoringSummary("CP-2001", 1, 1, 0, 0, 0, 0)));
+        when(monitoringService.visibleCpIds("rm-anil")).thenReturn(List.of("CP-1001", "CP-2001"));
         when(cacheRepo.findAllById(any())).thenReturn(List.of());
         when(reviewService.reviewRows("CP-1001")).thenReturn(List.of(
                 row("1", AssessmentResult.BREACHED, false), row("2", AssessmentResult.COMPLIANT, true),
@@ -229,7 +227,7 @@ class Phase3ServicesTest {
         r.setSchedule(SavedReport.Schedule.DAILY);
         r.setEmailTo("head@bank.test");
         when(reports.findByScheduleNot(SavedReport.Schedule.NONE)).thenReturn(List.of(r));
-        when(monitoringService.summary("rm-anil")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 1, 1, 0, 0, 0, 0)));
+        when(monitoringService.visibleCpIds("rm-anil")).thenReturn(List.of("CP-1"));
         when(cacheRepo.findAllById(any())).thenReturn(List.of());
         when(reviewService.reviewRows("CP-1")).thenReturn(List.of(row("1", AssessmentResult.COMPLIANT, false)));
         when(notificationClient.send(any())).thenReturn(new NotificationResult(true, 200, "{}", null));

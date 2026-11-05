@@ -5,6 +5,9 @@ import com.crisil.covenant.domain.CreditProposalDetails;
 import com.crisil.covenant.dto.CpCard;
 import com.crisil.covenant.entity.CreditProposalCacheEntry;
 import com.crisil.covenant.repository.CreditProposalCacheRepository;
+import com.crisil.covenant.util.IdBatches;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,6 +34,9 @@ public class CpDirectoryService {
     private final MonitoringService monitoringService;
     private final CreditProposalClient creditProposals;
     private final Map<String, String> names = new ConcurrentHashMap<>();
+    /** CPs the CP service could not name, and when: not asked again for {@link #MISS_TTL}. */
+    private final Map<String, Instant> misses = new ConcurrentHashMap<>();
+    private static final Duration MISS_TTL = Duration.ofMinutes(10);
 
     public CpDirectoryService(CreditProposalCacheRepository cacheRepo, MonitoringService monitoringService,
                               CreditProposalClient creditProposals) {
@@ -50,7 +56,7 @@ public class CpDirectoryService {
         Map<String, CpMonitoringSummary> counts = monitoringService.summary(user).stream()
                 .collect(Collectors.toMap(CpMonitoringSummary::cpId, Function.identity(), (a, b) -> a));
         List<CpCard> out = new ArrayList<>();
-        for (CreditProposalCacheEntry e : cacheRepo.findAllById(owned)) {
+        for (CreditProposalCacheEntry e : IdBatches.fetch(owned, cacheRepo::findAllById)) {
             CpMonitoringSummary c = counts.get(e.getCpId());
             out.add(c == null
                     ? new CpCard(e.getCpId(), name(e.getCpId()), e.getBusinessSegment(), e.getSector(),
@@ -68,10 +74,15 @@ public class CpDirectoryService {
         if (known != null) {
             return known;
         }
+        Instant missed = misses.get(cpId);
+        if (missed != null && missed.plus(MISS_TTL).isAfter(Instant.now())) {
+            return null; // a CP list of thousands must not call the CP service again for each unknown CP
+        }
         try {
             CreditProposalDetails d = creditProposals.lookup(cpId);
             if (d != null && d.name() != null) {
                 names.put(cpId, d.name());
+                misses.remove(cpId);
                 return d.name();
             }
         } catch (RuntimeException ex) {
@@ -79,6 +90,7 @@ public class CpDirectoryService {
                     String.valueOf(cpId).replace('\n', '_').replace('\r', '_'),
                     String.valueOf(ex.getMessage()).replace('\n', '_').replace('\r', '_'));
         }
+        misses.put(cpId, Instant.now());
         return null;
     }
 }

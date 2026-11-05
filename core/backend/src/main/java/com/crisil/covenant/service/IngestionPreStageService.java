@@ -19,6 +19,7 @@ import com.crisil.covenant.repository.AssessmentRepository;
 import com.crisil.covenant.repository.AssessmentRepository.AppliedCovenantLastExecuted;
 import com.crisil.covenant.repository.MeasureRepository;
 import com.crisil.covenant.service.MeasureAggregationResolver.AggregationRequest;
+import com.crisil.covenant.util.IdBatches;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -267,7 +268,7 @@ public class IngestionPreStageService {
         }
         Map<String, Instant> lastExecuted = new HashMap<>();
         for (AppliedCovenantLastExecuted row
-                : assessmentRepo.findLatestExecutedAtByAppliedCovenantIdIn(ids)) {
+                : IdBatches.fetch(ids, assessmentRepo::findLatestExecutedAtByAppliedCovenantIdIn)) {
             if (row.getLastExecutedAt() != null) {
                 lastExecuted.put(row.getAppliedCovenantId(), row.getLastExecutedAt());
             }

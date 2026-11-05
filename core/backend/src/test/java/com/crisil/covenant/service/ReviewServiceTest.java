@@ -36,6 +36,7 @@ import com.crisil.covenant.dto.StatusAuditView;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,28 @@ class ReviewServiceTest {
     }
 
     // -- reviewRows ------------------------------------------------------
+
+    @Test
+    void manyCpsAtOnceGiveTheSameRowsAsOneCpAtATime() {
+        when(monitoringService.covenantsForCps(List.of("CP-1", "CP-2", "CP-3"))).thenReturn(new java.util.LinkedHashMap<>(Map.of(
+                "CP-1", List.of(covenant("1", "50", "DSCR > 1.2", AssessmentResult.BREACHED, "100")),
+                "CP-2", List.of(covenant("2", "50", "DSCR > 1.2", AssessmentResult.COMPLIANT, "101")),
+                "CP-3", List.of())));
+        when(masterRepo.findAllById(any())).thenReturn(List.of(master("50", CovenantCategory.FINANCIAL)));
+        when(assessmentRepo.findAllById(any())).thenReturn(List.of(assessment("100", "1.0"), assessment("101", "1.5")));
+        CovenantAttachment evidence = new CovenantAttachment("CP-2", "2", "f-1", "cert.pdf", "rm-anil",
+                java.time.Instant.parse("2026-10-01T00:00:00Z"));
+        when(attachmentRepo.findByCpIdInOrderByUploadedAtDesc(any())).thenReturn(List.of(evidence));
+
+        Map<String, List<CpReviewRow>> rows = service().reviewRowsFor(List.of("CP-1", "CP-2", "CP-3"));
+
+        assertThat(rows.get("CP-1")).singleElement().satisfies(r -> {
+            assertThat(r.latestResult()).isEqualTo(AssessmentResult.BREACHED);
+            assertThat(r.computedValue()).isEqualTo("1.0");
+        });
+        assertThat(rows.get("CP-2").get(0).attachments()).hasSize(1);
+        assertThat(rows.get("CP-3")).isEmpty();
+    }
 
     @Test
     void errorRowSaysWhyTheCheckCouldNotRun() {

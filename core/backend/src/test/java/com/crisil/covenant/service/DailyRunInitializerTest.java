@@ -33,6 +33,19 @@ class DailyRunInitializerTest {
 
         verify(scheduleService).registerDailyNotificationRun(eq(BREACH_CRON));
         verify(scheduleService).registerIngestionPreStageRun(eq(PRE_STAGE_CRON));
+        verify(scheduleService).registerTaskSyncRun(eq(DailyRunInitializer.DEFAULT_TASK_SYNC_CRON));
+    }
+
+    @Test
+    void aFailedTaskSyncRegistrationDoesNotStopStartup() {
+        ScheduleService scheduleService = mock(ScheduleService.class);
+        doThrow(new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CRON", "bad"))
+                .when(scheduleService).registerTaskSyncRun(eq("nonsense"));
+
+        new DailyRunInitializer(scheduleService, propsWithPreStageCron(), BREACH_CRON, "nonsense")
+                .run(mock(ApplicationArguments.class));
+
+        verify(scheduleService).registerTaskSyncRun(eq("nonsense"));
     }
 
     @Test

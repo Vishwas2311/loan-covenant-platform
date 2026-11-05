@@ -7,26 +7,29 @@ Severity:
 - **Medium**: degraded behaviour, a misleading message, or an operational risk with a workaround.
 - **Low**: polish or a documentation gap.
 
-Every bug below was reproduced, with evidence in `test-results.md`. No product code was changed during this review. The fixes are planned in `improvement-plan.md`.
+Every bug below was reproduced, with evidence in `test-results.md`. No product code was changed during the baseline review. Phase 1 fixes were then made and re-tested; see "Phase 1 fixes" at the end and section 9 of `test-results.md`.
 
 ## Summary
 
-| ID | Severity | Area | Title |
-|---|---|---|---|
-| BUG-01 | Critical | Extraction | "shall not be less than" is extracted as `<` (direction inverted) |
-| BUG-02 | High | Core | Bank-wide pages return 500 above 2,100 CPs |
-| BUG-03 | High | Core | Portfolio pages slow down with portfolio size; 25 RMs with 60 CPs each overload Core |
-| BUG-04 | High | DPS | Concurrent uploads deadlock on SQL Server (the production database) |
-| BUG-05 | High | Core | "My tasks" returns 500 after a large daily run (SQL 8003) |
-| BUG-06 | Medium | Core | A CP onboarded without the recommendation step is missing from its RM's portfolio |
-| BUG-07 | Medium | DPS | DPS answers "CP not found" when Core is only slow |
-| BUG-08 | Medium | Core | All covenant schedules fire in the same second |
-| BUG-09 | Medium | Core | 2,800 schedules still run in UTC |
-| BUG-10 | Medium | Core / UI | A manual daily run through the gateway ends with 504 |
-| BUG-11 | Medium | DPS | The 500-page limit (FR-01) is not enforced |
-| BUG-12 | Medium | AI | Agreement Q&A returns planted or irrelevant text as the answer |
-| BUG-13 | Low | DPS / UI | The RM sees "Failed" with no reason |
-| BUG-14 | Low | Config | The local stack uses a 10-connection database pool |
+| ID | Severity | Area | Title | Status |
+|---|---|---|---|---|
+| BUG-01 | Critical | Extraction | "shall not be less than" is extracted as `<` (direction inverted) | Fixed |
+| BUG-02 | High | Core | Bank-wide pages return 500 above 2,100 CPs | Fixed |
+| BUG-03 | High | Core | Portfolio pages slow down with portfolio size; 25 RMs with 60 CPs each overload Core | Fixed (100 users: 0 errors) |
+| BUG-04 | High | DPS | Concurrent uploads deadlock on SQL Server (the production database) | Fixed |
+| BUG-05 | High | Core | "My tasks" returns 500 after a large daily run (SQL 8003) | Fixed |
+| BUG-06 | Medium | Core | A CP onboarded without the recommendation step is missing from its RM's portfolio | Fixed |
+| BUG-07 | Medium | DPS | DPS answers "CP not found" when Core is only slow | Open (phase 2) |
+| BUG-08 | Medium | Core | All covenant schedules fire in the same second | Open (phase 2) |
+| BUG-09 | Medium | Core | 2,800 schedules still run in UTC | Open (phase 2) |
+| BUG-10 | Medium | Core / UI | A manual daily run through the gateway ends with 504 | Open (phase 2) |
+| BUG-11 | Medium | DPS | The 500-page limit (FR-01) is not enforced | Open (phase 2) |
+| BUG-12 | Medium | AI | Agreement Q&A returns planted or irrelevant text as the answer | Open (phase 2) |
+| BUG-13 | Low | DPS / UI | The RM sees "Failed" with no reason | Open (phase 2) |
+| BUG-14 | Low | Config | The local stack uses a 10-connection database pool | Fixed (pool 20 in every profile) |
+| BUG-15 | High | Core | Bank-wide task sync was quadratic (found in re-test) | Fixed |
+| BUG-16 | High | Deploy | Core heap could take 75% of the host and starve SQL Server (found in re-test) | Fixed |
+| BUG-17 | Medium | Core | Failed CP-name lookups repeated on every CP-list request (found in re-test) | Fixed |
 
 ## Bugs
 
@@ -172,7 +175,7 @@ Every bug below was reproduced, with evidence in `test-results.md`. No product c
 | GAP-07 | Medium | Not verified: Entra ID SSO, the bank gateway, the bank's CP, loan, notification and workflow services (the workflow client logs "placeholder for case case-dev-mock-1"). |
 | GAP-08 | Low | FR-25: no industry risk treemap or exposure-by-sector figure. |
 | GAP-09 | Low | FR-28 financial news not built (optional). |
-| GAP-10 | Low | Certificate reminders and saved reports have no schedule. |
+| GAP-10 | n/a | Withdrawn: certificate reminders and saved reports already run inside the daily 06:00 job (`DailyBreachRunJob`). |
 | GAP-11 | Low | DPS does not check `READ_COMMITTED_SNAPSHOT` at startup (Core does). |
 
 ## Risks
@@ -209,3 +212,17 @@ Per-covenant triggers and the daily sweep both write SCHEDULED assessments. 7,60
 ### RISK-06 · Low: a role test is flaky under load
 
 `roles.spec.ts:142` failed during the baseline run while load data was being written, and passed on re-run (11 of 11).
+
+## Phase 1 fixes
+
+| Bug | Change | Where |
+|---|---|---|
+| BUG-01 | "not", "never" or "at no time", plus an optional verb (be, fall, go, drop, rise), before less/lower/below or more/greater/higher/above. New operator-direction check: a floor metric with `<`/`<=` or a ceiling metric with `>`/`>=` gets `OPERATOR_UNEXPECTED` and NEEDS_REVIEW. | `dps/src/dps/extraction/agreement.py`, `validation.py`; 13 new tests |
+| BUG-02, BUG-05 | `IdBatches.fetch` runs every `IN (...)` query in slices of 500, at all call sites that take portfolio-sized lists. Task lists and saved reports use `visibleCpIds` instead of building the whole summary. | `util/IdBatches.java`; Monitoring, WorkQueue, Analytics, CpDirectory, ScheduledReport, BreachNotification, IngestionPreStage and DataEvent services |
+| BUG-03 | Schedules and latest assessments loaded in batches, not per covenant. Bulk `covenantsForCps` and `reviewRowsFor` for the breach report, alerts and task sync. Hibernate IN-list padding, so plans are reused. Covering index V31 for the latest assessment. Measure catalog cached for 30 s, refreshed on change. | `MonitoringService`, `ReviewService`, `BreachReportService`, `AlertService`, `MeasureCatalogService`, `MeasureChangeListener`, `V31__assessment_latest_covering_index.sql`, `application.yml` |
+| BUG-04 | DPS `Varchar` column type casts bound strings to VARCHAR (pymssql sent NVARCHAR). The upload retries once on a lost lock; any remaining lock conflict returns 503 `BUSY_RETRY` with `Retry-After`. | `dps/src/dps/models.py`, `api.py`, `errors.py`; 4 new tests |
+| BUG-06 | After covenants are applied, the CP is written to the CP cache (owners from the CP service); a failure is logged, never thrown. | `AppliedCovenantController`, `CachedCovenantAttributesService.ensureCached` |
+| BUG-14 | `application-local-stack.yml` reads `COVENANT_DB_POOL_SIZE` (default 20) like prod. | config |
+| BUG-15 | Reads sync inline only for portfolios up to 300 CPs, clearing the persistence context after each CP. `TaskSyncJob` (clustered Quartz, every 5 minutes) syncs every CP in its own transaction. | `WorkQueueService`, `TaskSyncJob`, `ScheduleService`, `DailyRunInitializer`, `TaskSyncTracker` |
+| BUG-16 | `mem_limit: ${CORE_MEM_LIMIT:-2g}` on Core, so `MaxRAMPercentage=75` applies to 2 GB (heap 1.6 GB). | `deploy/docker-compose.yml` |
+| BUG-17 | CP-name misses remembered for 10 minutes. | `CpDirectoryService` |

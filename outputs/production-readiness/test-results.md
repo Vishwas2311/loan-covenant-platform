@@ -115,3 +115,34 @@ Capacity statement: on this host, with real portfolios, Core overloads at about 
 | SEC-07 | CORS refuses a foreign origin | Pass |
 | SEC-08 | Secrets: none in the repository; startup refuses default secrets | Pass |
 | SEC-09 | Penetration test, ASVS L2 review | Not done |
+
+## 9. Phase 1 re-test (after the fixes, same environment)
+
+| ID | Test | Before | After |
+|---|---|---|---|
+| FIX-01 | Live upload: "DSCR shall not be less than 1.35", "Total Debt to EBITDA shall not be more than 3.50", "ICR shall at no time be lower than 2.00" | `<` 1.35 (inverted) | `>=` 1.35, `<=` 3.5, `>=` 2.0 |
+| FIX-02 | Unit tests: 11 wordings plus the operator-direction check | n/a | Pass |
+| FIX-03 | Bank-wide pages at 2,285 CPs (admin, auditor) | 8 of 8 pages HTTP 500 | All 200: summary 1.2–2.1 s, CP list 1.5–3.4 s, breach report 4.3 s, tasks 0.1–0.2 s, alerts < 0.05 s |
+| FIX-04 | One RM with 60 CPs, idle system | Breach report 4–6 s, alerts 1.7–4.4 s, first tasks 14.9 s, CP list 0.9 s | Breach report 0.16–0.25 s, alerts 0.14–0.17 s, tasks 0.04 s (1.4 s first), CP list 0.07–0.10 s, summary 0.07 s |
+| FIX-05 | Uploads to DPS on SQL Server under load | 22–70% deadlock 1205 | 235 uploads, 0 deadlocks, 0 HTTP 500 |
+| FIX-06 | CPs applied by API (60 CPs, RM 26) | Not in the cache, invisible to the RM | All 60 cached with RM and approver; load-rm-26 sees 60 CPs |
+| FIX-07 | Background task sync | n/a | 2,285 CPs synced in about 2 minutes after start-up, one transaction per CP |
+| FIX-08 | Latest-assessment query, 240 covenants | 109–114 ms CPU (269 ms under load) | 8–12 ms with index V31 |
+| FIX-09 | Core memory under load | Heap committed 4.7 GB; SQL Server logins timed out | Container limit 2 GB, heap 1.6 GB, peak 1.94 GiB at 250 users |
+
+### Load with real 60-CP portfolios (pool 20, DPS on SQLite)
+
+| Users | Pauses | Throughput | Errors | Notes |
+|---|---|---|---|---|
+| 100 | 3–8 s | 16.4 req/s | **0** | p50 0.07–0.46 s; p95: review 0.7 s, upload 0.7 s, summary 2.1 s, CP list 2.4 s, alerts 3.1 s, breaches 3.9 s, tasks 5.0 s |
+| 250 | 3–8 s | 25.6 req/s | 2.74% | Status-0 drops and BUG-07 (DPS access-check time-outs, open). SQL Server at 540% CPU is the limit |
+
+Same tests before phase 1: 100 users 21.4% errors, 250 users 58.5%.
+
+### Suites after the fixes
+
+| Suite | Result |
+|---|---|
+| Core `mvn verify` | 1,163 unit + 51 integration tests pass; coverage gate met; SpotBugs 0 |
+| DPS pytest | All pass, 98.06% coverage; ruff clean; golden set 24 of 24 |
+| Playwright end-to-end | 52 of 52 pass (8.1 min) |

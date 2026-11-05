@@ -19,6 +19,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,12 +56,12 @@ class AlertAndTrendServiceTest {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 "wrm-meera", null, List.of(new SimpleGrantedAuthority("ROLE_APPROVER"))));
         when(monitoringService.ownedSummary("wrm-meera")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 4, 1, 2, 0, 1, 0)));
-        when(reviewService.reviewRows("CP-1")).thenReturn(List.of(
+        when(reviewService.reviewRowsFor(List.of("CP-1"))).thenReturn(Map.of("CP-1", List.of(
                 row("1", AssessmentResult.COMPLIANT, false, null, null, TimingStatus.UP_TO_DATE, true),
                 row("2", AssessmentResult.BREACHED, true, null, null, TimingStatus.OVERDUE, false),
                 row("3", AssessmentResult.BREACHED, true, DispositionApproval.REQUESTED, "rm-anil", null, false),
                 row("4", AssessmentResult.BREACHED, true, DispositionApproval.REQUESTED, "wrm-meera", null, false),
-                row("5", AssessmentResult.PENDING_REVIEW, false, null, null, null, false)));
+                row("5", AssessmentResult.PENDING_REVIEW, false, null, null, null, false))));
 
         List<AlertView> alerts = new AlertService(monitoringService, reviewService).alertsFor("wrm-meera");
 

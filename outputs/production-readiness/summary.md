@@ -1,71 +1,82 @@
 # Production-readiness review: summary
 
-**Verdict: NOT READY**
+**Verdict after phase 1 fixes: READY WITH CONDITIONS**
 
-Review date: 5 November 2026. Scope: Covenexa (Core, DPS, UI) on the local Docker stack with real Keycloak, SQL Server and Azure OpenAI, and stubbed bank services. No product code was changed during the review.
+| | |
+|---|---|
+| Baseline review (no code changed) | 5 November 2026, verdict NOT READY |
+| Phase 1 fixes and re-test | same day |
+| Scope | Covenexa (Core, DPS, UI) on the local Docker stack with real Keycloak, SQL Server and Azure OpenAI, and stubbed bank services |
 
-## Why not ready
+The baseline found one critical bug and five high-severity bugs; all six are now fixed and re-tested. The app can go to a controlled pilot. It must not go to full production until the four conditions below are met.
 
-One critical requirement fails and three high-severity failures appear at a real bank's size.
+## Conditions before full production
 
-1. **Wrong covenant direction (Critical, BUG-01).** The extractor reads the common wording "shall not be less than 1.35" as `< 1.35`. A floor becomes a ceiling, so a compliant borrower shows as breached and the reverse. The citation check passes and confidence is 0.85, so only the RM's review stands in the way. The golden set cannot catch it: it never uses this wording, and its labels were drafted by the extractor itself.
-2. **Bank-wide pages fail above 2,100 CPs (High, BUG-02).** With 2,225 CPs, admin and auditor get HTTP 500 on the portfolio, CP list, tasks and open-breaches report. SQL Server's 2,100-parameter limit is the cause. "My tasks" hits the same limit after a large daily run (BUG-05).
-3. **Capacity with real portfolios (High, BUG-03).** One RM with 60 CPs waits 4–6 s for the breach report and 15 s for the first task list. With 25 such RMs at once, the database pool is exhausted and requests fail (10–58% errors, 66 s time-outs).
-4. **Uploads deadlock on the production database (High, BUG-04).** On SQL Server, 22–70% of concurrent uploads fail with deadlock 1205. The cause is that DPS sends strings as NVARCHAR to VARCHAR columns. The local stack runs DPS on SQLite, so this never showed up in testing.
+1. **Analyst-labelled golden set (GAP-01).** Credit analysts label at least 20 agreements and 20 statements, including Indian bank wording, and the golden-set gate passes on their labels. The extraction bug fixed in BUG-01 was invisible to the current gate, whose labels were drafted by the extractor itself.
+2. **Bank integrations (GAP-07).** Test against Entra ID, the bank gateway, and the bank's CP, loan, notification and workflow services. Only stubs exist in this environment.
+3. **Security (RISK-04).** Complete a penetration test and an ASVS L2 review.
+4. **Capacity on production hardware (RISK-02).** Repeat the real-portfolio load test on production-like hosts, with the load generator on its own machine. Size Core, SQL Server and the connection pool from it.
 
-## What works well
+Phase 2 items (BUG-07 to BUG-13 and the open gaps) should be scheduled before a bank-wide rollout.
 
-- **PRD performance targets** (single user):
+## What phase 1 fixed
+
+| Bug | Before | After (re-tested) |
+|---|---|---|
+| BUG-01 Critical: "shall not be less than 1.35" extracted as `< 1.35` | Floors read as ceilings, with no review flag | `>= 1.35`, `<= 3.5` and `>= 2.0` extracted live. An operator that points the wrong way for its metric now goes to NEEDS_REVIEW. 11 new wording tests. |
+| BUG-02 High: bank-wide pages fail above 2,100 CPs | 8 of 8 key pages returned HTTP 500 at 2,225 CPs | All return 200 at 2,285 CPs: summary 1.2–2.1 s, CP list 1.5–3.4 s, breach report 4.3 s, tasks 0.1–0.2 s |
+| BUG-03 High: portfolio pages slow down with portfolio size | One RM with 60 CPs: breach report 4–6 s, alerts 1.7–4.4 s, first task list 15 s | Breach report 0.16–0.25 s, alerts 0.14–0.17 s, tasks 0.04 s, CP list 0.08 s |
+| BUG-04 High: uploads deadlock on SQL Server | 22–70% of concurrent uploads failed (deadlock 1205) | 235 uploads under load, 0 deadlocks; a lock that is lost is retried once and otherwise returns 503 |
+| BUG-05 High: "My tasks" returns 500 after a large daily run | SQL 8003 | Every id list is batched in groups of 500; no SQL 8003 under any load since |
+| BUG-06 Medium: CPs applied by API missing from portfolios | 2,200 CPs invisible to their RMs | 60 CPs applied through the API appear at once, with their RM and approver |
+
+Fixes for problems found during the re-test:
+
+- **Bank-wide task sync was quadratic.** Bank-wide roles no longer sync inline. A clustered background job keeps all CPs' tasks current; it synced 2,285 CPs in about 2 minutes.
+- **Core could take 75% of the host's memory.** It grew to 4.7 GB and starved SQL Server until logins timed out. Core now runs with a 2 GB container limit.
+- **Failed CP-name lookups repeated on every request.** Misses are now remembered for 10 minutes.
+- **The latest-assessment query was slow.** It cost 109–269 ms of CPU per call; the new covering index V31 brings it to 8–12 ms.
+- **The measure catalog was rebuilt on every assessment.** It is now cached for 30 seconds and refreshed as soon as a measure changes.
+
+### Load result with real 60-CP portfolios
+
+One 8-CPU host runs every service.
+
+| Users (3–8 s pauses) | Before phase 1 | After phase 1 |
+|---|---|---|
+| 100 | 3.4 req/s, 21.4% errors, breach report p95 66 s | 16.4 req/s, **0 errors**, p50 0.07–0.46 s, p95 0.7–5 s |
+| 250 | 6.0 req/s, 58.5% errors | 25.6 req/s, 2.7% errors (dropped connections, and BUG-07 time-outs) |
+
+At 250 users, SQL Server is the limit: portfolio aggregates are recomputed on every page. A short per-user cache of portfolio aggregates is planned for phase 2.
+
+## Still true from the baseline
+
+- **PRD performance targets pass with wide margins.**
 
   | Target | Required | Measured |
   |---|---|---|
-  | 50-page agreement (Flow A) | p95 ≤ 90 s | 4–9 s |
-  | Statement (Flow B) | p95 ≤ 60 s | 2–3 s |
-  | Re-assessment after new data | ≤ 5 min | 0.2–1.9 s |
+  | 50-page agreement | ≤ 90 s | 4–9 s |
+  | Statement | ≤ 60 s | 2–3 s |
+  | Re-assessment after new data | ≤ 5 min | ≤ 2 s |
   | Values API | p95 ≤ 500 ms | 83 ms |
   | Daily sweep | 10,000 covenants ≤ 30 min | 7,612 in about 5 min |
 
-- **Assessments are correct** against source data (spot checks), units convert correctly (lakhs to crore), and missing data never produces a breach.
-- **Security controls** behave as specified: authentication, role gates, CP isolation in Core and DPS, upload abuse cases, headers, CORS, no leaked internals.
-- **Ask AI** stays inside the RM's portfolio, cites the records it used, and refuses other RMs' CPs and off-topic questions. A clause planted to manipulate the AI did not change extracted thresholds.
-- **Operations**: backup and restore are byte-identical, the nightly run and e-mail hand-off work, a two-node Quartz cluster fires each trigger once, and Core stays up when DPS is down.
-- **Quality gates**: Core 1,202 tests (96% / 90%), DPS 98%, UI 122 unit tests, 52 Playwright tests, and 0 accessibility violations in light and dark themes.
+- **Calculations, units, security controls, Ask AI scoping, backup and restore, the nightly run and two-node Quartz** all pass.
+- **Correction:** GAP-10 was wrong. Certificate reminders and saved reports already run inside the daily 06:00 job.
 
-## Other findings
+## Quality gates after the fixes
 
-| Severity | Count | IDs |
-|---|---|---|
-| Medium | 7 | BUG-06 to BUG-12 |
-| Low | 2 | BUG-13, BUG-14 |
-
-Gaps against the PRD:
-
-- **Analyst-labelled golden set**: 10 agreements and no statements, against a target of at least 20 of each.
-- **Not built**: escalation notifications, bandit/semgrep in CI, LLM cost tracking.
-- **Not verified**: Entra ID, the bank gateway and bank services, and the penetration test.
-
-## Correction to earlier load figures
-
-Earlier runs reported 117 req/s and 250 users under 400 ms. Those runs used load-test RMs whose portfolio lists were empty, because of BUG-06. They hold only for pages that do not list a portfolio. LOAD-09, with real 60-CP portfolios, is the figure to plan with.
-
-## Path to READY WITH CONDITIONS
-
-Phase 1 of `improvement-plan.md`:
-
-1. Fix the operator wording and add an operator-sanity check.
-2. Have analysts label the golden set.
-3. Batch id lists.
-4. Remove the N+1 queries and slow scans.
-5. Fix the DPS bind types and re-test uploads on SQL Server.
-6. Write the CP cache on onboarding.
-
-Then repeat LOAD-08, LOAD-09 and LOAD-06 and review again.
+| Component | Result |
+|---|---|
+| Core | 1,163 unit and 51 integration tests pass, coverage gate met, SpotBugs 0 findings |
+| DPS | Tests pass, 98% coverage, golden-set gate 24 of 24, ruff clean |
+| UI | Playwright 52 of 52 pass; 122 unit tests (unchanged) |
 
 ## Files
 
-- `requirements-traceability.md`: FR-01 to FR-32 and the non-functional requirements, with status and evidence.
-- `feature-test-matrix.md`: 57 features with steps, expected and actual results, and status.
-- `bug-and-risk-findings.md`: 14 bugs, 11 gaps, 6 risks, with locations and evidence.
-- `test-results.md`: suites, operations, performance, load, documents, AI, resilience and security results.
-- `improvement-plan.md`: three phases with proofs and sizes.
-- `evidence/`: raw JSON from the load, performance, file, AI and resilience runs.
+- `requirements-traceability.md`
+- `feature-test-matrix.md`
+- `bug-and-risk-findings.md`
+- `test-results.md` (section 9 is the phase 1 re-test)
+- `improvement-plan.md`
+- `evidence/`

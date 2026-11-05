@@ -1,5 +1,8 @@
 package com.crisil.covenant.service;
 
+import java.util.LinkedHashMap;
+import java.util.Collection;
+import com.crisil.covenant.util.IdBatches;
 import com.crisil.covenant.entity.Assessment;
 import com.crisil.covenant.repository.AssessmentRepository;
 import com.crisil.covenant.enums.AssessmentResult;
@@ -121,6 +124,46 @@ public class ReviewService {
                     attByAc.getOrDefault(c.appliedCovenantId(), List.of()), atRiskPercent));
         }
         return rows;
+    }
+
+    /**
+     * {@link #reviewRows(String)} for many CPs at once: the same rows from a few batched queries instead of
+     * about eight per CP, keyed by CP id in the order given. For portfolio-wide reports and alerts.
+     */
+    public Map<String, List<CpReviewRow>> reviewRowsFor(Collection<String> cpIds) {
+        Map<String, List<CovenantOnCp>> covenantsByCp = monitoringService.covenantsForCps(cpIds);
+        List<CovenantOnCp> all = covenantsByCp.values().stream().flatMap(List::stream).toList();
+        Map<String, CovenantDisposition> dispByAc = new HashMap<>();
+        for (CovenantDisposition d : IdBatches.fetch(cpIds, dispositionRepo::findByCpIdIn)) {
+            dispByAc.put(d.getAppliedCovenantId(), d);
+        }
+        Map<String, CovenantMaster> masterById = new HashMap<>();
+        for (CovenantMaster m : IdBatches.fetch(all.stream().map(CovenantOnCp::covenantMasterId)
+                .filter(Objects::nonNull).distinct().toList(), masterRepo::findAllById)) {
+            masterById.put(m.getId(), m);
+        }
+        Map<String, Assessment> assessmentById = new HashMap<>();
+        for (Assessment a : IdBatches.fetch(all.stream().map(CovenantOnCp::latestAssessmentId)
+                .filter(Objects::nonNull).distinct().toList(), assessmentRepo::findAllById)) {
+            assessmentById.put(a.getId(), a);
+        }
+        Map<String, List<AttachmentView>> attByAc = new HashMap<>();
+        for (CovenantAttachment a : IdBatches.fetch(cpIds, attachmentRepo::findByCpIdInOrderByUploadedAtDesc)) {
+            attByAc.computeIfAbsent(a.getAppliedCovenantId(), k -> new ArrayList<>()).add(AttachmentView.from(a));
+        }
+        int atRiskPercent = settingsService.atRiskHeadroomPercent();
+        Map<String, List<CpReviewRow>> out = new LinkedHashMap<>();
+        covenantsByCp.forEach((cp, covenants) -> {
+            List<CpReviewRow> rows = new ArrayList<>(covenants.size());
+            for (CovenantOnCp c : covenants) {
+                rows.add(toRow(c, dispByAc.get(c.appliedCovenantId()),
+                        c.latestAssessmentId() == null ? null : assessmentById.get(c.latestAssessmentId()),
+                        masterById.get(c.covenantMasterId()),
+                        attByAc.getOrDefault(c.appliedCovenantId(), List.of()), atRiskPercent));
+            }
+            out.put(cp, rows);
+        });
+        return out;
     }
 
     /**

@@ -59,6 +59,9 @@ services:
       SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/integration,classpath:db/demo
       SPRING_FLYWAY_OUT_OF_ORDER: "true"
     ports: ["9310:9310", "9320:9320"]  # 9320: internal actuator (metrics, Prometheus)
+    # The image sizes the heap at 75% of the memory it can see. Without a limit that is 75% of the whole
+    # Docker host, and under load Core grew to 4.7 GB and starved SQL Server until logins timed out.
+    mem_limit: ${CORE_MEM_LIMIT:-2g}
     restart: on-failure
 
   stack-init:

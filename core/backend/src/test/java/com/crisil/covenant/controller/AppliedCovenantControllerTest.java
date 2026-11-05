@@ -15,6 +15,7 @@ import com.crisil.covenant.enums.AppliedCovenantStatus;
 import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.enums.ThresholdSource;
 import com.crisil.covenant.service.AppliedCovenantService;
+import com.crisil.covenant.service.CachedCovenantAttributesService;
 import com.crisil.covenant.service.TransientRetry;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -36,6 +37,7 @@ class AppliedCovenantControllerTest {
     @Mock private AppliedCovenantService service;
     @Mock private CpAccessGuard guard;
     @Spy private TransientRetry retry = new TransientRetry();
+    @Mock private CachedCovenantAttributesService cpCache;
     @InjectMocks private AppliedCovenantController controller;
 
     @Test
@@ -49,6 +51,7 @@ class AppliedCovenantControllerTest {
 
         assertThat(result.getStatusCode().value()).isEqualTo(201);
         assertThat(result.getBody()).isSameAs(created);
+        verify(cpCache).ensureCached("CP-1");
     }
 
     @Test

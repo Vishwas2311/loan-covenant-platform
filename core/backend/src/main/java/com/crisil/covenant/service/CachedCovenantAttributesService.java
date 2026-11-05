@@ -57,6 +57,25 @@ public class CachedCovenantAttributesService {
         return fresh;
     }
 
+    /**
+     * Makes sure {@code cpId} has a cache row. Portfolios, task lists and bank-wide views are built from this
+     * cache, so a CP whose covenants were applied without the onboarding recommendation step (an import, the
+     * API) would otherwise run, breach and e-mail without appearing in anyone's portfolio. A failed lookup is
+     * logged and retried by the next fetch; it never fails the caller.
+     */
+    public void ensureCached(String cpId) {
+        if (cpId == null || cpId.isBlank() || cacheRepo.existsById(cpId)) {
+            return;
+        }
+        try {
+            fetch(cpId);
+        } catch (RuntimeException ex) {
+            LOG.warn("Could not cache CP {} after applying covenants: {}",
+                    cpId.replace('\n', '_').replace('\r', '_'),
+                    String.valueOf(ex.getMessage()).replace('\n', '_').replace('\r', '_'));
+        }
+    }
+
     private boolean isFresh(CreditProposalCacheEntry entry, Instant now) {
         return Duration.between(entry.getFetchedAt(), now).compareTo(TTL) < 0;
     }

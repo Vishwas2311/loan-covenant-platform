@@ -50,17 +50,16 @@ public class BreachReportService {
         LocalDate today = LocalDate.now(clock);
         List<String> cpOf = new ArrayList<>();
         List<CpReviewRow> rows = new ArrayList<>();
-        for (CpMonitoringSummary cp : monitoringService.summary(user)) {
-            if (cp.breached() == 0 && cp.error() == 0) {
-                continue;
-            }
-            for (CpReviewRow r : reviewService.reviewRows(cp.cpId())) {
+        List<String> withProblems = monitoringService.summary(user).stream()
+                .filter(cp -> cp.breached() > 0 || cp.error() > 0).map(CpMonitoringSummary::cpId).toList();
+        reviewService.reviewRowsFor(withProblems).forEach((cpId, cpRows) -> {
+            for (CpReviewRow r : cpRows) {
                 if (r.latestResult() == AssessmentResult.BREACHED || r.latestResult() == AssessmentResult.ERROR) {
-                    cpOf.add(cp.cpId());
+                    cpOf.add(cpId);
                     rows.add(r);
                 }
             }
-        }
+        });
         Map<String, List<AssessmentOutcome>> history = history(rows.stream().map(CpReviewRow::appliedCovenantId).toList());
         List<BreachReportRow> out = new ArrayList<>();
         for (int i = 0; i < rows.size(); i++) {

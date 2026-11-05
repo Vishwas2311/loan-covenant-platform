@@ -61,6 +61,60 @@ def test_upload_creates_document_link_and_job(client, app):
     assert job["flow"] == "AGREEMENT_INTAKE" and job["status"] == "QUEUED" and job["pool"] == "STANDARD"
 
 
+class _Deadlock(Exception):
+    def __str__(self) -> str:
+        return "(1205, b'Transaction was deadlocked on lock resources with another process')"
+
+
+def _failing_commits(monkeypatch, failures: int) -> list[int]:
+    """Makes the next ``failures`` commits of the upload raise a SQL Server deadlock."""
+    from sqlalchemy.exc import OperationalError
+    from sqlalchemy.orm import Session
+
+    real = Session.commit
+    calls = []
+
+    def commit(self):
+        calls.append(1)
+        if len(calls) <= failures:
+            raise OperationalError("UPDATE dps_document", {}, _Deadlock())
+        return real(self)
+
+    monkeypatch.setattr(Session, "commit", commit)
+    return calls
+
+
+def test_upload_retries_once_after_a_deadlock(client, monkeypatch):
+    calls = _failing_commits(monkeypatch, 1)
+    r = upload(client, data=PDF + b"%retry")
+    assert r.status_code == 202 and len(calls) == 2
+    assert client.get(f"/dps/v1/documents/{r.json()['documentId']}", headers=h()).status_code == 200
+
+
+def test_a_second_deadlock_answers_busy_not_500(client, monkeypatch):
+    _failing_commits(monkeypatch, 2)
+    r = upload(client, data=PDF + b"%busy")
+    assert r.status_code == 503 and r.headers["Retry-After"] == "2"
+    assert r.json()["code"] == "BUSY_RETRY"
+
+
+def test_lock_conflicts_are_recognised():
+    from dps.errors import is_lock_conflict
+
+    assert is_lock_conflict(_Deadlock())
+    assert is_lock_conflict(Exception("database is locked"))
+    assert is_lock_conflict(Exception("(1222, b'Lock request time out period exceeded')"))
+    assert not is_lock_conflict(Exception("(208, b'Invalid object name')"))
+
+
+def test_string_parameters_are_sent_as_varchar_on_sql_server():
+    from sqlalchemy import select
+    from sqlalchemy.dialects import mssql
+
+    sql = str(select(Document.id).where(Document.sha256 == "abc").compile(dialect=mssql.dialect()))
+    assert "CAST(" in sql and "AS VARCHAR(64))" in sql
+
+
 def test_upload_is_idempotent_and_adds_links(client):
     first = upload(client, cps=("CP-1",)).json()
     second = upload(client, cps=("CP-2",)).json()

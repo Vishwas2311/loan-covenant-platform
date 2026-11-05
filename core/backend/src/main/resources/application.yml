@@ -24,6 +24,10 @@ spring:
           preferred_instant_jdbc_type: TIMESTAMP
         jdbc:
           time_zone: UTC
+        query:
+          # IN lists of 1..500 ids are padded to the next power of two, so SQL Server reuses a handful of
+          # cached plans instead of compiling one per list length (each compile cost 70-80 ms of CPU).
+          in_clause_parameter_padding: true
     open-in-view: false
   flyway:
     enabled: true

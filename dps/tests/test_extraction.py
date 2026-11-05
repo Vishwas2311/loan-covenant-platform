@@ -163,6 +163,38 @@ def test_quote_checks():
     assert "QUOTE_PAGE_MISSING" in r.issues
 
 
+@pytest.mark.parametrize(("text", "metric", "op", "value"), [
+    ("The Debt Service Coverage Ratio shall not be less than 1.35 times.", "DSCR", ">=", 1.35),
+    ("DSCR shall not be less than 1.20:1.", "DSCR", ">=", 1.2),
+    ("DSCR shall not fall below 1.25.", "DSCR", ">=", 1.25),
+    ("DSCR shall not be lower than 1.3 times.", "DSCR", ">=", 1.3),
+    ("DSCR shall at no time be lower than 1.3.", "DSCR", ">=", 1.3),
+    ("Interest Coverage Ratio shall be at least 2.0.", "ICR", ">=", 2.0),
+    ("Total Debt to EBITDA shall not be more than 3.5 times.", "DEBT_TO_EBITDA", "<=", 3.5),
+    ("Total Debt to EBITDA shall not be greater than 3.5:1.", "DEBT_TO_EBITDA", "<=", 3.5),
+    ("Total Debt to EBITDA shall not rise above 4.0.", "DEBT_TO_EBITDA", "<=", 4.0),
+    ("Total Debt to EBITDA shall at no time exceed 3.0.", "DEBT_TO_EBITDA", "<=", 3.0),
+    ("Net Worth shall not be less than INR 500 Crores.", "MIN_NET_WORTH", ">=", 500.0),
+])
+def test_negated_comparisons_keep_their_direction(text, metric, op, value):
+    """A verb between "not" and the comparison must not flip a floor into a ceiling (review BUG-01)."""
+    [term] = extract_terms([Page(1, text, "TEXT", 1.0)])
+    assert (term.metric, term.operator, term.threshold) == (metric, op, value)
+
+
+def test_operator_against_the_metric_direction_needs_review():
+    floor, ceiling, fine = normalize([
+        Term("DSCR", "FINANCIAL", "<", 1.25, None, None, 1, "Required threshold: >= 1.25x.", None, 0.95),
+        Term("DEBT_TO_NET_WORTH", "FINANCIAL", ">=", 2.5, None, None, 2, "exceed 2.50 times.", None, 0.95),
+        Term("DSCR", "FINANCIAL", ">=", 1.25, None, None, 1, "Required threshold: >= 1.25x.", None, 0.95),
+    ], MASTERS)
+    assert validate(AGREEMENT, [floor, ceiling], lambda e: [], 0.8) == NEEDS_REVIEW
+    assert floor.issues == ["OPERATOR_UNEXPECTED: usually a minimum (>=)"]
+    assert ceiling.issues == ["OPERATOR_UNEXPECTED: usually a maximum (<=)"]
+    validate(AGREEMENT, [fine], lambda e: [], 0.8)
+    assert fine.issues == []
+
+
 def test_conflicting_thresholds_are_flagged():
     a, b = normalize([Term("DSCR", "FINANCIAL", ">=", 1.25, None, None, 1, "q", None, 0.9),
                       Term("DSCR", "FINANCIAL", ">=", 1.5, None, None, 1, "q", None, 0.9)], MASTERS)

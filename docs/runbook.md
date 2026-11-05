@@ -42,7 +42,9 @@ Both services refuse to start with an unsafe setting, so a mistake shows up at d
 | `SPRING_PROFILES_ACTIVE` | `prod` | JWT sign-in, no H2, no plaintext data-source passwords, Quartz clustering |
 | `COVENANT_DB_URL` | `jdbc:sqlserver://<host>:1433;databaseName=covenant;encrypt=true` | |
 | `COVENANT_DB_USER`, `COVENANT_DB_PASSWORD` | Core's database login | *secret* |
-| `COVENANT_DB_POOL_SIZE` | default `20` | per instance |
+| `COVENANT_DB_POOL_SIZE` | default `20` | per instance; local-stack reads it too |
+| Container memory | `CORE_MEM_LIMIT` in `deploy/docker-compose.yml`, default `2g` | always set a limit: the image sizes the heap at 75% of the memory it sees, and without a limit Core can starve SQL Server on a shared host |
+| `COVENANT_TASKS_SYNCCRON` (property `covenant.tasks.sync-cron`) | default `0 0/5 * * * ?` | background task sync (one node at a time); bank-wide task lists read what it writes |
 | `COVENANT_JWT_ISSUER` | `https://login.microsoftonline.com/<tenant>/v2.0` | required |
 | `COVENANT_JWT_AUDIENCE` | the shared API registration's app ID URI or client ID | required |
 | `COVENANT_JWT_JWKS` | optional; defaults to the issuer's keys | |
@@ -59,6 +61,8 @@ Both services refuse to start with an unsafe setting, so a mistake shows up at d
 | `COVENANT_AI_PROVIDER` | `external` (bank service) or `dps` | which service writes AI suggestions |
 
 The daily breach run fires at 06:00 server time (`covenant.notifications.cron`); one instance runs it, thanks to Quartz clustering.
+
+Task lists: a read by an RM or approver syncs that person's CPs first (up to 300 CPs). Bank-wide roles and CPs nobody opens are kept current by the background task sync: changed CPs within 5 minutes, others every 30 minutes.
 
 ### DPS (API and workers)
 

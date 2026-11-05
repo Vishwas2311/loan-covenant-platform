@@ -4,8 +4,10 @@ import com.crisil.covenant.entity.AuditableEntity;
 import com.crisil.covenant.enums.DataColumnType;
 import com.crisil.covenant.entity.DataSourceTable;
 import com.crisil.covenant.formula.FunctionKind;
+import com.crisil.covenant.service.MeasureChangeListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -29,6 +31,7 @@ import org.hibernate.annotations.UuidGenerator;
         attributeNodes = @NamedAttributeNode(value = "dataSourceTable", subgraph = "table"),
         subgraphs = @NamedSubgraph(name = "table", attributeNodes = @NamedAttributeNode("dataSource")))
 @Table(name = "cov_measure")
+@EntityListeners(MeasureChangeListener.class)
 public class Measure extends AuditableEntity {
 
     public static final String WITH_TABLE_AND_SOURCE = "Measure.withTableAndSource";

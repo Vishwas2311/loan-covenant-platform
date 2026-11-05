@@ -18,6 +18,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -56,12 +57,12 @@ class BreachReportServiceTest {
         when(monitoringService.summary("rm")).thenReturn(List.of(
                 new CpMonitoringSummary("CP-1", 4, 1, 2, 1, 0, 1),
                 new CpMonitoringSummary("CP-2", 2, 2, 0, 0, 0, 0)));
-        when(reviewService.reviewRows("CP-1")).thenReturn(List.of(
+        when(reviewService.reviewRowsFor(List.of("CP-1"))).thenReturn(Map.of("CP-1", List.of(
                 row("old", AssessmentResult.BREACHED, CovenantDispositionStatus.BREACHED,
                         DispositionApproval.REQUESTED),
                 row("waived", AssessmentResult.BREACHED, CovenantDispositionStatus.WAIVER, DispositionApproval.APPROVED),
                 row("err", AssessmentResult.ERROR, CovenantDispositionStatus.COMPLIED, null),
-                row("ok", AssessmentResult.COMPLIANT, CovenantDispositionStatus.COMPLIED, null)));
+                row("ok", AssessmentResult.COMPLIANT, CovenantDispositionStatus.COMPLIED, null))));
         when(assessmentRepo.findOutcomesByAppliedCovenantIdIn(List.of("old", "waived", "err"))).thenReturn(List.of(
                 a("old", AssessmentResult.BREACHED, "2026-09-30T10:00:00Z", null),
                 a("old", AssessmentResult.BREACHED, null, "2026-06-30T10:00:00Z"),
@@ -78,7 +79,7 @@ class BreachReportServiceTest {
         assertThat(out.get(1).escalate()).isFalse(); // handled by an approved waiver
         assertThat(out.get(2).daysOpen()).isEqualTo(3);
         assertThat(out.get(2).escalate()).isFalse();
-        verify(reviewService, never()).reviewRows("CP-2");
+        verify(reviewService).reviewRowsFor(List.of("CP-1")); // CP-2 has no breach or error
 
         assertThat(service().openBreachesXlsx("rm", 14)).isNotEmpty();
         assertThat(new String(service().openBreachesPdf("rm", 14), java.nio.charset.StandardCharsets.US_ASCII))

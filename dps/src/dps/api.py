@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import false, select, text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from dps import __version__, services
@@ -18,7 +19,7 @@ from dps.access import CpAccessChecker, require_cp
 from dps.auth import ADMIN, APPROVER, RM, SERVICE, SUPPORT, Principal, require_roles
 from dps.catalog import LINE_ITEMS
 from dps.catalog import catalog as line_item_catalog
-from dps.errors import ApiError, not_found
+from dps.errors import ApiError, is_lock_conflict, not_found
 from dps.models import Document, DocumentCpLink, ExtractedTerm, Job, StatementValue, utcnow
 from dps.settings import Settings
 from dps.storage import FileStore
@@ -245,21 +246,35 @@ def upload_document(
             raise ApiError(400, "AMENDMENT_NOT_AGREEMENT", "Only a loan agreement can amend a loan agreement")
 
     digest, rel = store.put(data, ext)
+    pages = page_count(store.path(rel))
+    for attempt in (1, 2):  # a lock lost to a concurrent upload is retried once (SQL Server deadlock 1205)
+        try:
+            doc = _record_upload(db, type, name, rel, digest, len(data), pages, asOfDate, amendsDocumentId,
+                                 cp_ids, user.user)
+            return JSONResponse(status_code=202, content={"documentId": doc.id, "jobId": doc.latest_job_id})
+        except OperationalError as exc:
+            db.rollback()
+            if attempt == 2 or not is_lock_conflict(exc):
+                raise
+    raise AssertionError("unreachable")  # pragma: no cover
+
+
+def _record_upload(db: Session, type: str, name: str, rel: str, digest: str, size: int,  # noqa: A002
+                   pages: int | None, as_of: date | None, amends: str | None, cp_ids: list[str],
+                   user: str) -> Document:
     # A removed document does not count: uploading the same file again starts it afresh.
     existing = db.scalar(select(Document).where(Document.sha256 == digest, Document.type == type,
                                                 Document.status != "REMOVED"))
     if existing is not None:  # idempotent re-upload: just add any new links
-        doc = existing
-        _add_links(db, doc, cp_ids, user.user)
+        _add_links(db, existing, cp_ids, user)
         db.commit()
-        return JSONResponse(status_code=202, content={"documentId": doc.id, "jobId": doc.latest_job_id})
+        return existing
 
-    doc = Document(type=type, file_name=name, storage_path=rel, sha256=digest, size_bytes=len(data),
-                   page_count=page_count(store.path(rel)), as_of_date=asOfDate, uploaded_by=user.user,
-                   amends_document_id=amendsDocumentId or None)
+    doc = Document(type=type, file_name=name, storage_path=rel, sha256=digest, size_bytes=size,
+                   page_count=pages, as_of_date=as_of, uploaded_by=user, amends_document_id=amends or None)
     db.add(doc)
     db.flush()
-    _add_links(db, doc, cp_ids, user.user)
+    _add_links(db, doc, cp_ids, user)
     flow = FLOW_BY_TYPE.get(type)
     if flow:
         job = Job(document_id=doc.id, flow=flow)
@@ -268,9 +283,9 @@ def upload_document(
         doc.latest_job_id = job.id
     else:
         doc.status = "PUBLISHED"  # evidence is stored for reviewers; no processing flow
-    services.audit(db, user.user, "UPLOAD", "document", doc.id, type=type, cpIds=cp_ids, sha256=digest)
+    services.audit(db, user, "UPLOAD", "document", doc.id, type=type, cpIds=cp_ids, sha256=digest)
     db.commit()
-    return JSONResponse(status_code=202, content={"documentId": doc.id, "jobId": doc.latest_job_id})
+    return doc
 
 
 def _add_links(db: Session, doc: Document, cp_ids: list[str], user: str) -> None:

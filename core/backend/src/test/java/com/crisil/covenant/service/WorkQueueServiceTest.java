@@ -9,7 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.crisil.covenant.domain.CpMonitoringSummary;
 import com.crisil.covenant.dto.CertificateRequirementView;
 import com.crisil.covenant.dto.CpReviewRow;
 import com.crisil.covenant.dto.UpdateWorkTaskRequest;
@@ -62,9 +61,9 @@ class WorkQueueServiceTest {
     void setUp() throws Exception {
         service = new WorkQueueService(monitoringService, reviewService, certificates, cacheRepo, repo, appliedRepo,
                 tracker, CLOCK);
-        lenient().when(monitoringService.summary("rm-anil")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 3, 1, 1, 0, 1, 0)));
-        lenient().when(monitoringService.summary("wrm-meera")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 3, 1, 1, 0, 1, 0)));
-        lenient().when(monitoringService.summary("rm-priya")).thenReturn(List.of());
+        lenient().when(monitoringService.visibleCpIds("rm-anil")).thenReturn(List.of("CP-1"));
+        lenient().when(monitoringService.visibleCpIds("wrm-meera")).thenReturn(List.of("CP-1"));
+        lenient().when(monitoringService.visibleCpIds("rm-priya")).thenReturn(List.of());
         lenient().when(cacheRepo.findAllById(any())).thenReturn(List.of(owner("CP-1", "rm-anil", "wrm-meera")));
         lenient().when(repo.save(any(WorkTask.class))).thenAnswer(inv -> {
             WorkTask t = inv.getArgument(0);
@@ -171,6 +170,41 @@ class WorkQueueServiceTest {
         assertThatThrownBy(() -> service.update("nope", new UpdateWorkTaskRequest(null, null, null, true), "rm-anil"))
                 .isInstanceOf(ResponseStatusException.class);
         verify(repo, never()).save(any());
+    }
+
+    @Test
+    void aReadLoadsTheRowsOfEveryCpDueInOneBatch() {
+        when(reviewService.reviewRowsFor(List.of("CP-1"))).thenReturn(java.util.Map.of("CP-1",
+                List.of(row("1", AssessmentResult.BREACHED, true, null, null))));
+
+        assertThat(service.tasksFor("rm-anil", false, true)).extracting(WorkTaskView::kind)
+                .containsExactly("BREACH");
+        verify(reviewService, never()).reviewRows("CP-1");
+    }
+
+    @Test
+    void aBankWideReadDoesNotSyncThousandsOfCpsInline() {
+        List<String> bank = java.util.stream.IntStream.range(0, WorkQueueService.INLINE_SYNC_LIMIT + 1)
+                .mapToObj(i -> "CP-" + i).toList();
+        when(monitoringService.visibleCpIds("auditor-1")).thenReturn(bank);
+
+        assertThat(service.tasksFor("auditor-1", false, true)).isEmpty();
+        verify(reviewService, never()).reviewRows(any());
+    }
+
+    @Test
+    void theBackgroundSyncGivesEachCpItsOwnTransactionAndSkipsOneThatFails() throws Exception {
+        org.springframework.transaction.PlatformTransactionManager tm =
+                org.mockito.Mockito.mock(org.springframework.transaction.PlatformTransactionManager.class);
+        set(service, "transactionManager", tm);
+        when(cacheRepo.findAllCpIds()).thenReturn(List.of("CP-1", "CP-2"));
+        when(reviewService.reviewRows("CP-1")).thenReturn(List.of(row("1", AssessmentResult.BREACHED, true, null, null)));
+        when(reviewService.reviewRows("CP-2")).thenThrow(new IllegalStateException("bad CP"));
+
+        assertThat(service.syncAll()).isEqualTo(1);
+        assertThat(stored).extracting(WorkTask::getCpId).containsExactly("CP-1");
+        verify(tm, org.mockito.Mockito.times(2)).getTransaction(any());
+        assertThat(service.syncAll()).isZero(); // CP-1 is fresh; CP-2 fails again and is skipped again
     }
 
     private static CreditProposalCacheEntry owner(String cp, String rm, String wrm) throws Exception {

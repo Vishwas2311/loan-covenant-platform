@@ -20,6 +20,7 @@ import com.crisil.covenant.repository.DataEventRepository;
 import com.crisil.covenant.repository.DataSourceTableRepository;
 import com.crisil.covenant.repository.MeasureRepository;
 import com.crisil.covenant.repository.ObligorCpMapRepository;
+import com.crisil.covenant.util.IdBatches;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
@@ -119,7 +120,7 @@ public class DataEventService {
         MeasureCatalog catalog = catalogService.activeCatalog();
         var ctx = assessmentService.newRunContext();
         int count = 0;
-        for (AppliedCovenant ac : appliedRepo.findByCpIdInOrderByIdAsc(cpIds)) {
+        for (AppliedCovenant ac : IdBatches.fetch(cpIds, appliedRepo::findByCpIdInOrderByIdAsc)) {
             if (ac.getStatus() != AppliedCovenantStatus.ACTIVE
                     || ac.getCovenantMaster().getAssessmentType() != AssessmentType.AUTO
                     || !usesAnyMeasure(ac, measureCodes, catalog)) {

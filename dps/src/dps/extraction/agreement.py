@@ -69,10 +69,15 @@ NON_FINANCIAL_RULES: list[tuple[str, list[str], list[str]]] = [
 
 _NUM = r"([0-9][0-9,]*(?:\.[0-9]+)?)"
 _UNIT = r"\s*(crores?|cr\b|lakhs?|lacs?|million|billion)?"
+# "shall not (be|fall|go|drop) less than / below": a verb may sit between the negation and the comparison.
+# Without it the bare "less than" rule below matches and the floor is read as a ceiling.
+_NOT = r"(?:not|never|at\s+no\s+time)\s+(?:(?:be|fall|go|drop|rise)\s+)?"
 _WORD_THRESHOLDS: list[tuple[str, str]] = [
-    (r"(?:not\s+less\s+than|at\s+least|minimum(?:\s+of)?|no\s+less\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, ">="),
-    (r"(?:does\s+not\s+exceed|not\s+exceed(?:ing)?|at\s+most|maximum(?:\s+of)?|not\s+more\s+than|no\s+more\s+than"
-     r"|not\s+greater\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, "<="),
+    (r"(?:" + _NOT + r"(?:less|lower)\s+than|" + _NOT + r"below|at\s+least|minimum(?:\s+of)?|no\s+less\s+than"
+     r"|no\s+lower\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, ">="),
+    (r"(?:does\s+not\s+exceed|not\s+(?:to\s+)?exceed(?:ing)?|at\s+no\s+time\s+exceed|at\s+most"
+     r"|maximum(?:\s+of)?|" + _NOT + r"(?:more|greater|higher)\s+than|" + _NOT + r"above"
+     r"|no\s+more\s+than|no\s+greater\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, "<="),
     (r"(?:greater\s+than|more\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, ">"),
     (r"(?:less\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, "<"),
 ]

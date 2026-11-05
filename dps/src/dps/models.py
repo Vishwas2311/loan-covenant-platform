@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text, cast
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
 
@@ -39,24 +39,40 @@ class UtcDateTime(TypeDecorator):
         return value.replace(tzinfo=UTC)
 
 
+class Varchar(TypeDecorator):
+    """A VARCHAR column whose bound values are sent as VARCHAR too.
+
+    pymssql sends every Python str as NVARCHAR (``N'...'``). Against a VARCHAR column SQL Server then
+    converts each row instead of seeking the index, so two uploads lock each other's rows and deadlock
+    (review BUG-04: 22-70% of concurrent uploads failed with error 1205). Casting the parameter keeps the
+    comparison VARCHAR = VARCHAR. On SQLite the cast is a no-op.
+    """
+
+    impl = String
+    cache_ok = True
+
+    def bind_expression(self, bindvalue):
+        return cast(bindvalue, String(self.impl.length))
+
+
 class Document(Base):
     __tablename__ = "dps_document"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    type: Mapped[str] = mapped_column(String(32))  # LOAN_AGREEMENT | FINANCIAL_STATEMENT | EVIDENCE
-    file_name: Mapped[str] = mapped_column(String(255))
-    file_id: Mapped[str | None] = mapped_column(String(255))  # external file service id (later)
-    storage_path: Mapped[str] = mapped_column(String(500))
-    sha256: Mapped[str] = mapped_column(String(64), index=True)
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
+    type: Mapped[str] = mapped_column(Varchar(32))  # LOAN_AGREEMENT | FINANCIAL_STATEMENT | EVIDENCE
+    file_name: Mapped[str] = mapped_column(Varchar(255))
+    file_id: Mapped[str | None] = mapped_column(Varchar(255))  # external file service id (later)
+    storage_path: Mapped[str] = mapped_column(Varchar(500))
+    sha256: Mapped[str] = mapped_column(Varchar(64), index=True)
     size_bytes: Mapped[int] = mapped_column(Integer)
     page_count: Mapped[int | None] = mapped_column(Integer)
     as_of_date: Mapped[date | None] = mapped_column(Date)
-    status: Mapped[str] = mapped_column(String(24), default="QUEUED")
-    uploaded_by: Mapped[str] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(Varchar(24), default="QUEUED")
+    uploaded_by: Mapped[str] = mapped_column(Varchar(255))
     uploaded_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
-    latest_job_id: Mapped[str | None] = mapped_column(String(36))
+    latest_job_id: Mapped[str | None] = mapped_column(Varchar(36))
     # C7: set when this agreement amends an earlier one (its terms replace the earlier terms).
-    amends_document_id: Mapped[str | None] = mapped_column(String(36))
+    amends_document_id: Mapped[str | None] = mapped_column(Varchar(36))
 
     links: Mapped[list[DocumentCpLink]] = relationship(back_populates="document", cascade="all, delete-orphan")
 
@@ -70,12 +86,12 @@ class DocumentCpLink(Base):
     __tablename__ = "dps_document_cp_link"
     __table_args__ = (Index("ix_dps_link_cp", "cp_id"),)
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
     document_id: Mapped[str] = mapped_column(ForeignKey("dps_document.id"))
-    cp_id: Mapped[str] = mapped_column(String(64))
-    linked_by: Mapped[str] = mapped_column(String(255))
+    cp_id: Mapped[str] = mapped_column(Varchar(64))
+    linked_by: Mapped[str] = mapped_column(Varchar(255))
     linked_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
-    unlinked_by: Mapped[str | None] = mapped_column(String(255))
+    unlinked_by: Mapped[str | None] = mapped_column(Varchar(255))
     unlinked_at: Mapped[datetime | None] = mapped_column(UtcDateTime())
 
     document: Mapped[Document] = relationship(back_populates="links")
@@ -85,17 +101,17 @@ class Job(Base):
     __tablename__ = "dps_job"
     __table_args__ = (Index("ix_dps_job_claim", "status", "pool"),)
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
     document_id: Mapped[str] = mapped_column(ForeignKey("dps_document.id"))
-    flow: Mapped[str] = mapped_column(String(32))  # AGREEMENT_INTAKE | STATEMENT_PROCESSING
-    status: Mapped[str] = mapped_column(String(16), default="QUEUED")
-    pool: Mapped[str] = mapped_column(String(16), default="STANDARD")  # STANDARD | HEAVY
+    flow: Mapped[str] = mapped_column(Varchar(32))  # AGREEMENT_INTAKE | STATEMENT_PROCESSING
+    status: Mapped[str] = mapped_column(Varchar(16), default="QUEUED")
+    pool: Mapped[str] = mapped_column(Varchar(16), default="STANDARD")  # STANDARD | HEAVY
     attempts: Mapped[int] = mapped_column(Integer, default=0)
-    current_step: Mapped[str | None] = mapped_column(String(32))
+    current_step: Mapped[str | None] = mapped_column(Varchar(32))
     error: Mapped[str | None] = mapped_column(Text)
     steps_json: Mapped[str] = mapped_column(Text, default="[]")
-    flow_state_id: Mapped[str | None] = mapped_column(String(64))
-    locked_by: Mapped[str | None] = mapped_column(String(64))
+    flow_state_id: Mapped[str | None] = mapped_column(Varchar(64))
+    locked_by: Mapped[str | None] = mapped_column(Varchar(64))
     locked_until: Mapped[datetime | None] = mapped_column(UtcDateTime())
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
     updated_at: Mapped[datetime | None] = mapped_column(UtcDateTime())
@@ -104,24 +120,24 @@ class Job(Base):
 class ExtractedTerm(Base):
     __tablename__ = "dps_extracted_term"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
     document_id: Mapped[str] = mapped_column(ForeignKey("dps_document.id"), index=True)
-    metric_raw: Mapped[str] = mapped_column(String(128))
-    covenant_master_id: Mapped[str | None] = mapped_column(String(64))
-    expression: Mapped[str | None] = mapped_column(String(2000))
-    operator: Mapped[str | None] = mapped_column(String(4))
+    metric_raw: Mapped[str] = mapped_column(Varchar(128))
+    covenant_master_id: Mapped[str | None] = mapped_column(Varchar(64))
+    expression: Mapped[str | None] = mapped_column(Varchar(2000))
+    operator: Mapped[str | None] = mapped_column(Varchar(4))
     threshold: Mapped[float | None] = mapped_column(Float)
-    unit: Mapped[str | None] = mapped_column(String(32))
-    frequency: Mapped[str | None] = mapped_column(String(16))
-    category: Mapped[str] = mapped_column(String(16), default="FINANCIAL")
+    unit: Mapped[str | None] = mapped_column(Varchar(32))
+    frequency: Mapped[str | None] = mapped_column(Varchar(16))
+    category: Mapped[str] = mapped_column(Varchar(16), default="FINANCIAL")
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
-    method: Mapped[str] = mapped_column(String(8), default="REGEX")
-    status: Mapped[str] = mapped_column(String(16), default="PROPOSED")
+    method: Mapped[str] = mapped_column(Varchar(8), default="REGEX")
+    status: Mapped[str] = mapped_column(Varchar(16), default="PROPOSED")
     issues_json: Mapped[str] = mapped_column(Text, default="[]")
     page: Mapped[int | None] = mapped_column(Integer)
-    quote: Mapped[str | None] = mapped_column(String(500))
-    reviewed_by: Mapped[str | None] = mapped_column(String(255))
-    review_note: Mapped[str | None] = mapped_column(String(2000))
+    quote: Mapped[str | None] = mapped_column(Varchar(500))
+    reviewed_by: Mapped[str | None] = mapped_column(Varchar(255))
+    review_note: Mapped[str | None] = mapped_column(Varchar(2000))
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
 
 
@@ -131,20 +147,20 @@ class StatementValue(Base):
     __tablename__ = "dps_statement_value"
     __table_args__ = (Index("ix_dps_value_lookup", "cp_id", "key", "as_of_date", "superseded"),)
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    cp_id: Mapped[str] = mapped_column(String(64))  # CP id or obligor id (entity key)
-    key: Mapped[str] = mapped_column(String(64))
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
+    cp_id: Mapped[str] = mapped_column(Varchar(64))  # CP id or obligor id (entity key)
+    key: Mapped[str] = mapped_column(Varchar(64))
     value: Mapped[float] = mapped_column(Float)
-    unit: Mapped[str] = mapped_column(String(32))
-    currency: Mapped[str | None] = mapped_column(String(3))
+    unit: Mapped[str] = mapped_column(Varchar(32))
+    currency: Mapped[str | None] = mapped_column(Varchar(3))
     as_of_date: Mapped[date] = mapped_column(Date)
     derived: Mapped[bool] = mapped_column(Boolean, default=False)
-    source_type: Mapped[str] = mapped_column(String(16))  # DOCUMENT | USER
-    document_id: Mapped[str | None] = mapped_column(String(36))
+    source_type: Mapped[str] = mapped_column(Varchar(16))  # DOCUMENT | USER
+    document_id: Mapped[str | None] = mapped_column(Varchar(36))
     page: Mapped[int | None] = mapped_column(Integer)
-    cell: Mapped[str | None] = mapped_column(String(64))
-    note: Mapped[str | None] = mapped_column(String(2000))
-    entered_by: Mapped[str | None] = mapped_column(String(255))
+    cell: Mapped[str | None] = mapped_column(Varchar(64))
+    note: Mapped[str | None] = mapped_column(Varchar(2000))
+    entered_by: Mapped[str | None] = mapped_column(Varchar(255))
     superseded: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
 
@@ -154,8 +170,8 @@ class EventOutbox(Base):
 
     __tablename__ = "dps_event_outbox"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    type: Mapped[str] = mapped_column(String(32))
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
+    type: Mapped[str] = mapped_column(Varchar(32))
     payload_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
     sent_at: Mapped[datetime | None] = mapped_column(UtcDateTime())
@@ -166,11 +182,11 @@ class EventOutbox(Base):
 class AuditEvent(Base):
     __tablename__ = "dps_audit_event"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    actor: Mapped[str] = mapped_column(String(255))
-    action: Mapped[str] = mapped_column(String(64))
-    target_type: Mapped[str] = mapped_column(String(32))
-    target_id: Mapped[str] = mapped_column(String(64))
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
+    actor: Mapped[str] = mapped_column(Varchar(255))
+    action: Mapped[str] = mapped_column(Varchar(64))
+    target_type: Mapped[str] = mapped_column(Varchar(32))
+    target_id: Mapped[str] = mapped_column(Varchar(64))
     detail_json: Mapped[str] = mapped_column(Text, default="{}")
     at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)
 
@@ -181,9 +197,9 @@ class FlowState(Base):
     __tablename__ = "dps_flow_state"
     __table_args__ = (Index("ix_dps_flow_state_uuid", "flow_uuid", "saved_at"),)
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    flow_uuid: Mapped[str] = mapped_column(String(64))
-    method_name: Mapped[str] = mapped_column(String(64))
+    id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
+    flow_uuid: Mapped[str] = mapped_column(Varchar(64))
+    method_name: Mapped[str] = mapped_column(Varchar(64))
     state_json: Mapped[str] = mapped_column(Text)
     pending_feedback_json: Mapped[str | None] = mapped_column(Text)
     saved_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=utcnow)

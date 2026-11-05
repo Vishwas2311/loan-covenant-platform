@@ -57,14 +57,14 @@ class CpDirectoryServiceTest {
         assertThat(out.get(1).name()).isNull();
         assertThat(out.get(1).applied()).isZero();
 
-        // The name found is kept; the failed one is asked again.
+        // The name found is kept; the failed one is not asked again for ten minutes.
         svc.cps("rm");
         verify(creditProposals, times(1)).lookup("CP-1");
-        verify(creditProposals, times(2)).lookup("CP-2");
+        verify(creditProposals, times(1)).lookup("CP-2");
     }
 
     @Test
-    void unknownNameIsNotKept() throws Exception {
+    void anUnknownNameIsNotKeptAndNotAskedForAgainAtOnce() throws Exception {
         when(monitoringService.visibleCpIds("rm")).thenReturn(List.of("CP-1"));
         when(cacheRepo.findAllById(any())).thenReturn(List.of(entry("CP-1", null)));
         when(monitoringService.summary("rm")).thenReturn(List.of());
@@ -73,6 +73,7 @@ class CpDirectoryServiceTest {
         CpDirectoryService svc = new CpDirectoryService(cacheRepo, monitoringService, creditProposals);
         assertThat(svc.cps("rm").get(0).name()).isNull();
         assertThat(svc.cps("rm").get(0).name()).isNull();
+        verify(creditProposals, times(1)).lookup("CP-1"); // the miss is remembered for ten minutes
     }
 
     @Test

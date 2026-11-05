@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -268,6 +269,21 @@ class MonitoringServiceTest {
     }
 
     @Test
+    void covenantsForManyCpsGroupsRowsByCpAndKeepsEmptyOnes() {
+        AppliedCovenant a = newApplied("1", "CP-1");
+        AppliedCovenant b = newApplied("2", "CP-2");
+        when(appliedRepo.findByCpIdInOrderByIdAsc(any())).thenReturn(List.of(b, a));
+
+        Map<String, List<CovenantOnCp>> byCp = service.covenantsForCps(List.of("CP-1", "CP-2", "CP-3"));
+
+        assertThat(byCp).containsOnlyKeys("CP-1", "CP-2", "CP-3");
+        assertThat(byCp.get("CP-1")).extracting(CovenantOnCp::appliedCovenantId).containsExactly("1");
+        assertThat(byCp.get("CP-2")).extracting(CovenantOnCp::appliedCovenantId).containsExactly("2");
+        assertThat(byCp.get("CP-3")).isEmpty();
+        assertThat(service.covenantsForCps(List.of())).isEmpty();
+    }
+
+    @Test
     void covenantsForCpReturnsRowPerApplied() {
         AppliedCovenant a = newApplied("1", "CP-1");
         MonitoringSchedule schedule = new MonitoringSchedule();
@@ -278,7 +294,8 @@ class MonitoringServiceTest {
         schedule.setStatus(ScheduleStatus.SCHEDULED);
 
         when(appliedRepo.findByCpIdOrderByIdAsc("CP-1")).thenReturn(List.of(a));
-        when(scheduleRepo.findByAppliedCovenantId("1")).thenReturn(Optional.of(schedule));
+        schedule.setAppliedCovenant(a);
+        when(scheduleRepo.findByAppliedCovenantIdIn(any())).thenReturn(List.of(schedule));
         when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("1"), any(PageRequest.class)))
                 .thenReturn(latestPage(AssessmentResult.COMPLIANT, a));
 
@@ -294,7 +311,6 @@ class MonitoringServiceTest {
     void covenantsForCpWithoutScheduleReturnsNullTimestamps() {
         AppliedCovenant a = newApplied("1", "CP-1");
         when(appliedRepo.findByCpIdOrderByIdAsc("CP-1")).thenReturn(List.of(a));
-        when(scheduleRepo.findByAppliedCovenantId("1")).thenReturn(Optional.empty());
         when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("1"), any(PageRequest.class)))
                 .thenReturn(Page.empty());
 
@@ -309,7 +325,6 @@ class MonitoringServiceTest {
         AppliedCovenant a = newApplied("1", "CP-1");
         a.setStartDate(LocalDate.now().minusYears(5)); // started long ago, never assessed → overdue
         when(appliedRepo.findByCpIdOrderByIdAsc("CP-1")).thenReturn(List.of(a));
-        when(scheduleRepo.findByAppliedCovenantId("1")).thenReturn(Optional.empty());
         when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("1"), any(PageRequest.class)))
                 .thenReturn(Page.empty());
 
@@ -327,7 +342,6 @@ class MonitoringServiceTest {
         AppliedCovenant a = newApplied("1", "CP-1");
         a.setStartDate(LocalDate.now().minusYears(5)); // overdue on the base frequency schedule
         when(appliedRepo.findByCpIdOrderByIdAsc("CP-1")).thenReturn(List.of(a));
-        when(scheduleRepo.findByAppliedCovenantId("1")).thenReturn(Optional.empty());
         when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("1"), any(PageRequest.class)))
                 .thenReturn(latestPage(AssessmentResult.BREACHED, a, "asmt-1",
                         Instant.now().minus(Duration.ofDays(400))));
@@ -348,7 +362,6 @@ class MonitoringServiceTest {
         AppliedCovenant a = newApplied("1", "CP-1");
         when(cacheRepo.findCpIdsOwnedBy(USER)).thenReturn(List.of("CP-1"));
         when(appliedRepo.findByCpIdOrderByIdAsc("CP-1")).thenReturn(List.of(a));
-        when(scheduleRepo.findByAppliedCovenantId("1")).thenReturn(Optional.empty());
         when(assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(eq("1"), any(PageRequest.class)))
                 .thenReturn(Page.empty());
 

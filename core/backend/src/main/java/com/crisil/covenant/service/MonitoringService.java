@@ -1,21 +1,34 @@
 package com.crisil.covenant.service;
 
+import java.util.LinkedHashMap;
+import com.crisil.covenant.config.CurrentUserContext;
+import com.crisil.covenant.domain.CovenantOnCp;
+import com.crisil.covenant.domain.CpMonitoringSummary;
+import com.crisil.covenant.domain.MonitoringEvent;
+import com.crisil.covenant.domain.MonitoringTiming;
+import com.crisil.covenant.dto.ReportingSettingsResponse;
 import com.crisil.covenant.entity.AppliedCovenant;
-import com.crisil.covenant.repository.AppliedCovenantRepository;
-import com.crisil.covenant.enums.AppliedCovenantStatus;
 import com.crisil.covenant.entity.Assessment;
-import com.crisil.covenant.repository.AssessmentRepository;
-import com.crisil.covenant.repository.AssessmentRepository.LatestOutcome;
-import com.crisil.covenant.enums.AssessmentResult;
 import com.crisil.covenant.entity.CovenantDisposition;
 import com.crisil.covenant.entity.MonitoringSchedule;
-import com.crisil.covenant.repository.MonitoringScheduleRepository;
-import com.crisil.covenant.repository.CreditProposalCacheRepository;
+import com.crisil.covenant.enums.AppliedCovenantStatus;
+import com.crisil.covenant.enums.AssessmentResult;
+import com.crisil.covenant.enums.TimingStatus;
+import com.crisil.covenant.repository.AppliedCovenantRepository;
+import com.crisil.covenant.repository.AssessmentRepository.LatestOutcome;
+import com.crisil.covenant.repository.AssessmentRepository;
 import com.crisil.covenant.repository.CovenantDispositionRepository;
+import com.crisil.covenant.repository.CreditProposalCacheRepository;
+import com.crisil.covenant.repository.MonitoringScheduleRepository;
+import com.crisil.covenant.security.Roles;
+import com.crisil.covenant.util.DispositionRules;
+import com.crisil.covenant.util.IdBatches;
+import com.crisil.covenant.util.MonitoringTimingCalculator;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,16 +42,6 @@ import org.hibernate.Hibernate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.crisil.covenant.dto.ReportingSettingsResponse;
-import com.crisil.covenant.domain.CovenantOnCp;
-import com.crisil.covenant.domain.CpMonitoringSummary;
-import com.crisil.covenant.domain.MonitoringEvent;
-import com.crisil.covenant.domain.MonitoringTiming;
-import com.crisil.covenant.enums.TimingStatus;
-import com.crisil.covenant.util.DispositionRules;
-import com.crisil.covenant.util.MonitoringTimingCalculator;
-import com.crisil.covenant.config.CurrentUserContext;
-import com.crisil.covenant.security.Roles;
 
 @Service
 @Transactional(readOnly = true)
@@ -113,9 +116,9 @@ public class MonitoringService {
         if (owned.isEmpty()) {
             return List.of();
         }
-        Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(dispositionRepo.findByCpIdIn(owned));
+        Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(IdBatches.fetch(owned, dispositionRepo::findByCpIdIn));
         Map<String, long[]> byCp = new TreeMap<>();
-        List<AppliedCovenant> applied = appliedRepo.findByCpIdInOrderByIdAsc(owned);
+        List<AppliedCovenant> applied = appliedOn(owned);
         Map<String, LatestOutcome> latest = latestOutcomes(applied);
         for (AppliedCovenant ac : applied) {
             accumulate(byCp.computeIfAbsent(ac.getCpId(), k -> new long[6]), ac, dispByAc, latest.get(ac.getId()));
@@ -173,15 +176,20 @@ public class MonitoringService {
         }
     }
 
+    /** The covenants on {@code cps}, by id, in batches below SQL Server's 2,100-parameter limit. */
+    private List<AppliedCovenant> appliedOn(Collection<String> cps) {
+        List<AppliedCovenant> applied = IdBatches.fetch(cps, appliedRepo::findByCpIdInOrderByIdAsc);
+        applied.sort(Comparator.comparing(AppliedCovenant::getId));
+        return applied;
+    }
+
     /** Each covenant's latest assessment, in batches below SQL Server's 2,100-parameter limit. */
     private Map<String, LatestOutcome> latestOutcomes(List<AppliedCovenant> applied) {
         List<String> ids = applied.stream().map(AppliedCovenant::getId).toList();
         Map<String, LatestOutcome> byId = new HashMap<>();
-        for (int from = 0; from < ids.size(); from += 500) {
-            for (LatestOutcome o : assessmentRepo.findLatestOutcomes(ids.subList(from, Math.min(ids.size(), from + 500)))) {
-                // Two rows only when scheduledAt ties; keep one, as the paged lookup did.
-                byId.putIfAbsent(o.getAppliedCovenantId(), o);
-            }
+        for (LatestOutcome o : IdBatches.fetch(ids, assessmentRepo::findLatestOutcomes)) {
+            // Two rows only when scheduledAt ties; keep one, as the paged lookup did.
+            byId.putIfAbsent(o.getAppliedCovenantId(), o);
         }
         return byId;
     }
@@ -225,16 +233,52 @@ public class MonitoringService {
         Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(dispositionRepo.findByCpId(cpId));
         List<AppliedCovenant> applied = appliedRepo.findByCpIdOrderByIdAsc(cpId);
         Map<String, Assessment> latest = latestAssessments(applied);
+        Map<String, MonitoringSchedule> schedules = schedulesOf(applied);
         return applied.stream()
-                .map(ac -> toCovenantOnCp(ac, today, zone, dueSoonDays, dispByAc.get(ac.getId()), latest.get(ac.getId())))
+                .map(ac -> toCovenantOnCp(ac, today, zone, dueSoonDays, dispByAc.get(ac.getId()), latest.get(ac.getId()),
+                        schedules.get(ac.getId())))
                 .toList();
+    }
+
+    /**
+     * {@link #covenantsForCp(String)} for many CPs in a few batched queries, keyed by CP id in the order
+     * given; a CP without covenants maps to an empty list. Unscoped, like the single-CP form.
+     */
+    public Map<String, List<CovenantOnCp>> covenantsForCps(Collection<String> cpIds) {
+        Map<String, List<CovenantOnCp>> byCp = new LinkedHashMap<>();
+        cpIds.forEach(cp -> byCp.put(cp, new ArrayList<>()));
+        if (cpIds.isEmpty()) {
+            return byCp;
+        }
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDate today = LocalDate.now(zone);
+        int dueSoonDays = reportingSettingsService.current().dueSoonDays();
+        Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(IdBatches.fetch(cpIds, dispositionRepo::findByCpIdIn));
+        List<AppliedCovenant> applied = appliedOn(cpIds);
+        Map<String, Assessment> latest = latestAssessments(applied);
+        Map<String, MonitoringSchedule> schedules = schedulesOf(applied);
+        for (AppliedCovenant ac : applied) {
+            byCp.computeIfAbsent(ac.getCpId(), k -> new ArrayList<>()).add(toCovenantOnCp(ac, today, zone, dueSoonDays,
+                    dispByAc.get(ac.getId()), latest.get(ac.getId()), schedules.get(ac.getId())));
+        }
+        return byCp;
+    }
+
+    /** Each covenant's schedule row, in one query per 500 covenants instead of one per covenant. */
+    private Map<String, MonitoringSchedule> schedulesOf(List<AppliedCovenant> applied) {
+        Map<String, MonitoringSchedule> byApplied = new HashMap<>();
+        for (MonitoringSchedule s : IdBatches.fetch(applied.stream().map(AppliedCovenant::getId).toList(),
+                scheduleRepo::findByAppliedCovenantIdIn)) {
+            byApplied.put(s.getAppliedCovenant().getId(), s);
+        }
+        return byApplied;
     }
 
     /** Each covenant's latest assessment entity: one query for the ids, one to load them. */
     private Map<String, Assessment> latestAssessments(List<AppliedCovenant> applied) {
         Map<String, LatestOutcome> outcomes = latestOutcomes(applied);
         Map<String, Assessment> byId = new HashMap<>();
-        for (Assessment a : assessmentRepo.findAllById(outcomes.values().stream().map(LatestOutcome::getId).toList())) {
+        for (Assessment a : IdBatches.fetch(outcomes.values().stream().map(LatestOutcome::getId).toList(), assessmentRepo::findAllById)) {
             byId.put(a.getId(), a);
         }
         Map<String, Assessment> byApplied = new HashMap<>();
@@ -248,8 +292,8 @@ public class MonitoringService {
     }
 
     private CovenantOnCp toCovenantOnCp(AppliedCovenant ac, LocalDate today, ZoneId zone,
-                                        int dueSoonDays, CovenantDisposition disp, Assessment latestAssessment) {
-        MonitoringSchedule schedule = scheduleRepo.findByAppliedCovenantId(ac.getId()).orElse(null);
+                                        int dueSoonDays, CovenantDisposition disp, Assessment latestAssessment,
+                                        MonitoringSchedule schedule) {
         Optional<Assessment> latest = Optional.ofNullable(latestAssessment);
         MonitoringTiming timing = timingFor(ac, latest.orElse(null), today, zone, dueSoonDays);
         // US-MON-21: an active EXTENSION defers the next monitoring date (grace date, or an earlier
@@ -306,7 +350,7 @@ public class MonitoringService {
 
         List<AppliedCovenant> applied;
         if (cpId == null || cpId.isBlank()) {
-            applied = appliedRepo.findByCpIdInOrderByIdAsc(owned);
+            applied = appliedOn(owned);
         } else if (owned.contains(cpId)) {
             applied = appliedRepo.findByCpIdOrderByIdAsc(cpId);
         } else {
@@ -317,15 +361,17 @@ public class MonitoringService {
         // so each event can carry its effective (active-only) Waiver/Extension badge.
         Map<String, CovenantDisposition> dispByAc = dispositionsByApplied(
                 cpId == null || cpId.isBlank()
-                        ? dispositionRepo.findByCpIdIn(owned)
+                        ? IdBatches.fetch(owned, dispositionRepo::findByCpIdIn)
                         : dispositionRepo.findByCpId(cpId));
 
         List<MonitoringEvent> events = new ArrayList<>();
+        Map<String, Assessment> latestById = latestAssessments(applied.stream()
+                .filter(ac -> ac.getStatus() == AppliedCovenantStatus.ACTIVE).toList());
         for (AppliedCovenant ac : applied) {
             if (ac.getStatus() != AppliedCovenantStatus.ACTIVE) {
                 continue;
             }
-            Optional<Assessment> latest = latestAssessment(ac.getId());
+            Optional<Assessment> latest = Optional.ofNullable(latestById.get(ac.getId()));
             // US-MON-21: badge only an *active* disposition (same rule as the grid / US-MON-20); a
             // lapsed one against an older assessment shows nothing.
             String latestAssessmentId = latest.map(Assessment::getId).orElse(null);
@@ -408,10 +454,5 @@ public class MonitoringService {
         // expose them (the paginated query keeps a scalar graph to avoid in-memory pagination).
         history.forEach(a -> Hibernate.initialize(a.getComparisons()));
         return history;
-    }
-
-    private Optional<Assessment> latestAssessment(String appliedCovenantId) {
-        return assessmentRepo.findByAppliedCovenantIdOrderByScheduledAtDesc(
-                appliedCovenantId, PageRequest.of(0, 1)).stream().findFirst();
     }
 }

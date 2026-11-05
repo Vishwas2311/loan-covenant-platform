@@ -42,6 +42,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.crisil.covenant.entity.NotificationAudit;
 import com.crisil.covenant.repository.NotificationAuditRepository;
+import com.crisil.covenant.util.IdBatches;
 
 /**
  * US-MON-14: the daily (and on-demand) breach-assessment run. For a given assessment date it
@@ -273,7 +274,7 @@ public class BreachNotificationService {
             ids.add(ac.getId());
         }
         Map<String, Instant> lastExecuted = new HashMap<>();
-        for (AppliedCovenantLastExecuted row : assessmentRepo.findLatestExecutedAtByAppliedCovenantIdIn(ids)) {
+        for (AppliedCovenantLastExecuted row : IdBatches.fetch(ids, assessmentRepo::findLatestExecutedAtByAppliedCovenantIdIn)) {
             if (row.getLastExecutedAt() != null) {
                 lastExecuted.put(row.getAppliedCovenantId(), row.getLastExecutedAt());
             }

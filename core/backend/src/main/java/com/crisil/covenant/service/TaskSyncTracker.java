@@ -87,9 +87,18 @@ public class TaskSyncTracker {
         dirtyCps.add(cpId);
     }
 
+    Duration resyncAfter() {
+        return resyncAfter;
+    }
+
     boolean needsSync(String cpId, Instant now) {
+        return needsSync(cpId, now, resyncAfter);
+    }
+
+    /** As {@link #needsSync(String, Instant)}, with its own age limit (the background sync waits longer). */
+    boolean needsSync(String cpId, Instant now, Duration staleAfter) {
         Instant last = lastSync.get(cpId);
-        return last == null || dirtyCps.contains(cpId) || last.plus(resyncAfter).isBefore(now);
+        return last == null || dirtyCps.contains(cpId) || last.plus(staleAfter).isBefore(now);
     }
 
     /** Clears the CP's change mark before a sync, so a write during the sync marks it again. */

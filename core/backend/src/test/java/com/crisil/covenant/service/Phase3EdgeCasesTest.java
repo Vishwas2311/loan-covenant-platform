@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import com.crisil.covenant.controller.BorrowerReminderController;
 import com.crisil.covenant.controller.SavedReportController;
-import com.crisil.covenant.domain.CpMonitoringSummary;
 import com.crisil.covenant.dto.CertificateRequirementView;
 import com.crisil.covenant.dto.CpReviewRow;
 import com.crisil.covenant.dto.ReportDefinition;
@@ -124,8 +123,7 @@ class Phase3EdgeCasesTest {
 
     @Test
     void aReportCanFilterBySegment() throws Exception {
-        when(monitoringService.summary("rm-anil")).thenReturn(List.of(
-                new CpMonitoringSummary("CP-1", 1, 1, 0, 0, 0, 0), new CpMonitoringSummary("CP-2", 1, 1, 0, 0, 0, 0)));
+        when(monitoringService.visibleCpIds("rm-anil")).thenReturn(List.of("CP-1", "CP-2"));
         CreditProposalCacheEntry corp = (CreditProposalCacheEntry) set(set(new CreditProposalCacheEntry(), "cpId", "CP-1"),
                 "businessSegment", "CORPORATE");
         when(cacheRepo.findAllById(any())).thenReturn(List.of(corp));
@@ -172,8 +170,7 @@ class Phase3EdgeCasesTest {
         notDue.setEmailTo("x@y.test");
         notDue.setLastSentOn(TODAY.minusDays(3));
         when(reports.findByScheduleNot(SavedReport.Schedule.NONE)).thenReturn(List.of(failing, noAddress, notDue));
-        when(monitoringService.summary("rm-anil")).thenReturn(List.of());
-        when(cacheRepo.findAllById(any())).thenReturn(List.of());
+        when(monitoringService.visibleCpIds("rm-anil")).thenReturn(List.of());
         when(notificationClient.send(any())).thenReturn(null);
 
         assertThat(reports().sendDue("system")).isZero();
@@ -231,7 +228,7 @@ class Phase3EdgeCasesTest {
         SavedReportController reportsCtl = new SavedReportController(reports());
         when(reports.findByScheduleNot(SavedReport.Schedule.NONE)).thenReturn(List.of());
         assertThat(reportsCtl.scheduledRun()).containsEntry("sent", 0);
-        when(monitoringService.summary(any())).thenReturn(List.of());
+        when(monitoringService.visibleCpIds(any())).thenReturn(List.of());
         assertThat(reportsCtl.run(new ReportDefinition(null, null, null, null))).isEmpty();
     }
 
@@ -284,7 +281,7 @@ class Phase3EdgeCasesTest {
                 taskRepo, org.mockito.Mockito.mock(com.crisil.covenant.repository.AppliedCovenantRepository.class),
                 new TaskSyncTracker(java.time.Duration.ofMinutes(2)), CLOCK);
         List<WorkTask> stored = new ArrayList<>();
-        when(monitoringService.summary("rm-anil")).thenReturn(List.of(new CpMonitoringSummary("CP-1", 1, 0, 1, 0, 0, 0)));
+        when(monitoringService.visibleCpIds("rm-anil")).thenReturn(List.of("CP-1"));
         when(cacheRepo.findAllById(any())).thenReturn(List.of());
         when(requirements.forCp("CP-1")).thenReturn(List.of());
         when(reviewService.reviewRows("CP-1")).thenReturn(List.of(new CpReviewRow("ac-1", "m", "Cov", "x", null,

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.service.AppliedCovenantService;
+import com.crisil.covenant.service.CachedCovenantAttributesService;
 import com.crisil.covenant.service.TransientRetry;
 
 @RestController
@@ -38,11 +39,14 @@ public class AppliedCovenantController {
 
     private final TransientRetry retry;
 
+    private final CachedCovenantAttributesService cpCache;
+
     public AppliedCovenantController(AppliedCovenantService service,
-            CpAccessGuard guard, TransientRetry retry) {
+            CpAccessGuard guard, TransientRetry retry, CachedCovenantAttributesService cpCache) {
         this.guard = guard;
         this.service = service;
         this.retry = retry;
+        this.cpCache = cpCache;
     }
 
     @PostMapping("/credit-proposals/{cpId}/applied-covenants")
@@ -57,7 +61,9 @@ public class AppliedCovenantController {
             @Valid @RequestBody BulkApplyCovenantsRequest request) {
         guard.requireCp(cpId);
         // Each attempt is its own transaction: parallel applies can deadlock on Quartz's lock rows.
-        return ResponseEntity.status(201).body(retry.run(() -> service.applyBulk(cpId, request)));
+        List<AppliedCovenantResponse> created = retry.run(() -> service.applyBulk(cpId, request));
+        cpCache.ensureCached(cpId); // after the commit: the CP now belongs in its RM's portfolio
+        return ResponseEntity.status(201).body(created);
     }
 
     @GetMapping("/credit-proposals/{cpId}/applied-covenants")

@@ -19,7 +19,7 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 | ID | Requirement | Status | Evidence | Gap |
 |---|---|---|---|---|
 | FR-01 | Upload agreement / statement / evidence; ≤ 50 MB, ≤ 500 pages; type and asOfDate required; job id and status | Partial | E2E 3, 5, 23; DOC-01..DOC-11 | 600-page PDF accepted (BUG-11); concurrent uploads deadlock on SQL Server (BUG-04). |
-| FR-02 | Flow A extraction: metric, operator, threshold, unit, formula, frequency, page, quote, confidence, method | **Fail** | AI-07; golden-set gate 24/24 | "shall not be less than" extracted as `<` (BUG-01); golden labels are extractor drafts (GAP-01). |
+| FR-02 | Flow A extraction: metric, operator, threshold, unit, formula, frequency, page, quote, confidence, method | Pass after phase 1 | AI-07, FIX-01, FIX-02; golden-set gate 24/24 | BUG-01 fixed. Recall is unproven until analysts label the golden set (GAP-01). |
 | FR-03 | Citation check; failures go to NEEDS_REVIEW | Pass | AI-01: 0 citation failures over 10 agreements | The check does not test the operator, so BUG-01 passes it. |
 | FR-04 | Mapping to the library; unmatched become custom candidates | Pass | DPS mapping tests; E2E 4 | |
 | FR-05 | Extraction review with page highlight; edit, approve, reject; audited | Pass | E2E 4; UI unit tests | |
@@ -35,7 +35,7 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 | FR-15 | Advisory narrative labelled "AI-generated, not a decision" | Pass | UI label present; status never changed by narrative | |
 | FR-16 | End-to-end audit trail from assessment to source page/cell | Pass | E2E 5, 15, 29 | |
 | FR-17 | Job operations: failed jobs, step errors, re-run, audited | Pass | E2E 12, 19 | |
-| FR-18 | One unified React UI with role menus | Partial | 52 Playwright tests; 122 UI unit tests | Portfolio pages fail above 2,100 CPs (BUG-02) and slow down with portfolio size (BUG-03); CPs onboarded without recommendations are missing (BUG-06). |
+| FR-18 | One unified React UI with role menus | Pass after phase 1 | Playwright suite; 122 UI unit tests; FIX-03, FIX-04, FIX-06 | BUG-02, BUG-03 and BUG-06 fixed. |
 | FR-19 | Maker-checker, default ON, switchable, audited | Pass | E2E 6-8 | |
 | FR-20 | APPROVER enters missing value with note; manual badge; re-assess | Pass | DPS and Core tests (FR-20 references) | |
 | FR-21 | One agreement linked to several CPs | Pass | DPS tests | |
@@ -49,7 +49,7 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 | FR-29 | Agreement terms beyond thresholds (display) | Pass | DPS tests; UI extraction review | Machine-usable form is R3. |
 | FR-30 | Facility dates from agreement or CP service, never invented | Pass | DPS and Core tests | |
 | FR-31 | Escalation via the notification service | Partial | Reports and task queue show escalations | No escalation notification is sent. |
-| FR-32 | Management reports, Excel and PDF, role-scoped | Partial | E2E 9, 28 | Open-breaches report 500 bank-wide above 2,100 CPs (BUG-02); 4–6 s for 60 CPs (BUG-03). |
+| FR-32 | Management reports, Excel and PDF, role-scoped | Pass after phase 1 | E2E 9, 28; FIX-03, FIX-04 | Bank-wide breach report 4.3 s at 2,285 CPs; 0.2 s for 60 CPs. |
 
 ## Non-functional requirements
 
@@ -59,7 +59,7 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 | Privacy | Azure OpenAI private endpoint; minimal text; logs ≤ 90 days | Not verified | | Private endpoint and retention are environment and policy decisions. |
 | Reliability | Core works with DPS down; DPS retries; idempotent publish/report | Partial | RES-01..RES-04 | Core stays up, but assessments use the staged copy instead of `DATA_SOURCE_FAILURE` (GAP-03). |
 | Performance | Flow A 50 pages p95 ≤ 90 s; Flow B p95 ≤ 60 s; C2 p95 ≤ 500 ms; daily run 10k covenants ≤ 30 min | Pass | PERF-01..PERF-05 | All four targets met with wide margins (single user). |
-| Scalability | DPS workers scale on queue depth; Core 2+ instances with clustered Quartz | **Fail** | OPS-03; LOAD-08, LOAD-09 | Two-node Quartz works, but the app overloads at about 25 concurrent RMs with 60-CP portfolios (BUG-03) and fails above 2,100 CPs (BUG-02). |
+| Scalability | DPS workers scale on queue depth; Core 2+ instances with clustered Quartz | Partial after phase 1 | OPS-03; section 9 of test-results | 100 concurrent RMs with 60-CP portfolios: 0 errors on one 8-CPU host. 250: 2.7% errors; production sizing still to be measured (RISK-02). |
 | Data | SQL Server per-service schema; migrations; daily backup and restore | Pass | Flyway V1..V30, Alembic; restore drill identical | |
 | Quality gates | Core 95%/90% + SpotBugs + OWASP; DPS ≥ 90%, golden set, bandit/semgrep, pip-audit; contract tests | Partial | Core 96%/90%, DPS 98%, pip-audit, Trivy | No bandit or semgrep step in CI; golden set has 10 agreements, PRD asks ≥ 20 agreements and ≥ 20 statements, all labelled by analysts. |
 | Observability | Correlation id end to end; per-job step metrics; LLM tokens and cost per job; dashboards and alerts | Partial | X-Correlation-Id in nginx and Core MDC; job steps stored | No token or cost tracking per job; dashboards and alerts are not part of the repository. |

@@ -1,0 +1,1170 @@
+{
+ "think": "3-8",
+ "steps": [
+  {
+   "requests": 3071,
+   "rps": 16.4,
+   "errors": 0,
+   "error_rate": 0.0,
+   "errors_by": {},
+   "per": {
+    "alerts": {
+     "n": 121,
+     "p50": 372,
+     "p95": 3074,
+     "p99": 4652,
+     "max": 5280
+    },
+    "analytics": {
+     "n": 114,
+     "p50": 211,
+     "p95": 2401,
+     "p99": 3881,
+     "max": 8259
+    },
+    "breaches": {
+     "n": 130,
+     "p50": 459,
+     "p95": 3895,
+     "p99": 15931,
+     "max": 16807
+    },
+    "cps": {
+     "n": 326,
+     "p50": 237,
+     "p95": 2406,
+     "p99": 4706,
+     "max": 10453
+    },
+    "documents": {
+     "n": 203,
+     "p50": 97,
+     "p95": 603,
+     "p99": 2869,
+     "max": 3937
+    },
+    "excel": {
+     "n": 116,
+     "p50": 567,
+     "p95": 5166,
+     "p99": 6674,
+     "max": 8609
+    },
+    "history": {
+     "n": 205,
+     "p50": 39,
+     "p95": 1645,
+     "p99": 2731,
+     "max": 4690
+    },
+    "library": {
+     "n": 183,
+     "p50": 39,
+     "p95": 446,
+     "p99": 1589,
+     "max": 3827
+    },
+    "review": {
+     "n": 555,
+     "p50": 74,
+     "p95": 699,
+     "p99": 2385,
+     "max": 3926
+    },
+    "schedule": {
+     "n": 168,
+     "p50": 254,
+     "p95": 1657,
+     "p99": 2568,
+     "max": 3226
+    },
+    "summary": {
+     "n": 514,
+     "p50": 187,
+     "p95": 2146,
+     "p99": 3747,
+     "max": 4634
+    },
+    "task-note": {
+     "n": 41,
+     "p50": 55,
+     "p95": 301,
+     "p99": 1165,
+     "max": 1165
+    },
+    "tasks": {
+     "n": 333,
+     "p50": 87,
+     "p95": 4976,
+     "p99": 6062,
+     "max": 6751
+    },
+    "upload": {
+     "n": 60,
+     "p50": 136,
+     "p95": 715,
+     "p99": 2135,
+     "max": 2135
+    },
+    "waiver": {
+     "n": 1,
+     "p50": 1838,
+     "p95": 1838,
+     "p99": 1838,
+     "max": 1838
+    },
+    "withdraw": {
+     "n": 1,
+     "p50": 627,
+     "p95": 627,
+     "p99": 627,
+     "max": 627
+    }
+   },
+   "users": 100,
+   "seconds": 180,
+   "samples": [
+    {
+     "t": "12:08:50",
+     "dps-worker-1": {
+      "cpu": 1.92,
+      "mem": "288.5MiB"
+     },
+     "core-1": {
+      "cpu": 347.56,
+      "mem": "1.73GiB"
+     },
+     "dps-api-1": {
+      "cpu": 4.4,
+      "mem": "186.2MiB"
+     },
+     "ui-1": {
+      "cpu": 4.99,
+      "mem": "7.133MiB"
+     },
+     "keycloak-1": {
+      "cpu": 1.3,
+      "mem": "680.3MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 290.02,
+      "mem": "550MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 28.0,
+     "jvm.memory.used": 668416632.0
+    },
+    {
+     "t": "12:09:04",
+     "dps-worker-1": {
+      "cpu": 18.87,
+      "mem": "290.6MiB"
+     },
+     "core-1": {
+      "cpu": 78.63,
+      "mem": "1.735GiB"
+     },
+     "dps-api-1": {
+      "cpu": 2.6,
+      "mem": "185.7MiB"
+     },
+     "ui-1": {
+      "cpu": 2.72,
+      "mem": "6.859MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.33,
+      "mem": "680.4MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 122.74,
+      "mem": "550.7MiB"
+     },
+     "hikaricp.connections.active": 1.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1169588920.0
+    },
+    {
+     "t": "12:09:16",
+     "dps-worker-1": {
+      "cpu": 0.11,
+      "mem": "294.9MiB"
+     },
+     "core-1": {
+      "cpu": 84.47,
+      "mem": "1.735GiB"
+     },
+     "dps-api-1": {
+      "cpu": 4.23,
+      "mem": "185.5MiB"
+     },
+     "ui-1": {
+      "cpu": 4.76,
+      "mem": "6.457MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.49,
+      "mem": "680.4MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 148.67,
+      "mem": "550.6MiB"
+     },
+     "hikaricp.connections.active": 1.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1167158024.0
+    },
+    {
+     "t": "12:09:28",
+     "dps-worker-1": {
+      "cpu": 0.22,
+      "mem": "295.5MiB"
+     },
+     "core-1": {
+      "cpu": 18.59,
+      "mem": "1.736GiB"
+     },
+     "dps-api-1": {
+      "cpu": 1.25,
+      "mem": "186.3MiB"
+     },
+     "ui-1": {
+      "cpu": 1.29,
+      "mem": "6.609MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.4,
+      "mem": "680.4MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 80.05,
+      "mem": "550.7MiB"
+     },
+     "hikaricp.connections.active": 1.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 685835872.0
+    },
+    {
+     "t": "12:09:41",
+     "dps-worker-1": {
+      "cpu": 0.36,
+      "mem": "295.9MiB"
+     },
+     "core-1": {
+      "cpu": 73.01,
+      "mem": "1.736GiB"
+     },
+     "dps-api-1": {
+      "cpu": 0.2,
+      "mem": "185.5MiB"
+     },
+     "ui-1": {
+      "cpu": 1.73,
+      "mem": "6.996MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.24,
+      "mem": "680.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 128.78,
+      "mem": "551.2MiB"
+     },
+     "hikaricp.connections.active": 5.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 688654424.0
+    },
+    {
+     "t": "12:09:53",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "295.6MiB"
+     },
+     "core-1": {
+      "cpu": 95.38,
+      "mem": "1.737GiB"
+     },
+     "dps-api-1": {
+      "cpu": 3.43,
+      "mem": "186.4MiB"
+     },
+     "ui-1": {
+      "cpu": 2.58,
+      "mem": "6.289MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.43,
+      "mem": "680.3MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 139.48,
+      "mem": "553.7MiB"
+     },
+     "hikaricp.connections.active": 1.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1047549040.0
+    },
+    {
+     "t": "12:10:06",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "295.8MiB"
+     },
+     "core-1": {
+      "cpu": 72.46,
+      "mem": "1.739GiB"
+     },
+     "dps-api-1": {
+      "cpu": 4.83,
+      "mem": "187.5MiB"
+     },
+     "ui-1": {
+      "cpu": 2.43,
+      "mem": "6.73MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.47,
+      "mem": "680.4MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 149.09,
+      "mem": "532.4MiB"
+     },
+     "hikaricp.connections.active": 1.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 826756616.0
+    },
+    {
+     "t": "12:10:18",
+     "dps-worker-1": {
+      "cpu": 0.4,
+      "mem": "296.6MiB"
+     },
+     "core-1": {
+      "cpu": 38.33,
+      "mem": "1.739GiB"
+     },
+     "dps-api-1": {
+      "cpu": 2.86,
+      "mem": "187.5MiB"
+     },
+     "ui-1": {
+      "cpu": 2.34,
+      "mem": "7.09MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.31,
+      "mem": "681MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 135.75,
+      "mem": "533.2MiB"
+     },
+     "hikaricp.connections.active": 4.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1029997592.0
+    },
+    {
+     "t": "12:10:31",
+     "dps-worker-1": {
+      "cpu": 0.35,
+      "mem": "296.4MiB"
+     },
+     "core-1": {
+      "cpu": 69.32,
+      "mem": "1.739GiB"
+     },
+     "dps-api-1": {
+      "cpu": 7.87,
+      "mem": "186.8MiB"
+     },
+     "ui-1": {
+      "cpu": 2.31,
+      "mem": "6.645MiB"
+     },
+     "keycloak-1": {
+      "cpu": 5.32,
+      "mem": "682.3MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 56.79,
+      "mem": "533.5MiB"
+     },
+     "hikaricp.connections.active": 4.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 817502560.0
+    },
+    {
+     "t": "12:10:43",
+     "dps-worker-1": {
+      "cpu": 38.8,
+      "mem": "297.8MiB"
+     },
+     "core-1": {
+      "cpu": 161.41,
+      "mem": "1.74GiB"
+     },
+     "dps-api-1": {
+      "cpu": 14.64,
+      "mem": "187MiB"
+     },
+     "ui-1": {
+      "cpu": 5.65,
+      "mem": "6.523MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.99,
+      "mem": "681.9MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 223.6,
+      "mem": "533.1MiB"
+     },
+     "hikaricp.connections.active": 4.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1131904208.0
+    },
+    {
+     "t": "12:10:56",
+     "dps-worker-1": {
+      "cpu": 0.66,
+      "mem": "296.5MiB"
+     },
+     "core-1": {
+      "cpu": 228.93,
+      "mem": "1.741GiB"
+     },
+     "dps-api-1": {
+      "cpu": 24.38,
+      "mem": "188.8MiB"
+     },
+     "ui-1": {
+      "cpu": 4.74,
+      "mem": "7.25MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.74,
+      "mem": "681.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 421.93,
+      "mem": "540.4MiB"
+     },
+     "hikaricp.connections.active": 19.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1081445776.0
+    },
+    {
+     "t": "12:11:09",
+     "dps-worker-1": {
+      "cpu": 0.61,
+      "mem": "297.3MiB"
+     },
+     "core-1": {
+      "cpu": 146.17,
+      "mem": "1.741GiB"
+     },
+     "dps-api-1": {
+      "cpu": 8.35,
+      "mem": "187.3MiB"
+     },
+     "ui-1": {
+      "cpu": 4.53,
+      "mem": "7.086MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.49,
+      "mem": "681.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 182.87,
+      "mem": "540.9MiB"
+     },
+     "hikaricp.connections.active": 4.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 820403568.0
+    },
+    {
+     "t": "12:11:21",
+     "dps-worker-1": {
+      "cpu": 1.22,
+      "mem": "297.3MiB"
+     },
+     "core-1": {
+      "cpu": 156.31,
+      "mem": "1.741GiB"
+     },
+     "dps-api-1": {
+      "cpu": 1.92,
+      "mem": "188.3MiB"
+     },
+     "ui-1": {
+      "cpu": 3.37,
+      "mem": "6.746MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.51,
+      "mem": "682.3MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 221.51,
+      "mem": "542.5MiB"
+     },
+     "hikaricp.connections.active": 7.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 638511080.0
+    },
+    {
+     "t": "12:11:35",
+     "dps-worker-1": {
+      "cpu": 23.0,
+      "mem": "298.5MiB"
+     },
+     "core-1": {
+      "cpu": 169.19,
+      "mem": "1.741GiB"
+     },
+     "dps-api-1": {
+      "cpu": 0.39,
+      "mem": "187.3MiB"
+     },
+     "ui-1": {
+      "cpu": 6.43,
+      "mem": "7.273MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.7,
+      "mem": "681.9MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 344.1,
+      "mem": "542.3MiB"
+     },
+     "hikaricp.connections.active": 12.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 957881952.0
+    },
+    {
+     "t": "12:11:47",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "298.8MiB"
+     },
+     "core-1": {
+      "cpu": 218.7,
+      "mem": "1.744GiB"
+     },
+     "dps-api-1": {
+      "cpu": 1.72,
+      "mem": "187.9MiB"
+     },
+     "ui-1": {
+      "cpu": 2.74,
+      "mem": "6.746MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.57,
+      "mem": "682.2MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 209.17,
+      "mem": "546.8MiB"
+     },
+     "hikaricp.connections.active": 4.0,
+     "hikaricp.connections.pending": 0.0,
+     "jvm.memory.used": 1278160792.0
+    }
+   ]
+  },
+  {
+   "requests": 5575,
+   "rps": 25.6,
+   "errors": 153,
+   "error_rate": 0.0274,
+   "errors_by": {
+    "documents 404": 27,
+    "upload 404": 11,
+    "summary 0": 18,
+    "tasks 0": 19,
+    "excel 0": 7,
+    "schedule 0": 8,
+    "history 0": 4,
+    "review 0": 17,
+    "breaches 0": 3,
+    "documents 0": 10,
+    "upload 0": 2,
+    "cps 0": 8,
+    "library 0": 9,
+    "analytics 0": 8,
+    "alerts 0": 2
+   },
+   "per": {
+    "alerts": {
+     "n": 257,
+     "p50": 2558,
+     "p95": 5498,
+     "p99": 7808,
+     "max": 30012
+    },
+    "analytics": {
+     "n": 218,
+     "p50": 2194,
+     "p95": 9362,
+     "p99": 30021,
+     "max": 30023
+    },
+    "breaches": {
+     "n": 220,
+     "p50": 3818,
+     "p95": 13365,
+     "p99": 30015,
+     "max": 34809
+    },
+    "cps": {
+     "n": 556,
+     "p50": 2506,
+     "p95": 8665,
+     "p99": 30009,
+     "max": 30046
+    },
+    "documents": {
+     "n": 350,
+     "p50": 1995,
+     "p95": 5089,
+     "p99": 30019,
+     "max": 30027
+    },
+    "excel": {
+     "n": 211,
+     "p50": 3699,
+     "p95": 12465,
+     "p99": 30025,
+     "max": 45030
+    },
+    "history": {
+     "n": 384,
+     "p50": 1250,
+     "p95": 5182,
+     "p99": 30012,
+     "max": 30018
+    },
+    "library": {
+     "n": 326,
+     "p50": 1012,
+     "p95": 4127,
+     "p99": 30017,
+     "max": 30024
+    },
+    "review": {
+     "n": 1021,
+     "p50": 1554,
+     "p95": 5875,
+     "p99": 30014,
+     "max": 30033
+    },
+    "schedule": {
+     "n": 302,
+     "p50": 1791,
+     "p95": 5924,
+     "p99": 30023,
+     "max": 30043
+    },
+    "summary": {
+     "n": 951,
+     "p50": 1654,
+     "p95": 5447,
+     "p99": 30018,
+     "max": 30031
+    },
+    "task-note": {
+     "n": 69,
+     "p50": 997,
+     "p95": 3363,
+     "p99": 7237,
+     "max": 7237
+    },
+    "tasks": {
+     "n": 592,
+     "p50": 1465,
+     "p95": 6677,
+     "p99": 30018,
+     "max": 30059
+    },
+    "upload": {
+     "n": 110,
+     "p50": 2214,
+     "p95": 5102,
+     "p99": 30004,
+     "max": 30007
+    },
+    "waiver": {
+     "n": 4,
+     "p50": 1047,
+     "p95": 1941,
+     "p99": 1941,
+     "max": 1941
+    },
+    "withdraw": {
+     "n": 4,
+     "p50": 970,
+     "p95": 1486,
+     "p99": 1486,
+     "max": 1486
+    }
+   },
+   "users": 250,
+   "seconds": 180,
+   "samples": [
+    {
+     "t": "12:12:12",
+     "dps-worker-1": {
+      "cpu": 1.98,
+      "mem": "299.2MiB"
+     },
+     "core-1": {
+      "cpu": 166.82,
+      "mem": "1.744GiB"
+     },
+     "dps-api-1": {
+      "cpu": 12.64,
+      "mem": "188.1MiB"
+     },
+     "ui-1": {
+      "cpu": 18.56,
+      "mem": "7.051MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.98,
+      "mem": "681.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 539.9,
+      "mem": "541.3MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 24.0,
+     "jvm.memory.used": 1234719448.0
+    },
+    {
+     "t": "12:12:27",
+     "dps-worker-1": {
+      "cpu": 45.27,
+      "mem": "307MiB"
+     },
+     "core-1": {
+      "cpu": 192.46,
+      "mem": "1.751GiB"
+     },
+     "dps-api-1": {
+      "cpu": 14.45,
+      "mem": "188.5MiB"
+     },
+     "ui-1": {
+      "cpu": 6.16,
+      "mem": "8.859MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.72,
+      "mem": "681MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 399.15,
+      "mem": "545.5MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 53.0,
+     "jvm.memory.used": 795158512.0
+    },
+    {
+     "t": "12:12:41",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "306.7MiB"
+     },
+     "core-1": {
+      "cpu": 192.63,
+      "mem": "1.751GiB"
+     },
+     "dps-api-1": {
+      "cpu": 15.53,
+      "mem": "190.7MiB"
+     },
+     "ui-1": {
+      "cpu": 5.99,
+      "mem": "9.062MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.96,
+      "mem": "680.7MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 332.19,
+      "mem": "545.9MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 32.0,
+     "jvm.memory.used": 1140133104.0
+    },
+    {
+     "t": "12:12:53",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "309.1MiB"
+     },
+     "core-1": {
+      "cpu": 201.57,
+      "mem": "1.752GiB"
+     },
+     "dps-api-1": {
+      "cpu": 7.29,
+      "mem": "190.9MiB"
+     },
+     "ui-1": {
+      "cpu": 4.04,
+      "mem": "9.844MiB"
+     },
+     "keycloak-1": {
+      "cpu": 58.46,
+      "mem": "688.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 412.05,
+      "mem": "549.3MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 83.0,
+     "jvm.memory.used": 742269224.0
+    },
+    {
+     "t": "12:13:06",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "310.8MiB"
+     },
+     "core-1": {
+      "cpu": 192.19,
+      "mem": "1.756GiB"
+     },
+     "dps-api-1": {
+      "cpu": 20.26,
+      "mem": "191.2MiB"
+     },
+     "ui-1": {
+      "cpu": 6.52,
+      "mem": "10.5MiB"
+     },
+     "keycloak-1": {
+      "cpu": 24.92,
+      "mem": "688.7MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 531.59,
+      "mem": "549.3MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 98.0,
+     "jvm.memory.used": 1048244840.0
+    },
+    {
+     "t": "12:13:20",
+     "dps-worker-1": {
+      "cpu": 36.54,
+      "mem": "313MiB"
+     },
+     "core-1": {
+      "cpu": 236.92,
+      "mem": "1.758GiB"
+     },
+     "dps-api-1": {
+      "cpu": 10.31,
+      "mem": "192.1MiB"
+     },
+     "ui-1": {
+      "cpu": 6.68,
+      "mem": "9.02MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.65,
+      "mem": "687.1MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 299.48,
+      "mem": "549MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 23.0,
+     "jvm.memory.used": 1230625472.0
+    },
+    {
+     "t": "12:13:32",
+     "dps-worker-1": {
+      "cpu": 14.67,
+      "mem": "312.6MiB"
+     },
+     "core-1": {
+      "cpu": 168.72,
+      "mem": "1.759GiB"
+     },
+     "dps-api-1": {
+      "cpu": 8.2,
+      "mem": "194.7MiB"
+     },
+     "ui-1": {
+      "cpu": 3.68,
+      "mem": "11.9MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.41,
+      "mem": "688MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 451.82,
+      "mem": "551.6MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 106.0,
+     "jvm.memory.used": 1244205592.0
+    },
+    {
+     "t": "12:13:45",
+     "dps-worker-1": {
+      "cpu": 1.18,
+      "mem": "312.3MiB"
+     },
+     "core-1": {
+      "cpu": 268.99,
+      "mem": "1.76GiB"
+     },
+     "dps-api-1": {
+      "cpu": 7.59,
+      "mem": "196.6MiB"
+     },
+     "ui-1": {
+      "cpu": 3.98,
+      "mem": "10.59MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.47,
+      "mem": "687.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 409.52,
+      "mem": "553.9MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 77.0,
+     "jvm.memory.used": 971815264.0
+    },
+    {
+     "t": "12:13:57",
+     "dps-worker-1": {
+      "cpu": 11.94,
+      "mem": "312.4MiB"
+     },
+     "core-1": {
+      "cpu": 263.08,
+      "mem": "1.76GiB"
+     },
+     "dps-api-1": {
+      "cpu": 11.4,
+      "mem": "197MiB"
+     },
+     "ui-1": {
+      "cpu": 10.98,
+      "mem": "9.664MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.36,
+      "mem": "687.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 373.11,
+      "mem": "553.7MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 49.0,
+     "jvm.memory.used": 1280326120.0
+    },
+    {
+     "t": "12:14:10",
+     "dps-worker-1": {
+      "cpu": 11.55,
+      "mem": "313.5MiB"
+     },
+     "core-1": {
+      "cpu": 171.99,
+      "mem": "1.76GiB"
+     },
+     "dps-api-1": {
+      "cpu": 6.63,
+      "mem": "198.6MiB"
+     },
+     "ui-1": {
+      "cpu": 7.55,
+      "mem": "9.262MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.55,
+      "mem": "687.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 363.22,
+      "mem": "553.5MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 39.0,
+     "jvm.memory.used": 1235342712.0
+    },
+    {
+     "t": "12:14:23",
+     "dps-worker-1": {
+      "cpu": 16.37,
+      "mem": "313.2MiB"
+     },
+     "core-1": {
+      "cpu": 330.37,
+      "mem": "1.779GiB"
+     },
+     "dps-api-1": {
+      "cpu": 6.93,
+      "mem": "199.4MiB"
+     },
+     "ui-1": {
+      "cpu": 5.29,
+      "mem": "10.08MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.38,
+      "mem": "687.8MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 332.2,
+      "mem": "553.5MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 61.0,
+     "jvm.memory.used": 1190834504.0
+    },
+    {
+     "t": "12:14:35",
+     "dps-worker-1": {
+      "cpu": 0.0,
+      "mem": "315.3MiB"
+     },
+     "core-1": {
+      "cpu": 222.2,
+      "mem": "1.942GiB"
+     },
+     "dps-api-1": {
+      "cpu": 7.01,
+      "mem": "198.1MiB"
+     },
+     "ui-1": {
+      "cpu": 8.87,
+      "mem": "9.023MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.32,
+      "mem": "686.7MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 442.22,
+      "mem": "549.7MiB"
+     },
+     "hikaricp.connections.active": 19.0,
+     "hikaricp.connections.pending": 40.0,
+     "jvm.memory.used": 1031733544.0
+    },
+    {
+     "t": "12:14:47",
+     "dps-worker-1": {
+      "cpu": 27.01,
+      "mem": "317.4MiB"
+     },
+     "core-1": {
+      "cpu": 190.93,
+      "mem": "1.942GiB"
+     },
+     "dps-api-1": {
+      "cpu": 3.92,
+      "mem": "197.9MiB"
+     },
+     "ui-1": {
+      "cpu": 5.35,
+      "mem": "8.719MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.41,
+      "mem": "686.6MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 359.19,
+      "mem": "550.2MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 23.0,
+     "jvm.memory.used": 1241124744.0
+    },
+    {
+     "t": "12:14:59",
+     "dps-worker-1": {
+      "cpu": 0.58,
+      "mem": "316.5MiB"
+     },
+     "core-1": {
+      "cpu": 243.58,
+      "mem": "1.942GiB"
+     },
+     "dps-api-1": {
+      "cpu": 4.87,
+      "mem": "200.1MiB"
+     },
+     "ui-1": {
+      "cpu": 6.05,
+      "mem": "9.125MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.67,
+      "mem": "686.3MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 457.36,
+      "mem": "561.2MiB"
+     },
+     "hikaricp.connections.active": 20.0,
+     "hikaricp.connections.pending": 31.0,
+     "jvm.memory.used": 952360216.0
+    },
+    {
+     "t": "12:15:11",
+     "dps-worker-1": {
+      "cpu": 0.59,
+      "mem": "318.3MiB"
+     },
+     "core-1": {
+      "cpu": 183.34,
+      "mem": "1.943GiB"
+     },
+     "dps-api-1": {
+      "cpu": 11.59,
+      "mem": "200.4MiB"
+     },
+     "ui-1": {
+      "cpu": 7.18,
+      "mem": "10.09MiB"
+     },
+     "keycloak-1": {
+      "cpu": 0.3,
+      "mem": "685.5MiB"
+     },
+     "sqlserver-1": {
+      "cpu": 378.15,
+      "mem": "568.9MiB"
+     },
+     "hikaricp.connections.pending": 62.0,
+     "jvm.memory.used": 1327763720.0
+    }
+   ]
+  }
+ ]
+}

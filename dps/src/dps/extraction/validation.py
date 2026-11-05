@@ -26,6 +26,21 @@ def check_quote(p: Proposal, pages_by_no: dict[int, str]) -> list[str]:
     return []
 
 
+# Which way each ratio is normally tested. An operator pointing the other way usually means the wording was
+# misread ("shall not be less than" taken as "less than"), so a person confirms it before it is applied.
+FLOORS = {"DSCR", "ICR", "EBITDA_TO_EMI", "CURRENT_RATIO", "QUICK_RATIO", "FIXED_CHARGE_COVERAGE_RATIO",
+          "MIN_TANGIBLE_NET_WORTH", "MIN_NET_WORTH", "MINIMUM_LIQUIDITY"}
+CEILINGS = {"DEBT_TO_EBITDA", "NET_LEVERAGE_RATIO", "DEBT_TO_NET_WORTH", "DEBT_TO_EQUITY"}
+
+
+def check_direction(p: Proposal) -> list[str]:
+    if p.metric_raw in FLOORS and p.operator in ("<", "<="):
+        return ["OPERATOR_UNEXPECTED: usually a minimum (>=)"]
+    if p.metric_raw in CEILINGS and p.operator in (">", ">="):
+        return ["OPERATOR_UNEXPECTED: usually a maximum (<=)"]
+    return []
+
+
 def check_conflicts(proposals: list[Proposal]) -> None:
     """Same metric with different thresholds (e.g. step-downs) → both held for a person to decide."""
     seen: dict[str, Proposal] = {}
@@ -46,6 +61,7 @@ def validate(pages: list[Page], proposals: list[Proposal], formula_errors: Calla
     pages_by_no = {p.no: normalize_ws(p.text) for p in pages}
     for p in proposals:
         p.issues.extend(check_quote(p, pages_by_no))
+        p.issues.extend(check_direction(p))
         if p.expression and p.category != "INFO":
             p.issues.extend(f"FORMULA_INVALID: {e}" for e in formula_errors(p.expression))
         if p.confidence < min_confidence:
