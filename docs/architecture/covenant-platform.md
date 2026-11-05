@@ -11,151 +11,215 @@ Back to the [overview](README.md). What each page does for a user: [user-guide.m
 
 ## 0. The whole system in one diagram
 
-Every part and how it connects, top to bottom: users, the gateway and sign-in, the UI pages, Core and DPS with the contracts between them, the data, each bank service, the AI provider, and how it is built and run. Sections 2–9 below zoom into each part.
+Every part, its technology stack, and how it connects, top to bottom: users, gateway and sign-in, UI pages, Core (request pipeline, scheduler, the 06:00 daily run, business areas, the assessment engine, bank clients), DPS (request checks, endpoints, Flow A and Flow B step by step, event outbox), the data, each bank service, the AI provider, and how it is built and run. The diagram is wide: on GitHub use its zoom and pan buttons. The numbered labels on the arrows are the steps in the table below it. Sections 2–9 zoom into each part.
 
 ```mermaid
-%%{init: {"flowchart": {"wrappingWidth": 320, "nodeSpacing": 20, "rankSpacing": 50}}}%%
+%%{init: {"flowchart": {"wrappingWidth": 340, "nodeSpacing": 20, "rankSpacing": 55}}}%%
 flowchart TB
     subgraph L1["1 · USERS"]
         direction LR
         staff(["Bank staff<br/>RM · Approver · Author<br/>Admin · Auditor · Support"])
-        borrower(["Borrower"])
+        borrower(["Borrower<br/>(shared CPs only)"])
     end
 
     subgraph L2["2 · EDGE AND SIGN‑IN"]
         direction LR
-        gw["nginx gateway :8080<br/>serves the app · /api → Core<br/>/dps → DPS · correlation id"]
-        idp{{"Keycloak / Entra ID<br/>OIDC + PKCE · JWT + roles"}}
+        gw["Gateway — nginx 1.30 (alpine) · :8080<br/>serves the React build · /api → Core · /dps → DPS<br/>security headers · X-Correlation-Id"]
+        idp{{"Identity provider<br/>Keycloak 26.7 (local) · Entra ID (prod)<br/>OIDC code flow + PKCE · JWT with roles"}}
     end
 
-    subgraph L3["3 · UI — React 18 · Mantine · TanStack Query"]
+    subgraph L3["3 · UI — React 18.3 · TypeScript 5.9 · Mantine 8.3 · TanStack Query 5 · React Router 7 · Vite 6 · oidc‑client‑ts 3.5"]
         direction TB
-        subgraph UP["Pages"]
+        subgraph UP["Pages (one per menu item, shown by role)"]
             direction LR
-            pPort["Portfolio"]
-            pTask["My tasks"]
-            pRep["Reports<br/>+ Ask AI"]
-            pCp["CP workspace"]
-            pOnb["Onboarding"]
-            pDoc["Documents"]
-            pLib["Library"]
-            pMea["Measures"]
-            pDs["Data sources"]
-            pSet["Settings"]
-            pJob["Doc jobs"]
-            pSup["Support"]
-            pPortal["Borrower<br/>portal"]
+            pPort["Portfolio"] ~~~ pTask["My tasks"] ~~~ pRep["Reports<br/>+ Ask AI"] ~~~ pCp["CP<br/>workspace"] ~~~ pOnb["Onboarding"] ~~~ pDoc["Documents"] ~~~ pLib["Covenant<br/>library"] ~~~ pMea["Measures"] ~~~ pDs["Data<br/>sources"] ~~~ pSet["Settings"] ~~~ pJob["Document<br/>jobs"] ~~~ pSup["Support<br/>tools"] ~~~ pPortal["Borrower<br/>portal"]
         end
-        uiapi["API layer — typed calls with the user's token"]
+        uiapi["API layer — fetch with the user's Bearer token · typed endpoints and types"]
         UP --> uiapi
     end
 
-    subgraph L4["4 · CORE — Spring Boot 3.5 · Java 17 · :9310 — from covenant‑monitoring"]
+    subgraph L4["4 · CORE — Java 17 · Spring Boot 3.5.16 · Spring Security · JPA / Hibernate · Flyway · Quartz · :9310 — from covenant‑monitoring"]
         direction TB
-        csec["Request pipeline<br/>JWT + roles · CP isolation · support token"]
-        cjob["Quartz scheduler (clustered)<br/>5 min task sync · 02:00 checks<br/>05:30 fetch-ahead · 06:00 daily run"]
-        subgraph CA["Business areas — 34 controllers"]
+        csec["Request pipeline — Spring Security JWT resource server<br/>roles · CpAccessGuard (CP isolation) · support token for /ops<br/>request id + user in every log line"]
+        subgraph SCH["Quartz scheduler — JDBC store, clustered (IST)"]
             direction LR
-            c1["Library +<br/>formula engine"]
-            c2["Onboarding"]
-            c3["Assessment<br/>engine"]
-            c4["Monitoring<br/>+ review"]
-            c5["Borrower side"]
-            c6["Reports<br/>+ e-mail"]
-            c7["Support<br/>toolkit"]
+            s1["Every 5 min<br/>task sync"]
+            s2["02:00–02:59<br/>each covenant's own check"]
+            s3["05:30<br/>fetch-ahead (due in 3 days)"]
+            s1 ~~~ s2 ~~~ s3
         end
-        cclients["Bank-service clients<br/>9 WebClients · OAuth · retries + circuit breakers"]
+        subgraph DAILY["06:00 daily run — in this order"]
+            direction LR
+            d1["1 · Loan-system<br/>sync"]
+            d2["2 · Check every<br/>due covenant"]
+            d3["3 · RM / WRM<br/>summary e-mails"]
+            d4["4 · Borrower<br/>reminders"]
+            d5["5 · Saved<br/>reports"]
+            d6["6 · Escalation<br/>digest"]
+            d1 --> d2 --> d3 --> d4 --> d5 --> d6
+        end
+        subgraph CA["Business areas — 34 REST controllers · 86 services"]
+            direction LR
+            c1["Library + formula engine<br/>covenants · measures · data sources"]
+            c2["Onboarding<br/>library matches · agreement terms<br/>ML thresholds · apply"]
+            c4["Monitoring + review<br/>grid · waivers (maker-checker)<br/>tasks · alerts · evidence"]
+            c6["Reports + e-mail<br/>breach report PDF / Excel<br/>saved reports"]
+            c5["Borrower side<br/>certificates · reminders<br/>portal access · letters"]
+            c7["Support toolkit<br/>diagnose · reload · re-check"]
+            c1 -->|"rules"| c2
+            c2 -->|"A7 apply"| c4
+            c4 -->|"breaches"| c6
+            c5 -->|"certificates due"| c4
+            c7 ~~~ c1
+        end
+        subgraph AE["Assessment engine — every check (scheduled, Check now, or new figures)"]
+            direction LR
+            e1["1 · Compile rule<br/>formula DSL"]
+            e2["2 · Freshness gate<br/>refresh stored copy if stale"]
+            e3["3 · Resolve values<br/>windows · sampling · max age"]
+            e4["4 · Evaluate<br/>compare to threshold"]
+            e5["5 · Result<br/>COMPLIANT · BREACHED · ERROR<br/>+ 'data may be stale' note"]
+            e1 --> e2 --> e3 --> e4 --> e5
+        end
+        cclients["Bank-service clients — Spring WebClient · resilience4j 2.2<br/>OAuth client credentials or fixed token · retries + circuit breakers"]
         csec --> CA
-        cjob -->|"triggers checks, sync, e-mails"| CA
+        SCH -->|"02:00 checks · 05:30 fetch-ahead"| AE
+        SCH --> DAILY
+        DAILY -->|"step 2"| AE
+        CA -->|"Check now · new data · re-check"| AE
+        AE -->|"results → tasks, alerts"| CA
         CA --> cclients
+        DAILY --> cclients
+        AE --> cclients
     end
 
-    subgraph L5["5 · DPS — FastAPI · CrewAI Flows · Python 3.12 · :9400 — from covenanttrackingphase1.2"]
+    subgraph L5["5 · DPS — Python 3.12 · FastAPI 0.136 · Uvicorn · CrewAI Flows 1.15 · SQLAlchemy 2 + Alembic · :9400 — from covenanttrackingphase1.2"]
         direction TB
-        dguard["Request checks<br/>JWT · CP access via Core · rate limits"]
-        subgraph DE["Endpoints"]
+        dguard["Request checks<br/>JWT (issuer, audience, signature) · CP access via Core, cached 30 s<br/>per-user rate limits on Ask AI, questions and uploads"]
+        subgraph DE["Endpoints /dps/v1"]
             direction LR
-            dUp["Uploads +<br/>documents"]
-            dRev["Term review<br/>+ spreads"]
-            dAsk["Ask AI +<br/>agreement Q&A"]
-            dJob["Jobs<br/>retry · resume"]
-            dServe["Serving Core<br/>C1 · C2 · C3"]
+            dUp["Uploads + documents<br/>PDF · XLSX · XLS · CSV<br/>≤ 50 MB · ≤ 500 pages"]
+            dRev["Term review + spreads<br/>approve · edit · reject<br/>corrections"]
+            dServe["Serving Core<br/>C1 recommendations<br/>C2 values · C3 AI"]
+            dAsk["Ask AI + agreement Q&A<br/>advisory only"]
+            dJob["Jobs<br/>status · retry · resume"]
+            dUp -->|"A4 needs review"| dRev
+            dRev -->|"A5 publish"| dServe
+            dServe ~~~ dAsk ~~~ dJob
         end
-        subgraph DW["Workers — job queue, standard + heavy pools"]
+        subgraph FA["Flow A — loan agreements (CrewAI Flow, checkpointed)"]
             direction LR
-            fa["Flow A<br/>agreements"]
-            fb["Flow B<br/>statements"]
-            parse["ParserEngine<br/>pypdf → OCR → Docling"]
-            dout["Event outbox<br/>DATA_EVENT"]
-            fa --> parse
-            fb --> parse
-            fb --> dout
+            a1["A3·1 Parse<br/>ParserEngine: pypdf →<br/>RapidOCR → Docling (heavy)"]
+            a2["A3·2 Extract<br/>metric · operator · threshold<br/>page · quote"]
+            a3["A3·3 Normalise<br/>map to Core library (C4)<br/>amounts in crore"]
+            a4["A3·4 Validate<br/>citation · confidence ≥ 0.8<br/>operator direction"]
+            a5["Outcome<br/>published · needs review<br/>failed · heavy pool"]
+            a1 --> a2 --> a3 --> a4 --> a5
         end
+        subgraph FB["Flow B — financial statements (CrewAI Flow, checkpointed)"]
+            direction LR
+            b1["B2·1 Parse<br/>PDF · XLSX · XLS · CSV<br/>OCR for scans"]
+            b2["B2·2 Line items<br/>page / cell reference<br/>units → crore"]
+            b3["B2·3 Derive<br/>EBITDA · total debt · ratios"]
+            b4["B2·4 Data-quality checks<br/>balance · period · signs<br/>required items"]
+            b5["Outcome<br/>reported · needs review<br/>failed · heavy pool"]
+            b1 --> b2 --> b3 --> b4 --> b5
+        end
+        dout["Event outbox — DATA_EVENT per CP and period<br/>retried until Core accepts it"]
         dguard --> DE
-        DE -->|"job queue"| DW
+        DE -->|"A2 job queue (dps_job · leases · 3 attempts)"| FA
+        DE -->|"B1 job queue"| FB
+        FB -->|"B3 figures reported"| dout
     end
 
-    subgraph L6["6 · DATA"]
+    subgraph L6["6 · DATA — SQL Server 2022 (CU15) · READ_COMMITTED_SNAPSHOT on"]
         direction LR
-        sqlcore[("SQL Server — Core<br/>36 cov_* tables · QRTZ_*")]
-        sqldps[("SQL Server — DPS<br/>documents · jobs · terms · values")]
-        store[("Document store<br/>original files")]
+        sqlcore[("Core database<br/>36 cov_* tables · Quartz QRTZ_*<br/>append-only assessments · staging copy · audits<br/>Flyway V1–V32")]
+        sqldps[("DPS tables<br/>documents · jobs · extracted terms · statement values<br/>outbox · flow state · AI usage · Alembic")]
+        store[("Document store<br/>content-addressed original files")]
     end
 
-    subgraph L7["7 · BANK SERVICES — WireMock stand‑ins locally"]
+    subgraph L7["7 · BANK SERVICES — WireMock 3.9 stand‑ins locally"]
         direction LR
-        bCp{{"Credit<br/>proposals"}}
+        bCp{{"Credit proposals<br/>CP · RM / WRM · loan status"}}
         bAtt{{"Covenant<br/>attributes"}}
         bData{{"Data API<br/>+ catalogue"}}
-        bTab{{"Bank data<br/>tables"}}
+        bTab{{"Bank data tables<br/>SQL Server"}}
         bWf{{"Workflow<br/>cases"}}
         bFile{{"File<br/>service"}}
-        bNot{{"Notification<br/>(e-mail)"}}
+        bNot{{"Notification service<br/>e-mail (Mailpit 1.27 locally)"}}
         bMl{{"ML thresholds<br/>(mock in Core locally)"}}
         bAi{{"AI status<br/>suggestions"}}
     end
 
     subgraph L8["8 · AI PROVIDER"]
-        aoai{{"Azure OpenAI"}}
+        aoai{{"Azure OpenAI<br/>via CrewAI / LiteLLM"}}
     end
 
     subgraph L9["9 · BUILD, RUN AND OPERATE"]
         direction LR
-        ci["GitHub Actions<br/>CI · Security · nightly E2E"]
-        deploy["Docker + Compose"]
-        obs["Operations<br/>actuator · runbook"]
+        ci["GitHub Actions<br/>CI: Maven verify · pytest · golden-set gate · UI build<br/>Security: semgrep · bandit · pip-audit · npm audit · Trivy<br/>nightly E2E: Playwright on the full stack"]
+        deploy["Docker images + Compose<br/>Core: Temurin 17 JRE · DPS: Python 3.12 slim<br/>UI: nginx alpine · real sign-in · mail · two Core nodes"]
+        obs["Operations<br/>actuator + Prometheus :9320 · runbook<br/>support toolkit · load tests"]
+        ci ~~~ deploy ~~~ obs
     end
 
-    staff -->|HTTPS| gw
-    borrower -->|HTTPS| gw
-    gw <-->|"sign-in"| idp
-    gw -->|"serves the app"| L3
-    uiapi -->|"/api + JWT"| csec
-    uiapi -->|"/dps + JWT"| dguard
+    staff -->|"① HTTPS"| gw
+    borrower -->|"① HTTPS"| gw
+    gw <-->|"② sign-in (OIDC + PKCE)"| idp
+    gw -->|"③ serves the app"| L3
+    uiapi -->|"/api + JWT — onboarding, reviews, waivers, reports"| csec
+    uiapi -->|"/dps + JWT — A1 agreement / B1 statement uploads, review, Ask AI"| dguard
 
-    csec <-->|"Core → DPS: C1 proposals · C2 figures · C3 AI (opt-in)<br/>DPS → Core: access check · C4 library + measures · C5 DATA_EVENT → re-check"| dguard
+    csec <-->|"Core → DPS: A6 C1 proposals · B5 C2 figures · C3 AI (opt-in)<br/>DPS → Core: access check · C4 library + measures · B4 C5 DATA_EVENT → re-check"| dguard
 
-    L4 -->|JDBC| sqlcore
-    L5 -->|SQL| sqldps
-    L5 -->|files| store
+    L4 -->|"JDBC (HikariCP)"| sqlcore
+    L5 -->|"SQLAlchemy (pymssql)"| sqldps
+    L5 -->|"files"| store
 
-    cclients -->|"CP · RM/WRM · loan status"| bCp
+    cclients -->|"CP · RM/WRM · loan sync"| bCp
     cclients -->|"eligibility"| bAtt
     cclients -->|"REST values + catalogue"| bData
     cclients -->|"JDBC values"| bTab
-    cclients -->|"case per CP"| bWf
+    cclients -->|"one case per CP"| bWf
     cclients -->|"evidence · certificates"| bFile
-    cclients -->|"summaries · reminders · reports"| bNot
+    cclients -->|"summaries · reminders · reports · escalation"| bNot
     cclients -->|"suggested thresholds"| bMl
     cclients -->|"C3 default"| bAi
 
-    DE -->|"Ask AI · Q&A · C3"| aoai
+    DE -->|"Ask AI · Q&A · narratives · C3"| aoai
 
-    pPort ~~~ pTask ~~~ pRep ~~~ pCp ~~~ pOnb ~~~ pDoc ~~~ pLib ~~~ pMea ~~~ pDs ~~~ pSet ~~~ pJob ~~~ pSup ~~~ pPortal
-    c1 ~~~ c2 ~~~ c3 ~~~ c4 ~~~ c5 ~~~ c6 ~~~ c7
-    dUp ~~~ dRev ~~~ dAsk ~~~ dJob ~~~ dServe
     aoai ~~~ L9
+    %% one vertical stack of layers
+    cclients ~~~ dguard
+    FA ~~~ FB
+    dout ~~~ sqlcore
+    dout ~~~ sqldps
+    sqldps ~~~ bCp
 ```
+
+### The numbered flows in the diagram
+
+| Flow | Step | From → to | What happens |
+|---|---|---|---|
+| Sign-in | ① | Users → Gateway | The browser opens the app over HTTPS |
+| | ② | Gateway ↔ Identity provider | OIDC code flow with PKCE; the user gets a JWT carrying their roles |
+| | ③ | Gateway → UI | nginx serves the React app; every later call carries the JWT |
+| **A — loan agreement → monitored covenants** | A1 | UI (Documents) → DPS request checks | Upload an agreement (`/dps` + JWT); DPS checks the token, the rate limit and, with Core, that the user may write to these CPs |
+| | A2 | DPS endpoints → Flow A | The upload becomes a job on `dps_job` (leases, 3 attempts; hard scans go to the heavy pool) |
+| | A3 | Flow A steps 1–4 | Parse (pypdf → RapidOCR → Docling) → Extract (metric, operator, threshold, page, quote) → Normalise (map to Core's library — C4) → Validate (citation, confidence ≥ 0.8, operator direction) |
+| | A4 | Outcome → Term review | Anything not certain waits for a person: approve, edit or reject each term |
+| | A5 | Term review → Serving Core | Approved terms are published |
+| | A6 | Core ↔ DPS | Onboarding asks DPS for the CP's published covenants (C1; an amendment replaces earlier terms) |
+| | A7 | Onboarding → Monitoring | The RM applies the covenants; Quartz gets a schedule per covenant |
+| **B — financial statement → covenant result** | B1 | UI (Documents or Borrower portal) → DPS → Flow B | Upload a statement (PDF, XLSX, XLS, CSV) with its period end; it becomes a job |
+| | B2 | Flow B steps 1–4 | Parse → Line items (page or cell reference, units to crore) → Derive (EBITDA, total debt, ratios) → Data-quality checks (balance, period, signs, required items) |
+| | B3 | Flow B → Event outbox | Figures are reported and a DATA_EVENT is queued |
+| | B4 | DPS → Core (C5) | The event reaches Core, which re-checks the covenants that use those figures |
+| | B5 | Core → DPS (C2) | The assessment engine fetches the figures: compile → freshness gate → resolve → evaluate → result (with "data may be stale" if DPS could not be reached and a stored copy was used) |
+| **D — what runs by itself** | D1 | Scheduler → Assessment engine | Every 5 min task sync; 02:00–02:59 each covenant's own check; 05:30 fetch-ahead for checks due in 3 days |
+| | D2 | 06:00 daily run → Bank services | 1 loan-system sync → 2 check every due covenant → 3 RM / WRM summary e-mails → 4 borrower reminders → 5 saved reports → 6 escalation digest |
+| **Bank services** | — | Bank-service clients → each service | Credit proposals (CP, RM/WRM, loan sync), covenant attributes (eligibility), data API + catalogue and bank data tables (figures), workflow cases (one per CP), file service (evidence, certificates), notifications (all e-mails), ML (suggested thresholds), AI suggestions (C3 default) |
 
 ## 1. Technology stack, and where each piece came from
 
