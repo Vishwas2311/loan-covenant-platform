@@ -58,7 +58,7 @@ a { color: var(--accent); }
 
 <main>
   <header>
-    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phases 1–3</span>
+    <span class="kicker">Production-readiness review · 5 November 2026 · updated after phases 1–4</span>
     <h1>Covenexa: Core, DPS and UI on the local real stack</h1>
     <p class="muted">Keycloak, SQL Server 2022, Azure OpenAI, WireMock bank stubs, one 8-CPU host. The baseline review changed no code; phase 1 fixes followed and were re-tested.</p>
   </header>
@@ -119,6 +119,23 @@ a { color: var(--accent); }
   </section>
 
   <section>
+    <h2>Phase 4</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>Item</th><th>Before</th><th>After (checked live)</th></tr></thead>
+      <tbody>
+        <tr><td class="id">GAP-03</td><td>With DPS down, behaviour undecided and untested</td><td>Stored figures used within max age, with a "Data may be stale" note; PRD updated</td></tr>
+        <tr><td class="id">BUG-22</td><td><span class="sev s-high">High</span> a failed source refresh rolled back the assessment's transaction</td><td>Result and <code>FAILED</code> status saved</td></tr>
+        <tr><td class="id">BUG-23</td><td>Amendment terms offered next to the terms they replace</td><td>Amendment's DSCR 1.20 replaces 1.30; other covenants kept</td></tr>
+        <tr><td class="id">RISK-01</td><td>Security cover, collateral value, disposal caps missed</td><td>Extracted and held for review</td></tr>
+        <tr><td class="id">RISK-05</td><td>Late triggers re-assessed covenants the sweep had covered</td><td>Trigger skips a slot already covered</td></tr>
+        <tr><td class="id">.xls</td><td>Old Excel statements refused</td><td>Read with cell references</td></tr>
+        <tr><td class="id">Scale-out</td><td>One Core node: 250 users, 18.4 req/s, 8% errors</td><td>Two nodes: 46 req/s, <strong>0 errors</strong>; Quartz clustered</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Core: 1,183 unit and 54 integration tests, SpotBugs 0. DPS: 98.21% coverage. Golden set: 28 tests, synthetic gate 1.0 on every metric. UI: 128 unit tests. Playwright: 52 of 52 after re-running 2 tests hit by connection resets at the host's Docker port proxy.</p>
+  </section>
+
+  <section>
     <h2>Baseline: why it was not ready</h2>
     <ol class="why">
       <li><strong>Wrong covenant direction (Critical).</strong> "The DSCR shall not be less than 1.35" is extracted as <code>DSCR &lt; 1.35</code>. A floor becomes a ceiling, so compliant borrowers show as breached and the reverse. The citation check passes and confidence is 0.85; only the RM's review catches it.</li>
@@ -174,7 +191,7 @@ a { color: var(--accent); }
         <li>Ask AI stays in the RM's portfolio, cites records, refuses other RMs' CPs.</li>
         <li>A planted instruction did not change extracted thresholds.</li>
         <li>Restore is byte-identical; nightly run, e-mail hand-off and two-node Quartz work.</li>
-        <li>Core stays up when DPS is down.</li>
+        <li>Core stays up when DPS is down and assesses on stored figures, flagged as possibly stale.</li>
         <li>1,202 Core tests, DPS 98% coverage, 52 Playwright tests, 0 accessibility violations.</li>
       </ul>
     </section>
@@ -190,6 +207,7 @@ a { color: var(--accent); }
         <tr><td>Real 60-CP portfolios</td><td class="num">250</td><td>3–8 s</td><td class="num">6.0</td><td class="num">58.5%</td><td>Pool time-outs, dropped connections</td></tr>
         <tr><td>Empty portfolio lists, pool 20</td><td class="num">100</td><td>none</td><td class="num">68</td><td class="num">0.04%</td><td>Overstated; see the note below</td></tr>
         <tr><td>DPS on SQL Server, uploads</td><td class="num">50</td><td>none</td><td class="num">52</td><td class="num">70% of uploads</td><td>Deadlock 1205</td></tr>
+        <tr><td>Phase 4: two Core nodes, real portfolios</td><td class="num">250</td><td>3–8 s</td><td class="num">46.0</td><td class="num">0%</td><td>None; one node gave 8%</td></tr>
         <tr><td>Bank-wide at 2,225 CPs</td><td class="num">admin, auditor</td><td>n/a</td><td class="num">n/a</td><td class="num">8 of 8 pages</td><td>SQL 8003</td></tr>
       </tbody>
     </table></div>

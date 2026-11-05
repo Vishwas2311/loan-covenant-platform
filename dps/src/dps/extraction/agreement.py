@@ -307,6 +307,44 @@ def _scan_unnumbered(doc: _Doc, terms: dict[str, Term]) -> None:
                 break
 
 
+# Covenants on the security and on asset sales, which no ratio alias names (review RISK-01): "the value of the
+# Collateral is not less than INR 10,000 Crores", "security cover of at least 1.25 times", "the value of the
+# substitute collateral shall be at least 120% of ...", "assets having a value not exceeding INR 50 Crores in any
+# Financial Year". Each is held for a person (confidence below the publish floor): whether such a clause is an
+# ongoing covenant or a one-off condition is a credit judgement.
+_AMOUNT = r"(?:INR|Rs\.?|₹)\s*" + _NUM + r"\s*(crores?|cr\b|lakhs?|lacs?)"
+_FLOOR = r"(?:not\s+(?:be\s+)?less\s+than|at\s+least|minimum\s+of|no\s+less\s+than)"
+_SECURITY_RULES: list[tuple[str, str, str, re.Pattern[str]]] = [
+    # metric, operator, unit kind ("amount", "percent", "times"), pattern with the number in group 1
+    ("SECURITY_COVER", ">=", "percent", re.compile(
+        r"\b(?:value\s+of\s+the\s+(?:substitute\s+)?(?:collateral|security)|(?:security|asset|collateral)\s+cover)"
+        r"[^.]{0,80}?" + _FLOOR + r"\s*" + _NUM + r"\s*(?:%|per\s*cent)", re.I)),
+    ("SECURITY_COVER", ">=", "times", re.compile(
+        r"\b(?:security|asset|collateral)\s+cover[^.]{0,80}?" + _FLOOR + r"\s*" + _NUM + r"\s*(?:x\b|times)", re.I)),
+    ("MIN_COLLATERAL_VALUE", ">=", "amount", re.compile(
+        r"\bvalue\s+of\s+the\s+(?:collateral|security)[^.%]{0,60}?" + _FLOOR + r"\s*" + _AMOUNT, re.I)),
+    ("ASSET_DISPOSAL_CAP", "<=", "amount", re.compile(
+        r"\b(?:dispos\w*|sell|sale|transfer)\b[^.]{0,220}?(?:not\s+exceeding|up\s+to|not\s+more\s+than)\s*"
+        + _AMOUNT, re.I)),
+]
+
+
+def _security_terms(doc: _Doc, found: set[str]) -> list[Term]:
+    out: list[Term] = []
+    for metric, op, kind, pattern in _SECURITY_RULES:
+        if metric in found:
+            continue
+        m = pattern.search(doc.text)
+        if not m:
+            continue
+        unit = {"percent": "%", "times": "x"}.get(kind) or (m.group(2) or "").strip().lower()
+        quote, page = _quote(doc, m.start(), m.end())
+        out.append(Term(metric, "FINANCIAL", op, _number(m.group(1)), unit, _frequency(m.group(0)), page, quote,
+                        None, 0.75))
+        found.add(metric)
+    return out
+
+
 def _non_financial(doc: _Doc, clauses: list[_Clause]) -> list[Term]:
     out: dict[str, Term] = {}
     for c in clauses:
@@ -335,4 +373,5 @@ def extract_terms(pages: list[Page]) -> list[Term]:
     if not doc.text.strip():
         return []
     clauses = _clauses(doc)
-    return _financial(doc, clauses) + _non_financial(doc, clauses)
+    financial = _financial(doc, clauses)
+    return financial + _security_terms(doc, {t.metric for t in financial}) + _non_financial(doc, clauses)

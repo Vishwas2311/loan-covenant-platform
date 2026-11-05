@@ -156,8 +156,8 @@ def quote_checks(root: Path, doc_id: str, label: dict) -> list[bool] | None:
     for c in label.get("covenants", []):
         page = c.get("page")
         quote = _squash(c.get("quote") or "")
-        on_page = isinstance(page, int) and 1 <= page <= len(texts) and bool(quote) and quote in _squash(texts[page - 1])
-        out.append(on_page)
+        on_page = isinstance(page, int) and 1 <= page <= len(texts) and bool(quote)
+        out.append(on_page and quote in _squash(texts[page - 1]))
     return out
 
 
@@ -176,8 +176,8 @@ def make_handler(root: Path, port: int):
             self.send_header("Content-Length", str(len(body)))
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Security-Policy",
-                             "default-src 'self'; style-src 'self' 'unsafe-inline'; frame-src 'self'; object-src 'none'")
+            self.send_header("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+                                                        "frame-src 'self'; object-src 'none'")
             self.end_headers()
             self.wfile.write(body)
 
@@ -186,7 +186,7 @@ def make_handler(root: Path, port: int):
 
         def _host_ok(self) -> bool:
             if self.headers.get("Host") not in allowed_hosts:
-                self._json(HTTPStatus.FORBIDDEN, {"error": "Open the page at http://127.0.0.1:%d" % port})
+                self._json(HTTPStatus.FORBIDDEN, {"error": f"Open the page at http://127.0.0.1:{port}"})
                 return False
             return True
 
@@ -223,15 +223,28 @@ def make_handler(root: Path, port: int):
             else:
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Not found"})
 
+        def _discard_body(self) -> None:
+            # Read what the client sent before refusing it. Answering with the body unread closes the
+            # socket on unread data, which Windows turns into a reset: the client sees "connection
+            # reset" instead of the refusal.
+            length = int(self.headers.get("Content-Length") or 0)
+            if 0 < length <= MAX_BODY:
+                self.rfile.read(length)
+            else:
+                self.close_connection = True
+
         def do_PUT(self):  # noqa: N802 - http.server API
             if not self._host_ok():
+                self._discard_body()
                 return
             if self.headers.get("X-Review") != "1" or not (self.headers.get("Content-Type") or "").startswith(
                     "application/json"):
+                self._discard_body()
                 self._json(HTTPStatus.FORBIDDEN, {"error": "Save from the review page"})
                 return
             doc_id = self._doc_id("/api/labels/") if self.path.startswith("/api/labels/") else None
             if doc_id is None:
+                self._discard_body()
                 self._json(HTTPStatus.NOT_FOUND, {"error": "No such document"})
                 return
             length = int(self.headers.get("Content-Length") or 0)

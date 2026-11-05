@@ -4,11 +4,13 @@ import com.crisil.covenant.config.IngestionProperties;
 import com.crisil.covenant.entity.DataSourceTable;
 import com.crisil.covenant.entity.IngestionState;
 import com.crisil.covenant.enums.IngestStatus;
+import com.crisil.covenant.exception.SourceReadException;
 import com.crisil.covenant.repository.IngestionStateRepository;
 import com.crisil.covenant.repository.StagingValueRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -62,7 +64,7 @@ public class IngestionOrchestrationService {
      *
      * @return {@code true} when an extract was issued, {@code false} when the gate skipped it.
      */
-    @Transactional
+    @Transactional(noRollbackFor = SourceReadException.class)
     public boolean ingestIfStale(DataSourceTable table, String entityKey, LocalDate from,
                                  LocalDate requiredAsOf) {
         Instant now = Instant.now();
@@ -145,6 +147,18 @@ public class IngestionOrchestrationService {
 
     private static boolean ttlElapsed(IngestionState state, Instant now) {
         return state.getNextEligibleAt() != null && !now.isBefore(state.getNextEligibleAt());
+    }
+
+    /**
+     * When the stored copy for {@code entityKey} in {@code table} was last refreshed, if one exists. An
+     * assessment whose refresh failed uses this copy instead (the resolver still refuses a value older
+     * than the measure's max age) and tells the reader the figures may be stale.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Instant> storedCopyAt(DataSourceTable table, String entityKey) {
+        return stateRepository.findByDataSourceTableIdAndEntityKey(table.getId(), entityKey)
+                .filter(s -> s.getStagedAsOf() != null && s.getStagedIngestedAt() != null)
+                .map(IngestionState::getStagedIngestedAt);
     }
 
     /**

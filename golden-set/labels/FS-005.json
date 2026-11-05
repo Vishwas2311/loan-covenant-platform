@@ -2,7 +2,7 @@
  "documentId": "FS-005",
  "type": "FINANCIAL_STATEMENT",
  "sourceFile": "FS-005.xlsx",
- "sha256": "ccb1728903070d761c2b6d1e981fce7c0c419cd4c6035d6157544b392cecc7d6",
+ "sha256": "b8347276dfc43b961d8bb686722e930cad36f47d4b721a722da0e9430b13c30f",
  "unit": "INR crore",
  "status": "SYNTHETIC",
  "labelledBy": "generator: make_synthetic.py (truth by construction)",

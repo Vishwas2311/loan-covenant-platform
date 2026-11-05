@@ -14,7 +14,7 @@ Every user-facing feature found in the UI routes, the Core and DPS controllers a
 | F-08 | Agreement upload (Flow A) | E2E 3; PERF-01 | Job runs, terms extracted with page and quote | PUBLISHED in 4–9 s for 50 pages | Pass | E2E 3, PERF-01 |
 | F-09 | Extraction correctness: operators | AI-07 with five common phrasings | Floors give `>=`, ceilings `<=` | Before: `<`. After phase 1: `>=`, and a wrong-direction operator goes to review | Pass | FIX-01, FIX-02 |
 | F-10 | Citation check (FR-03) | AI-01 on 10 golden agreements | Quote on page, threshold in quote | 0 failures | Pass | AI-01 |
-| F-11 | Extraction coverage | AI-02 | All covenants found | Non-ratio numeric clauses missed | Partial | RISK-01 |
+| F-11 | Extraction coverage | AI-02 | All covenants found | Phase 4: security cover, collateral value and asset-disposal limits found and held for review; recall on real documents awaits analyst labels | Partial | RISK-01, GAP-01 |
 | F-12 | Prompt injection in an agreement | AI-03 | Extraction and answers ignore it | Extraction ignores it; after phase 2 the Q&A drops it too | Pass | AI-03, BUG-12 fixed |
 | F-13 | Extraction review: edit, approve, reject | E2E 4; UI unit tests | Actions saved and audited | As expected | Pass | E2E 4 |
 | F-14 | Onboarding with EXTRACTED rows (FR-06) | E2E 4 | Rows labelled EXTRACTED with source link | As expected | Pass | E2E 4 |
@@ -55,7 +55,7 @@ Every user-facing feature found in the UI routes, the Core and DPS controllers a
 | F-49 | Daily run and e-mails | OPS-02, OPS-04 | Runs at 06:00 IST, e-mails sent | As expected | Pass | OPS-02, OPS-04 |
 | F-50 | Manual daily run | OPS-05 | Starts and reports completion | After phase 2: 202 at once, DONE after 311 s | Pass | BUG-10 fixed |
 | F-51 | Per-covenant schedules | OPS-06 | Spread out, in IST | After phase 2: 3,304 distinct times, all in IST | Pass | BUG-08, BUG-09 fixed |
-| F-52 | Core without DPS | RES-01 | Core stays up | Stays up; staged values used | Partial | GAP-03 |
+| F-52 | Core without DPS | RES-01, P4-01 | Core stays up | Stored figures used with a "Data may be stale" note; no copy gives `DATA_SOURCE_FAILURE` | Pass | GAP-03 closed |
 | F-53 | Backup and restore | OPS-01 | Identical data and files | Identical | Pass | OPS-01 |
 | F-54 | Two Core nodes | OPS-03 | One fire per trigger | As expected | Pass | OPS-03 |
 | F-55 | Accessibility (WCAG 2.1 AA) | axe in light and dark for 4 roles; screen-reader structure; phone width | 0 violations | 0 violations | Pass | a11y.spec |

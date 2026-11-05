@@ -23,6 +23,7 @@ import com.crisil.covenant.enums.Frequency;
 import com.crisil.covenant.exception.ApiException;
 import com.crisil.covenant.enums.CovenantCategory;
 import com.crisil.covenant.exception.ResourceNotFoundException;
+import com.crisil.covenant.exception.SourceReadException;
 import com.crisil.covenant.enums.AssessmentType;
 import com.crisil.covenant.formula.CompiledFormula;
 import com.crisil.covenant.formula.FormulaEngine;
@@ -336,6 +337,45 @@ class AssessmentServiceTest {
         assertThat(result.getErrorMessage()).contains("DATA_SOURCE_FAILURE");
         verify(aggregationResolver, never())
                 .resolve(anyString(), any(LocalDate.class), anyList(), anyInt(), anyBoolean());
+    }
+
+    @Test
+    void failedRefreshWithAStoredCopyAssessesTheStoredFiguresAndWarnsTheyMayBeStale() {
+        bindApplied();
+        DataSourceTable table = tableWithId("tbl-1");
+        table.setName("CP financials");
+        when(measureRepository.findByCodeIn(any())).thenReturn(List.of(measureOn("DSCR", table)));
+        doThrow(new SourceReadException("connection refused", null))
+                .when(ingestionOrchestration)
+                .ingestIfStale(any(), anyString(), any(LocalDate.class), any(LocalDate.class));
+        when(ingestionOrchestration.storedCopyAt(table, "CP-1"))
+                .thenReturn(Optional.of(java.time.Instant.parse("2026-11-04T06:00:00Z")));
+        stubResolve(present(1.85));
+        when(formulaEngine.evaluate(any(), any())).thenReturn(true);
+
+        Assessment result = service.runAssessment("1", AssessmentTrigger.SCHEDULED, null);
+
+        assertThat(result.getResult()).isEqualTo(AssessmentResult.COMPLIANT);
+        assertThat(result.getAssessmentNote())
+                .isEqualTo("Data may be stale: the latest refresh of CP financials failed, so these figures"
+                        + " come from the stored copy of 2026-11-04T06:00:00Z.");
+    }
+
+    @Test
+    void failedRefreshWithNoStoredCopyIsADataSourceError() {
+        bindApplied();
+        DataSourceTable table = tableWithId("tbl-1");
+        when(measureRepository.findByCodeIn(any())).thenReturn(List.of(measureOn("DSCR", table)));
+        doThrow(new SourceReadException("connection refused", null))
+                .when(ingestionOrchestration)
+                .ingestIfStale(any(), anyString(), any(LocalDate.class), any(LocalDate.class));
+        when(ingestionOrchestration.storedCopyAt(table, "CP-1")).thenReturn(Optional.empty());
+
+        Assessment result = service.runAssessment("1", AssessmentTrigger.SCHEDULED, null);
+
+        assertThat(result.getResult()).isEqualTo(AssessmentResult.ERROR);
+        assertThat(result.getErrorMessage()).contains("DATA_SOURCE_FAILURE").contains("connection refused");
+        assertThat(result.getAssessmentNote()).isNull();
     }
 
     // --- Phase 3: obligor-keyed JIT ingestion (fan-out grain) ---

@@ -1,0 +1,15 @@
+# Two Core nodes behind the gateway, to check that Core scales out. Add it after the other files:
+#   docker compose -f docker-compose.yml -f docker-compose.real.yml -f docker-compose.scale.yml up -d --scale core=2
+# The gateway resolves "core" per request through Docker's DNS, which returns every node, and nginx
+# spreads requests across them. Quartz is switched to clustered mode (as in the prod profile), so each
+# scheduled job runs on one node. Each node keeps its own 30-second portfolio cache: a change made
+# through one node can take up to 30 seconds to show through the other.
+services:
+  core:
+    # Host ports cannot be shared by two containers; reach Core through the gateway on port 8080.
+    ports: !reset []
+    mem_limit: ${CORE_MEM_LIMIT:-1536m}
+    environment:
+      SPRING_APPLICATION_JSON: >-
+        {"spring":{"quartz":{"properties":{"org.quartz.jobStore.isClustered":"true",
+        "org.quartz.jobStore.clusterCheckinInterval":"20000","org.quartz.jobStore.acquireTriggersWithinLock":"true"}}}}

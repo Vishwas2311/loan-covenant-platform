@@ -265,7 +265,7 @@ def test_flow_b_pdf_and_unsupported_types(database):
     assert scan.state.outcome == "HEAVY"
 
     xls, doc_id = statement(database, b"x", "old.xls")
-    assert xls.state.outcome == "FAILED" and "not supported" in xls.state.error
+    assert xls.state.outcome == "FAILED" and xls.state.error.startswith("Unreadable .xls statement")
     bad, _ = statement(database, b"not a workbook", "bad.xlsx")
     assert bad.state.outcome == "FAILED" and bad.state.error == "Unreadable statement: BadZipFile"
     empty, _ = statement(database, b"a,b\n", "empty.csv")

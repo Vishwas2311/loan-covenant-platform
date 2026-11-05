@@ -313,3 +313,60 @@ def test_net_debt_to_ebitda_is_not_also_debt_to_ebitda_and_negative_pledge_with_
     assert terms["NET_LEVERAGE_RATIO"].threshold == 4.75
     assert "DEBT_TO_EBITDA" not in terms
     assert "NEGATIVE_PLEDGE" in terms
+
+
+@pytest.mark.parametrize(("text", "metric", "op", "value", "unit"), [
+    ("The value of the Collateral is not less than INR 10,000 Crores.", "MIN_COLLATERAL_VALUE", ">=", 10000, "crores"),
+    ("The value of the Security shall at all times be not less than INR 3,600 crore.", "MIN_COLLATERAL_VALUE", ">=",
+     3600, "crore"),
+    ("The Borrower shall maintain a security cover of at least 1.25 times.", "SECURITY_COVER", ">=", 1.25, "x"),
+    ("The value of the substitute collateral shall be at least 120% of the original.", "SECURITY_COVER", ">=", 120,
+     "%"),
+    ("The Borrower shall not dispose of assets having a value not exceeding INR 50 Crores in any Financial Year.",
+     "ASSET_DISPOSAL_CAP", "<=", 50, "crores"),
+])
+def test_security_and_disposal_covenants_are_found_and_held_for_review(text, metric, op, value, unit):
+    """Review RISK-01: covenants on the security and on asset sales, which no ratio alias names."""
+    [term] = [t for t in extract_terms([Page(1, text, "TEXT", 1.0)]) if t.metric == metric]
+    assert (term.operator, term.threshold, term.unit) == (op, value, unit)
+    assert term.confidence < 0.8  # below the publish floor: a person decides covenant or condition
+
+
+def test_security_amounts_become_crore_and_custom_candidates():
+    [p] = normalize([Term("MIN_COLLATERAL_VALUE", "FINANCIAL", ">=", 50000, "lakhs", None, 1,
+                          "not less than INR 50000 lakhs", None, 0.75)], MASTERS)
+    assert (p.threshold, p.unit, p.name, p.covenant_master_id) == (500.0, "INR_CR", "Minimum Collateral Value", None)
+    assert p.assessment_type == "MANUAL"
+    assert extract_terms([Page(1, "Each drawdown shall not be less than INR 25 crore.", "TEXT", 1.0)]) == []
+
+
+def _xls(rows):
+    import io
+
+    import xlwt
+
+    book = xlwt.Workbook()
+    sheet = book.add_sheet("PL")
+    for r, row in enumerate(rows):
+        for c, value in enumerate(row):
+            sheet.write(r, c, value)
+    buf = io.BytesIO()
+    book.save(buf)
+    return buf.getvalue()
+
+
+def test_xls_statements_are_read_with_cell_references():
+    """FR-01 lists .xls: it was accepted at upload and then failed as unsupported."""
+    from dps.extraction.statement import extract_values, header_from_xls, rows_from_xls
+    from dps.parsing import ParseError
+
+    data = _xls([["Amounts in INR lakhs"], ["EBITDA", 514], ["Long-term borrowings", "1,200"], ["Notes", ""]])
+    rows = rows_from_xls(data)
+    assert rows[0] == ("EBITDA", 514.0, None, "PL!B2") and rows[1][1] == 1200.0
+    result = extract_values(rows, header_from_xls(data))
+    assert {v.key: v.value for v in result.values}["EBITDA"] == pytest.approx(5.14)
+    with pytest.raises(ParseError, match="Unreadable .xls"):
+        rows_from_xls(b"not an xls file")
+    from dps.extraction.statement import _column
+
+    assert [_column(i) for i in (0, 25, 26, 701)] == ["A", "Z", "AA", "ZZ"]

@@ -4,6 +4,7 @@ import com.crisil.covenant.entity.AppliedCovenant;
 import com.crisil.covenant.repository.AppliedCovenantRepository;
 import com.crisil.covenant.exception.ApiException;
 import com.crisil.covenant.exception.ResourceNotFoundException;
+import com.crisil.covenant.exception.SourceReadException;
 import com.crisil.covenant.formula.CompiledFormula;
 import com.crisil.covenant.formula.FormulaEngine;
 import com.crisil.covenant.formula.FormulaException;
@@ -156,13 +157,14 @@ public class AssessmentService {
         }
 
         Map<String, MeasureValue> resolved;
+        List<String> staleWarnings;
         try {
             // US-AGG-11: PERIODIC terms need the organisation reporting calendar; FLAT terms ignore it.
             ReportingSettingsResponse settings = reportingSettings.current();
             LocalDate asOf = LocalDate.now();
             // Land a durable copy of the source data before evaluating so covenants run against the
             // stored mirror (cov_staging_value), not the live source.
-            ingestStaging(requests, applied.getCpId(), asOf);
+            staleWarnings = ingestStaging(requests, applied.getCpId(), asOf);
             resolved = aggregationResolver.resolve(applied.getCpId(), asOf, requests,
                     settings.fiscalYearStartMonth(), settings.periodicIncludesCurrentPeriod());
         } catch (RuntimeException ex) {
@@ -180,6 +182,9 @@ public class AssessmentService {
             }
         }
         assessment.setDataSnapshotJson(serialise(values));
+        if (!staleWarnings.isEmpty()) {
+            assessment.setAssessmentNote(String.join(" ", staleWarnings));
+        }
         if (!missing.isEmpty()) {
             return completeWithError(assessment, "Missing values for measures: " + missing);
         }
@@ -210,8 +215,13 @@ public class AssessmentService {
      * of that obligor's CPs; the CP's obligor is resolved at most once per assessment. A CP with no
      * recorded obligor has nothing to ingest at obligor grain — the resolver then reports those terms
      * as {@code present=false}.
+     *
+     * <p>When the source cannot be read but a stored copy exists, the assessment carries on with that
+     * copy and the returned warnings say so; the resolver still refuses a value older than the
+     * measure's max age, which then surfaces as missing. With no stored copy the failure is raised.
      */
-    private void ingestStaging(List<AggregationRequest> requests, String cpId, LocalDate asOf) {
+    private List<String> ingestStaging(List<AggregationRequest> requests, String cpId, LocalDate asOf) {
+        List<String> warnings = new ArrayList<>();
         Map<String, DataSourceTable> tables = new LinkedHashMap<>();
         Map<String, LocalDate> fromByTable = new LinkedHashMap<>();
         for (AggregationRequest request : requests) {
@@ -239,8 +249,22 @@ public class AssessmentService {
             } else {
                 entityKey = cpId;
             }
-            ingestionOrchestration.ingestIfStale(table, entityKey, fromByTable.get(table.getId()), asOf);
+            try {
+                ingestionOrchestration.ingestIfStale(table, entityKey, fromByTable.get(table.getId()), asOf);
+            } catch (SourceReadException ex) {
+                Optional<Instant> storedAt = ingestionOrchestration.storedCopyAt(table, entityKey);
+                if (storedAt.isEmpty()) {
+                    throw ex;
+                }
+                // Inline CR/LF-sanitised detail so no tainted value reaches the sink.
+                String safe = ("table " + table.getId() + ", stored copy from " + storedAt.get())
+                        .replace('\n', '_').replace('\r', '_');
+                LOG.warn("Refresh failed; using the stored copy: {}", safe);
+                warnings.add("Data may be stale: the latest refresh of " + table.getName()
+                        + " failed, so these figures come from the stored copy of " + storedAt.get() + ".");
+            }
         }
+        return warnings;
     }
 
     /**

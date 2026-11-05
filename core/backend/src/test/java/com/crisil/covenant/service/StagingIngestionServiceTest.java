@@ -23,6 +23,7 @@ import com.crisil.covenant.enums.DataColumnType;
 import com.crisil.covenant.enums.DataSourceType;
 import com.crisil.covenant.enums.TableLayout;
 import com.crisil.covenant.exception.ApiException;
+import com.crisil.covenant.exception.SourceReadException;
 import com.crisil.covenant.repository.MeasureRepository;
 import com.crisil.covenant.repository.StagingValueRepository;
 import com.crisil.covenant.util.JdbcDataSourceRegistry;
@@ -496,6 +497,21 @@ class StagingIngestionServiceTest {
                 .thenReturn(List.of(columnMeasure("pat", DataColumnType.NUMBER)));
 
         assertThat(service.ingest(table, "CP-UNKNOWN", AS_OF).rowsStaged()).isZero();
+        verify(stagingRepository, never()).saveAllAndFlush(any());
+    }
+
+    @Test
+    void anUnreachableSourceIsASourceReadFailureAndStagesNothing() {
+        DataSourceTable table = restTable(TableLayout.COLUMNAR);
+        when(measureRepository.findByDataSourceTableId("tbl"))
+                .thenReturn(List.of(columnMeasure("pat", DataColumnType.NUMBER)));
+        when(dataApiClient.fetchValues(any(), eq("CP-1"), isNull(), eq(AS_OF), any()))
+                .thenThrow(new ApiException(org.springframework.http.HttpStatus.BAD_GATEWAY, "DATA_API_FAILED",
+                        "Data API call failed: 503"));
+
+        assertThatThrownBy(() -> service.ingest(table, "CP-1", AS_OF))
+                .isInstanceOf(SourceReadException.class)
+                .hasMessageContaining("503");
         verify(stagingRepository, never()).saveAllAndFlush(any());
     }
 

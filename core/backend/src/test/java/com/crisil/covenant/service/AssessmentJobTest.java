@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -17,7 +18,11 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.Trigger;
 import com.crisil.covenant.entity.MonitoringSchedule;
+import com.crisil.covenant.repository.AssessmentRepository;
+import com.crisil.covenant.repository.AssessmentRepository.AppliedCovenantLastExecuted;
 import com.crisil.covenant.repository.MonitoringScheduleRepository;
+import java.time.Instant;
+import java.util.List;
 
 class AssessmentJobTest {
 
@@ -47,6 +52,54 @@ class AssessmentJobTest {
         verify(scheduleRepo).save(schedule);
         assertThat(schedule.getLastRunAt()).isNotNull();
         assertThat(schedule.getNextRunAt()).isEqualTo(nextFire.toInstant());
+    }
+
+    @Test
+    void aSlotAlreadyCoveredByAnotherRunIsNotAssessedAgain() throws Exception {
+        AssessmentService assessmentService = mock(AssessmentService.class);
+        MonitoringScheduleRepository scheduleRepo = mock(MonitoringScheduleRepository.class);
+        AssessmentRepository assessmentRepo = mock(AssessmentRepository.class);
+        AssessmentJob job = new AssessmentJob();
+        injectField(job, "assessmentService", assessmentService);
+        injectField(job, "scheduleRepo", scheduleRepo);
+        injectField(job, "assessmentRepo", assessmentRepo);
+
+        Instant due = Instant.parse("2026-11-05T02:00:00Z");
+        JobExecutionContext ctx = mock(JobExecutionContext.class);
+        JobDataMap dataMap = new JobDataMap();
+        dataMap.put(AssessmentJob.APPLIED_ID_KEY, "7");
+        when(ctx.getMergedJobDataMap()).thenReturn(dataMap);
+        when(ctx.getScheduledFireTime()).thenReturn(Date.from(due));
+        MonitoringSchedule schedule = new MonitoringSchedule();
+        when(scheduleRepo.findByAppliedCovenantId("7")).thenReturn(Optional.of(schedule));
+        // The 06:00 sweep assessed it before this misfired trigger ran late.
+        when(assessmentRepo.findLatestExecutedAtByAppliedCovenantIdIn(List.of("7")))
+                .thenReturn(List.of(lastExecuted("7", due.plusSeconds(4 * 3600))));
+
+        job.executeInternal(ctx);
+
+        verify(assessmentService, never()).runAssessment(any(), any(), any());
+        verify(scheduleRepo).save(schedule);
+
+        // Last checked before the slot was due: the trigger assesses as usual.
+        when(assessmentRepo.findLatestExecutedAtByAppliedCovenantIdIn(List.of("7")))
+                .thenReturn(List.of(lastExecuted("7", due.minusSeconds(86_400))));
+        job.executeInternal(ctx);
+        verify(assessmentService).runAssessment(eq("7"), eq(AssessmentTrigger.SCHEDULED), eq(null));
+    }
+
+    private static AppliedCovenantLastExecuted lastExecuted(String id, Instant at) {
+        return new AppliedCovenantLastExecuted() {
+            @Override
+            public String getAppliedCovenantId() {
+                return id;
+            }
+
+            @Override
+            public Instant getLastExecutedAt() {
+                return at;
+            }
+        };
     }
 
     @Test

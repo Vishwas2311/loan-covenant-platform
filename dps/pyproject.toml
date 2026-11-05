@@ -27,6 +27,8 @@ worker = [
   # azure-ai-inference: Azure OpenAI for advisory AI (DPS_AI_MODEL=azure/<deployment>).
   "crewai[azure-ai-inference]==1.15.34",
   "rapidocr-onnxruntime==1.4.*",
+  # .xls statements (FR-01); openpyxl reads only .xlsx.
+  "xlrd==2.0.*",
   "pypdfium2>=4.30",
   "pdfplumber==0.11.*",
 ]
@@ -38,6 +40,7 @@ dev = [
   "pytest-cov==7.0.*",
   "ruff==0.14.*",
   "bandit==1.8.*",
+  "xlwt==1.3.*",  # writes .xls files for the tests
 ]
 # Production SQL Server driver (needs the Microsoft ODBC driver on the host).
 # SQL Server for production: DPS_DATABASE_URL=mssql+pymssql://user:password@host:1433/dps

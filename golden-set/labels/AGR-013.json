@@ -37,6 +37,16 @@
    "frequency": "QUARTERLY",
    "page": 1,
    "quote": "10.3 The Fixed Charge Coverage Ratio shall not be lower than 1.15 times."
+  },
+  {
+   "metric": "SECURITY_COVER",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 133,
+   "unit": "%",
+   "frequency": null,
+   "page": 1,
+   "quote": "The value of the Collateral shall be at least 133% of the outstanding facility, as certified by an approved valuer every year."
   }
  ]
 }

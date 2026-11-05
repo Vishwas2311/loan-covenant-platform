@@ -58,6 +58,26 @@ class IngestionOrchestrationServiceTest {
                 .thenAnswer(inv -> inv.getArgument(0));
     }
 
+    // --- storedCopyAt(): the fallback when a refresh fails ---
+
+    @Test
+    void storedCopyAtIsWhenTheHeldCopyWasLastRefreshed() {
+        IngestionState state = new IngestionState();
+        state.setStagedAsOf(AS_OF);
+        state.setStagedIngestedAt(NOW);
+        when(stateRepository.findByDataSourceTableIdAndEntityKey("tbl-1", "CP-1")).thenReturn(Optional.of(state));
+        assertThat(service.storedCopyAt(table, "CP-1")).contains(NOW);
+    }
+
+    @Test
+    void storedCopyAtIsEmptyWhenNothingWasEverStaged() {
+        when(stateRepository.findByDataSourceTableIdAndEntityKey("tbl-1", "CP-1"))
+                .thenReturn(Optional.of(new IngestionState()));
+        assertThat(service.storedCopyAt(table, "CP-1")).isEmpty();
+        when(stateRepository.findByDataSourceTableIdAndEntityKey("tbl-1", "CP-2")).thenReturn(Optional.empty());
+        assertThat(service.storedCopyAt(table, "CP-2")).isEmpty();
+    }
+
     // --- decide() branches ---
 
     @Test

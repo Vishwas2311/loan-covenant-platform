@@ -190,8 +190,8 @@ AGREEMENTS = [
               "FIXED_CHARGE_COVERAGE_RATIO", ">=", 1.15),
         ]),
         ("Article 11 Security", [
-            D("The value of the Collateral shall be at least 133% of the outstanding facility, as certified by an "
-              "approved valuer every year."),
+            F("The value of the Collateral shall be at least 133% of the outstanding facility, as certified by an "
+              "approved valuer every year.", "SECURITY_COVER", ">=", 133, "%", freq=None),
         ]),
         default_events(),
     ]),
@@ -232,6 +232,9 @@ AGREEMENTS = [
         ("Article 10 Undertakings", [
             N("10.1 The Borrower shall maintain insurance over its plants with reputable insurers and keep the "
               "policies in force.", "INSURANCE_MAINTENANCE"),
+            F("10.2 The Borrower shall not sell, transfer or otherwise dispose of any of its assets, other than "
+              "assets having a value not exceeding INR 25 crore in any Financial Year.", "ASSET_DISPOSAL_CAP",
+              "<=", 25, "crore", freq="YEARLY"),
         ]),
         default_events(),
     ]),
@@ -266,6 +269,10 @@ AGREEMENTS = [
             F("12.2 Debt to Equity shall at no time exceed 3.00 times.", "DEBT_TO_EQUITY", "<=", 3.0),
             F("12.3 The Borrower shall maintain a Tangible Net Worth of not less than INR 1,200 crore.",
               "MIN_TANGIBLE_NET_WORTH", ">=", 1200, "crore"),
+        ]),
+        ("Article 13 Security", [
+            F("13.1 The value of the Security shall at all times be not less than INR 3,600 crore, as certified "
+              "by an approved valuer.", "MIN_COLLATERAL_VALUE", ">=", 3600, "crore", freq=None),
         ]),
         default_events(),
     ]),
@@ -351,13 +358,29 @@ def statement_bytes(fmt: str, rows: list[list]) -> bytes:
     from openpyxl import Workbook
 
     wb = Workbook()
+    # Fixed document dates, so regenerating the set leaves unchanged files unchanged.
+    from datetime import datetime
+
+    wb.properties.created = wb.properties.modified = datetime(2026, 11, 5)
     ws = wb.active
     ws.title = "Statement"
     for row in rows:
         ws.append(row)
     buf = io.BytesIO()
     wb.save(buf)
-    return buf.getvalue()
+    import zipfile
+
+    fixed = io.BytesIO()  # the zip entries carry the time of writing too
+    with zipfile.ZipFile(buf) as src, zipfile.ZipFile(fixed, "w", zipfile.ZIP_DEFLATED) as dst:
+        for item in src.infolist():
+            data = src.read(item.filename)
+            if item.filename == "docProps/core.xml":  # openpyxl stamps "modified" with the time of saving
+                import re
+
+                data = re.sub(rb"(<dcterms:modified[^>]*>)[^<]*", rb"\g<1>2026-11-05T00:00:00Z", data)
+            dst.writestr(zipfile.ZipInfo(item.filename, date_time=(2026, 11, 5, 0, 0, 0)), data,
+                         compress_type=zipfile.ZIP_DEFLATED)
+    return fixed.getvalue()
 
 
 def write_label(doc_id: str, payload: dict) -> None:

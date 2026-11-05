@@ -74,6 +74,17 @@ Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit;
 - **Real e-mail tested:** through a local test bridge and Mailpit, 28 RM summaries and an escalation digest were delivered.
 - **Golden set ready for analysts:** 20 agreements and 10 statements, a one-page analyst guide, and an extraction regression gate in CI. On its first run the new synthetic set found four extraction bugs, all fixed. The worst (BUG-18, critical) read statements stated in plain rupees as crore.
 
+## Phase 4
+
+- **DPS down (GAP-03, decided):** assessments use Core's stored figures while they are within each measure's max age and say "Data may be stale"; with no stored copy they error as before. Checked live with DPS stopped. The PRD now says the same.
+- **BUG-22 (high, found while building this):** a failed source refresh made the assessment's database transaction roll back, so its error result could not be saved. Fixed and checked live.
+- **Amendments (C7, BUG-23):** an amendment's covenant now replaces the earlier agreement's covenant in recommendations; untouched covenants stay. Checked live.
+- **More covenants extracted (RISK-01):** security cover, collateral value and asset-disposal limits, always held for a reviewer.
+- **Old Excel (.xls) statements** are read.
+- **Double scheduled assessments (RISK-05):** a late trigger no longer re-assesses a covenant the daily sweep already covered.
+- **Two Core nodes:** 250 users at 46 req/s with 0 errors on the same host (one node: 8% errors). Quartz runs clustered across the nodes.
+- **Flaky golden-set test (BUG-24)** fixed: the review tool reset the connection instead of refusing.
+
 ## Still true from the baseline
 
 - **PRD performance targets pass with wide margins.**
@@ -89,13 +100,14 @@ Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit;
 - **Calculations, units, security controls, Ask AI scoping, backup and restore, the nightly run and two-node Quartz** all pass.
 - **Correction:** GAP-10 was wrong. Certificate reminders and saved reports already run inside the daily 06:00 job.
 
-## Quality gates after phase 2
+## Quality gates after phase 4
 
 | Component | Result |
 |---|---|
-| Core | 1,176 unit and 53 integration tests pass, coverage gate met, SpotBugs 0 findings |
-| DPS | Tests pass, 98.13% coverage, golden-set gate 24 of 24, ruff clean |
-| UI | Playwright 52 of 52; 127 unit tests |
+| Core | 1,183 unit and 54 integration tests pass, coverage gate met, SpotBugs 0 findings |
+| DPS | Tests pass, 98.21% coverage, ruff clean |
+| Golden set | 28 tests pass; synthetic gate passed (recall, precision, thresholds, values all 1.0) |
+| UI | Playwright 52 of 52 after re-running 2 tests that hit connection resets at the host's Docker port proxy; 128 unit tests |
 
 ## Files
 

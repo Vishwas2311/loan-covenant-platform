@@ -246,6 +246,31 @@ def test_recommendations_only_published_and_linked(client, app):
                        headers=h("rm-other")).status_code == 404
 
 
+def test_an_amendment_replaces_the_terms_it_restates_and_keeps_the_rest(client, app):
+    original = upload(client, cps=("CP-1",)).json()["documentId"]
+    add_term(app, original, covenant_master_id="c-1", expression="DSCR >= 1.25", status="PUBLISHED")
+    add_term(app, original, covenant_master_id="c-2", expression="LEVERAGE <= 3.5", status="PUBLISHED")
+    add_term(app, original, metric_raw="Asset Disposal Limit", expression=None, status="PUBLISHED")
+    first = client.post("/dps/v1/documents", data={"cpIds": ["CP-1"], "type": "LOAN_AGREEMENT",
+                                                  "amendsDocumentId": original},
+                        files={"file": ("amendment-1.pdf", PDF + b"a1", "application/pdf")}, headers=h()).json()
+    add_term(app, first["documentId"], covenant_master_id="c-1", expression="DSCR >= 1.10", status="PUBLISHED")
+    add_term(app, first["documentId"], metric_raw="asset disposal limit", expression=None, status="PUBLISHED")
+    second = client.post("/dps/v1/documents", data={"cpIds": ["CP-1"], "type": "LOAN_AGREEMENT",
+                                                   "amendsDocumentId": first["documentId"]},
+                         files={"file": ("amendment-2.pdf", PDF + b"a2", "application/pdf")}, headers=h()).json()
+    add_term(app, second["documentId"], covenant_master_id="c-2", expression="LEVERAGE <= 4.0", status="PUBLISHED")
+
+    recs = client.post("/dps/v1/recommendations", json={"cpId": "CP-1"}, headers=h()).json()
+
+    by_covenant = {r["covenantMasterId"] or r["customCovenant"]["name"].lower(): r for r in recs}
+    assert len(recs) == 3 and set(by_covenant) == {"c-1", "c-2", "asset disposal limit"}
+    assert by_covenant["c-1"]["recommendedExpression"] == "DSCR >= 1.10"
+    assert by_covenant["c-1"]["source"]["documentId"] == first["documentId"]
+    assert by_covenant["c-2"]["recommendedExpression"] == "LEVERAGE <= 4.0"  # through the chain
+    assert by_covenant["asset disposal limit"]["source"]["documentId"] == first["documentId"]
+
+
 def test_term_review_flow(client, app):
     doc_id = upload(client).json()["documentId"]
     tid = add_term(app, doc_id, expression="DSCR >= 1.2", status="NEEDS_REVIEW", issues_json='["quote not found"]')

@@ -11,6 +11,8 @@ import io
 import re
 from dataclasses import asdict, dataclass, field
 
+from dps.parsing import ParseError
+
 # Catalog key → label phrases (lower case, matched on whole words; longest phrase wins).
 LINE_ALIASES: dict[str, list[str]] = {
     "REVENUE": ["revenue from operations", "total revenue", "net sales", "revenue", "turnover"],
@@ -193,6 +195,50 @@ def rows_from_xlsx(data: bytes) -> list[tuple[str, float, int | None, str | None
                     out.append((label, parse_number(v), None, f"{ws.title}!{cell.coordinate}"))
                     break
     return out
+
+
+def _column(index: int) -> str:
+    """0 -> A, 25 -> Z, 26 -> AA (spreadsheet column letters for cell references)."""
+    letters = ""
+    index += 1
+    while index:
+        index, rest = divmod(index - 1, 26)
+        letters = chr(65 + rest) + letters
+    return letters
+
+
+def _xls_book(data: bytes):
+    import xlrd
+
+    try:
+        return xlrd.open_workbook(file_contents=data)
+    except xlrd.XLRDError as ex:  # not a real .xls (or an encrypted one): a clear reason for the reviewer
+        raise ParseError(f"Unreadable .xls statement: {ex}") from ex
+
+
+def rows_from_xls(data: bytes) -> list[tuple[str, float, int | None, str | None]]:
+    """FR-01: the older Excel format (.xls), read like .xlsx: first text cell is the label, first number its value."""
+    book = _xls_book(data)
+    out = []
+    for sheet in book.sheets():
+        for r in range(sheet.nrows):
+            label = None
+            for c, value in enumerate(sheet.row_values(r)):
+                if isinstance(value, str) and value.strip() and label is None:
+                    label = value.strip()
+                elif label and isinstance(value, float):
+                    out.append((label, value, None, f"{sheet.name}!{_column(c)}{r + 1}"))
+                    break
+                elif label and isinstance(value, str) and parse_number(value) is not None:
+                    out.append((label, parse_number(value), None, f"{sheet.name}!{_column(c)}{r + 1}"))
+                    break
+    return out
+
+
+def header_from_xls(data: bytes, max_rows: int = 10) -> str:
+    book = _xls_book(data)
+    return " ".join(str(v) for s in book.sheets() for r in range(min(max_rows, s.nrows))
+                    for v in s.row_values(r) if isinstance(v, str) and v.strip())
 
 
 def header_from_xlsx(data: bytes, max_rows: int = 10) -> str:

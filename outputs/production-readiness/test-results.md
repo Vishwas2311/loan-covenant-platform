@@ -190,3 +190,13 @@ Reading: 100 concurrent RMs are now comfortable on one host. 250 exceeds a singl
 | P3-06 | AI usage | One Ask AI call: 4,048 prompt + 166 completion tokens recorded; support summary 200, RM 403 |
 | P3-07 | Exposure treemap on Reports | Rendered in light, dark and phone widths; 67 of 85 CPs with a facility amount |
 | P3-08 | Suites after phase 3 | Core 1,177 unit + 54 integration, coverage met, SpotBugs 0; DPS 98.20%; golden set 28 of 28; UI 127 unit tests; Playwright 52 of 52 (7.2 min) |
+
+## 12. Phase 4 checks
+
+| ID | Test | Result |
+|---|---|---|
+| P4-01 | DPS stopped; CP-1001's DPS table forced to refresh; covenant `88003c90` assessed | 200, COMPLIANT from the stored copy of 10:32 UTC with the "Data may be stale" note; ingestion state `FAILED` saved. DPS started again: COMPLIANT, no note |
+| P4-02 | Amendment (C7): AGR-013 and a one-clause amendment uploaded to CP-1001 and published | DPS recommends DSCR ≥ 1.20 from the amendment only; Net Leverage ≤ 4.75 and FCCR from the original. Both uploads removed afterwards |
+| P4-03 | Two Core nodes behind the gateway, real 60-CP portfolios, 3–8 s pauses | 250 users: 46.0 req/s, 0 errors, p95 under 2 s on every page (one node: 18.4 req/s, 8.05% errors). 100 users, warm: 16.7 req/s, 0 errors. The first 100-user step right after both nodes started had 2.5% errors: 30 s time-outs while cold, and a few 404s where the access guard denied because the stubbed CP service did not answer in time (fail-closed) |
+| P4-04 | Golden-set review server, 40 runs of the refusal test, 4 in parallel | 0 failures |
+| P4-05 | Suites after phase 4 | Core 1,183 unit + 54 integration, coverage met, SpotBugs 0; DPS 98.21%, ruff clean; golden set 28 of 28, synthetic gate passed (all metrics 1.0); UI 128 unit tests; Playwright 52 of 52 (6 skipped by design): the full run had 50 passed and 2 failed on connection resets at the host's Docker port proxy; both passed on re-run, test 18 five times in a row |

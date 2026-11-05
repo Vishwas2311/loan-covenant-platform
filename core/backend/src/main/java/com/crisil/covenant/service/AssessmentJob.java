@@ -11,7 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import com.crisil.covenant.repository.AssessmentRepository;
+import com.crisil.covenant.repository.AssessmentRepository.AppliedCovenantLastExecuted;
 import com.crisil.covenant.repository.MonitoringScheduleRepository;
+import java.util.Date;
+import java.util.List;
 
 public class AssessmentJob extends QuartzJobBean {
 
@@ -23,6 +27,9 @@ public class AssessmentJob extends QuartzJobBean {
 
     @Autowired
     private MonitoringScheduleRepository scheduleRepo;
+
+    @Autowired
+    private AssessmentRepository assessmentRepo;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -36,9 +43,16 @@ public class AssessmentJob extends QuartzJobBean {
             return;
         }
         String safeId = appliedId.replace('\n', '_').replace('\r', '_');
-        LOG.info("Running scheduled assessment for applied-covenant {}", safeId);
         try {
-            assessmentService.runAssessment(appliedId, AssessmentTrigger.SCHEDULED, null);
+            if (alreadyCheckedSince(appliedId, context.getScheduledFireTime())) {
+                // The daily sweep, a manual run or a data event already covered this slot (for example
+                // a trigger that misfired and fired late): one assessment per slot is enough.
+                LOG.info("Applied-covenant {} was already checked since this trigger was due; not assessing again",
+                        safeId);
+            } else {
+                LOG.info("Running scheduled assessment for applied-covenant {}", safeId);
+                assessmentService.runAssessment(appliedId, AssessmentTrigger.SCHEDULED, null);
+            }
         } catch (RuntimeException ex) {
             String safe = ex.getMessage() == null ? "null"
                     : ex.getMessage().replace('\n', '_').replace('\r', '_');
@@ -51,5 +65,15 @@ public class AssessmentJob extends QuartzJobBean {
             }
             scheduleRepo.save(s);
         });
+    }
+
+    private boolean alreadyCheckedSince(String appliedId, Date dueAt) {
+        if (dueAt == null) {
+            return false;
+        }
+        List<AppliedCovenantLastExecuted> latest =
+                assessmentRepo.findLatestExecutedAtByAppliedCovenantIdIn(List.of(appliedId));
+        return latest.stream().anyMatch(l -> l.getLastExecutedAt() != null
+                && !l.getLastExecutedAt().isBefore(dueAt.toInstant()));
     }
 }

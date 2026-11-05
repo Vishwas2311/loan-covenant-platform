@@ -31,6 +31,8 @@ def predict_statement(name: str, data: bytes) -> dict:
 
     if name.endswith(".csv"):
         rows, header = st.rows_from_csv(data), st.header_from_csv(data)
+    elif name.endswith(".xls"):
+        rows, header = st.rows_from_xls(data), st.header_from_xls(data)
     else:
         rows, header = st.rows_from_xlsx(data), st.header_from_xlsx(data)
     result = st.extract_values([tuple(r) for r in rows], header)

@@ -30,6 +30,9 @@ Every bug below was reproduced, with evidence in `test-results.md`. No product c
 | BUG-15 | High | Core | Bank-wide task sync was quadratic (found in re-test) | Fixed |
 | BUG-16 | High | Deploy | Core heap could take 75% of the host and starve SQL Server (found in re-test) | Fixed |
 | BUG-17 | Medium | Core | Failed CP-name lookups repeated on every CP-list request (found in re-test) | Fixed |
+| BUG-22 | High | Core | A failed source refresh marked the whole assessment transaction for rollback (found in phase 4) | Fixed (phase 4) |
+| BUG-23 | Medium | DPS | An amendment's terms were offered next to the terms they replace (C7) | Fixed (phase 4) |
+| BUG-24 | Low | Golden set | The review tool reset the connection instead of refusing a bad save | Fixed (phase 4) |
 
 ## Bugs
 
@@ -168,7 +171,7 @@ Every bug below was reproduced, with evidence in `test-results.md`. No product c
 |---|---|---|
 | GAP-01 | High | Golden set: 10 agreements, 0 statements. The PRD asks for at least 20 of each, labelled by credit analysts. The labels are extractor drafts, so the gate cannot find extractor errors (BUG-01). |
 | GAP-02 | Closed (phase 2) | FR-31: escalations show in reports and tasks, but no notification is sent. Now a daily digest goes to `COVENANT_ESCALATION_RECIPIENTS`. |
-| GAP-03 | Medium | Reliability wording: with DPS down, assessments run on Core's staged copy (`cov_staging_value`), within `max_age_days`, instead of failing with `DATA_SOURCE_FAILURE`. Core stays up; the stale-copy path needs a decision and a test. |
+| GAP-03 | Closed (phase 4) | Reliability wording: with DPS down, assessments run on Core's staged copy (`cov_staging_value`), within `max_age_days`, instead of failing with `DATA_SOURCE_FAILURE`. Core stays up; the stale-copy path needs a decision and a test. |
 | GAP-04 | Closed (phase 3) | Quality gate: bandit (DPS, every severity) and semgrep (`p/default`) now run in CI; GitHub Actions pinned to commit SHAs. |
 | GAP-05 | Closed (phase 3) | Every model call's tokens are stored per request (`dps_ai_usage`); cost when the bank sets its rates; `GET /dps/v1/ai-usage` for support. |
 | GAP-06 | Closed (phase 2) | The notification client sent no authentication. Every bank-service client now uses OAuth client credentials (or a fixed token) when configured. |
@@ -193,9 +196,13 @@ Over the 10 golden agreements:
 
 A credit analyst must decide which clauses are covenants.
 
+Phase 4: these three kinds of clause are now extracted (minimum security cover, minimum collateral value, asset-disposal limit) and always held for a reviewer, because whether such a clause is an ongoing covenant is a credit judgement. Recall stays unproven until analysts label real documents (GAP-01).
+
 ### RISK-02 · High: capacity is not established
 
 With realistic portfolios (60 CPs per RM), this single 8-CPU host overloads at about 25 concurrent RMs (BUG-03). The load generator ran on the same host. Repeat the test on production-like hosts after BUG-03 and BUG-04 are fixed.
+
+Phase 4: two Core nodes behind the gateway on the same host carried 250 users (3–8 s pauses) at 46 requests/s with 0 errors; one node gave 18.4 requests/s and 8% errors. A test on production hosts is still needed.
 
 ### RISK-03 · Medium: token-refresh bursts
 
@@ -208,6 +215,8 @@ Both are required by the PRD before go-live.
 ### RISK-05 · Low: two schedulers assess the same covenants
 
 Per-covenant triggers and the daily sweep both write SCHEDULED assessments. 7,600 covenants had two on one day; part of that came from sweeps started by hand during this review.
+
+Closed in phase 4. The sweep already skipped a covenant checked since its due time. The remaining double came from a trigger that fired after the sweep had covered its slot (a late or misfired trigger, or a sweep started by hand). The trigger now checks first and skips when the covenant was assessed at or after the trigger's scheduled time.
 
 ### RISK-06 · Low: a role test is flaky under load
 
@@ -262,3 +271,18 @@ The synthetic golden set found four extraction bugs on its first run, all fixed 
 | BUG-19 | Medium | No TOTAL_DEBT when a statement has long-term but no short-term borrowings | Derived from the borrowings lines present |
 | BUG-20 | Medium | "Net Debt to EBITDA" also produced a Debt to EBITDA covenant | A match inside a longer alias of another metric is skipped |
 | BUG-21 | Low | Negative pledge missed when words sit between "shall not" and "create any lien" | Pattern allows up to 80 characters between them |
+
+## Phase 4 fixes
+
+| Item | Change | Where | Live check |
+|---|---|---|---|
+| GAP-03 (decision: use stored figures) | When a source cannot be read and Core holds a stored copy, the assessment uses it and carries the note "Data may be stale: the latest refresh of … failed, so these figures come from the stored copy of …". A value older than its measure's max age is still refused, and with no stored copy the assessment is `DATA_SOURCE_FAILURE` as before. A rejected configuration (bad identifier, host not allowed) still fails. PRD reliability line updated. | `AssessmentService.ingestStaging`, `IngestionOrchestrationService.storedCopyAt`, `SourceReadException`, `docs/integration/05-prd.md` | DPS stopped, CP-1001 forced to refresh: COMPLIANT with the note, ingestion state `FAILED`; DPS back: no note |
+| BUG-22 | Found while building GAP-03. A source error passed through two `@Transactional` methods, which marked the caller's transaction rollback-only, so the assessment's own ERROR row and the `FAILED` ingestion status could not be saved. Source-read failures (nothing written yet) are now `SourceReadException`, which those methods do not roll back for. | `StagingIngestionService`, `IngestionOrchestrationService` | The live check above saved both the assessment and `FAILED` |
+| RISK-05 | A per-covenant trigger skips the assessment when the covenant was already assessed at or after the trigger's scheduled time; the schedule row is still updated. | `AssessmentJob` | Unit test |
+| RISK-01 | Security cover, collateral value and asset-disposal limits extracted, held for review; amounts in crore. Synthetic agreements AGR-013, -016 and -019 carry them; draft labels AGR-007 and -008 gained them for analysts to confirm. | `dps/src/dps/extraction/agreement.py`, `mapping.py`, `golden-set/` | Synthetic gate 100%; real drafts recall 1.0, precision 1.0 |
+| `.xls` statements | Old Excel workbooks are read with cell references (`PL!B2`); a corrupt one fails with "Unreadable .xls statement". | `dps/src/dps/extraction/statement.py`, `flows/statement.py` | Unit tests |
+| BUG-23 | Recommendations take an amendment's term in place of the earlier agreement's term for the same covenant, through any chain of amendments; covenants the amendment does not mention keep their terms. | `dps/src/dps/services.py` | Live: AGR-013 (DSCR ≥ 1.30) plus an amendment (DSCR ≥ 1.20) on CP-1001: one DSCR recommendation, 1.20 from the amendment; leverage and FCCR from the original |
+| BUG-24 | A refused save is read before the answer, so Windows no longer resets the connection; the 422 test can no longer pass silently. | `golden-set/review.py`, `test_review.py` | 40 runs, 4 in parallel: 0 failures |
+| Scale-out | `deploy/docker-compose.scale.yml` runs two Core nodes behind the gateway with Quartz clustered (as the prod profile does). | `deploy/` | Both schedulers report "is clustered"; load in `test-results.md` section 12 |
+
+Note on C7 in Core: onboarding lists only covenants not yet applied to the CP. When an amendment changes a covenant the CP already has, the document page shows "Changes made by this amendment" and the RM updates the CP's own rule for that covenant (A3). Core does not change an applied covenant by itself.

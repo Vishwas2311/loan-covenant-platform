@@ -56,6 +56,9 @@ DISPLAY_NAMES: dict[str, str] = {
     "COMPLIANCE_CERTIFICATE": "Compliance Certificate",
     "BOOKS_AND_RECORDS": "Books and Records",
     "REGULATORY_AND_TAX_COMPLIANCE": "Regulatory and Tax Compliance",
+    "SECURITY_COVER": "Minimum Security Cover",
+    "MIN_COLLATERAL_VALUE": "Minimum Collateral Value",
+    "ASSET_DISPOSAL_CAP": "Asset Disposal Limit",
 }
 
 # Amount metrics are held in INR crore (the measure unit); convert the agreement's unit.
@@ -121,7 +124,8 @@ def to_proposal(term: Term, masters_by_name: dict[str, CoreMaster]) -> Proposal:
     master = next((masters_by_name[_key(n)] for n in names if _key(n) in masters_by_name), None)
 
     threshold, unit = term.threshold, term.unit
-    if term.metric in ("MIN_NET_WORTH", "MIN_TANGIBLE_NET_WORTH", "MINIMUM_LIQUIDITY") and threshold is not None:
+    if term.metric in ("MIN_NET_WORTH", "MIN_TANGIBLE_NET_WORTH", "MINIMUM_LIQUIDITY", "MIN_COLLATERAL_VALUE",
+                       "ASSET_DISPOSAL_CAP") and threshold is not None:
         threshold = round(threshold * TO_CRORE.get(unit, 1.0), 6)
         unit = "INR_CR"
 

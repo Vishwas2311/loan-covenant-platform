@@ -57,7 +57,7 @@ Test IDs refer to `feature-test-matrix.md`. "E2E n" is the numbered Playwright t
 |---|---|---|---|---|
 | Security | SSO; JWT validated in gateway and both services; six roles; no default secrets; CSP; ASVS L2 target; pen test | Partial | SEC-01..SEC-08 | Keycloak stands in for Entra ID; no penetration test; no Key Vault in this environment. |
 | Privacy | Azure OpenAI private endpoint; minimal text; logs ≤ 90 days | Not verified | | Private endpoint and retention are environment and policy decisions. |
-| Reliability | Core works with DPS down; DPS retries; idempotent publish/report | Partial | RES-01..RES-04 | Core stays up, but assessments use the staged copy instead of `DATA_SOURCE_FAILURE` (GAP-03). |
+| Reliability | Core works with DPS down; DPS retries; idempotent publish/report | Pass | RES-01..RES-04, P4-01 | Decided (GAP-03): assessments use the stored copy within max age and carry a "Data may be stale" note; the PRD says so. Checked live in phase 4. |
 | Performance | Flow A 50 pages p95 ≤ 90 s; Flow B p95 ≤ 60 s; C2 p95 ≤ 500 ms; daily run 10k covenants ≤ 30 min | Pass | PERF-01..PERF-05 | All four targets met with wide margins (single user). |
 | Scalability | DPS workers scale on queue depth; Core 2+ instances with clustered Quartz | Partial after phase 1 | OPS-03; section 9 of test-results | 100 concurrent RMs with 60-CP portfolios: 0 errors on one 8-CPU host. 250: 2.7% errors; production sizing still to be measured (RISK-02). |
 | Data | SQL Server per-service schema; migrations; daily backup and restore | Pass | Flyway V1..V30, Alembic; restore drill identical | |

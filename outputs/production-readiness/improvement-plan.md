@@ -59,3 +59,9 @@ Phase 3 status (5 November 2026): items 18 (bandit, semgrep), 19 (AI tokens and 
 23 (treemap and exposure) and 24 (flaky test) are done. The golden set is prepared for analysts (synthetic set,
 prediction script, CI gate, guide); the analysts' labelling, bank integrations (20), penetration test (21) and the
 production load test (17) remain.
+
+Phase 4 status (5 November 2026): item 16 (DPS-down behaviour) is decided and done: stored figures with a
+"Data may be stale" note, PRD updated. Item 7's remaining double assessments are gone (late triggers skip a
+covenant already covered). Also done: more covenant kinds extracted (RISK-01), `.xls` statements, amendments
+replacing earlier terms (C7), and a two-Core-node load test on one host. Remaining: analyst labelling (2), the
+production load test (17), bank integrations (20) and the penetration test (21).

@@ -135,6 +135,18 @@ docker compose -f docker-compose.yml -f docker-compose.real.yml -f docker-compos
 Open http://localhost:8025 to read the RM summaries, borrower reminders, saved reports and escalation digests
 (escalations go to `credit.head@covenant.local`). Nothing leaves the machine. Never use this file in production.
 
+## 5c. Two Core nodes locally
+
+`deploy/docker-compose.scale.yml` runs two Core nodes behind the gateway, with Quartz clustered as in the prod
+profile:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.real.yml -f docker-compose.scale.yml up -d --scale core=2
+```
+
+Core's host ports are not published in this mode; use the gateway on port 8080. Each node keeps its own
+30-second portfolio cache.
+
 ## 5a. Time zone
 
 Core runs in `COVENANT_TIME_ZONE` (default `Asia/Kolkata`, set in the image). The 06:00 daily run, due dates and "today" follow it, not the container's UTC clock. Set it on the Core container if the bank works in another zone. The daily-run trigger is re-registered with the zone at every start; per-covenant assessment triggers take it when they are next created or rescheduled.
@@ -174,6 +186,7 @@ Expected load, from `loadtest/README.md` (one laptop, everything on one machine)
 | A CP's covenants show *Error* | `GET /api/v1/ops/cps/{cpId}/diagnostics`; then `POST /api/v1/ops/cps/{cpId}/reingest` or `POST /api/v1/ops/applied-covenants/{id}/reassess` |
 | One assessment looks wrong | `GET /api/v1/ops/assessments/{assessmentId}/diagnostics` |
 | Values look stale | `GET /api/v1/ops/cps/{cpId}/ingestion-state`; `DELETE` the same path clears the freshness gate |
+| An assessment says "Data may be stale: the latest refresh of … failed" | the source (often DPS) could not be read, so Core used its stored copy. Fix the source; the next assessment refreshes and the note goes |
 | A DPS job is `FAILED` | read its `error` with `GET /dps/v1/jobs/{id}`, fix the cause, then `POST /dps/v1/jobs/{id}/retry` |
 | A job sits in `NEEDS_REVIEW` | expected: a reviewer checks the extracted terms in the UI, then resumes it |
 | Core will not start: `DEV_HEADER is not allowed with the prod profile` | remove `COVENANT_SECURITY_MODE=DEV_HEADER` |
@@ -195,5 +208,5 @@ Every ops endpoint is audited (`GET /api/v1/ops/audit`). `DELETE /api/v1/ops/cps
 
 ## 10. Known gaps before go-live
 
-- **Not load-tested:** a separate database host, several Core instances under load, and a burst on the heavy (Docling) pool.
+- **Not load-tested:** a separate database host and a burst on the heavy (Docling) pool. Two Core instances were tested on one host only (`deploy/docker-compose.scale.yml`).
 - The items that need people: golden-set label verification (D13), hosting (D9), Entra ID registrations, the Azure OpenAI deployment, and the bank's production endpoints.

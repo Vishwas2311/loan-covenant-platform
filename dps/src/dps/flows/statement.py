@@ -23,9 +23,11 @@ from dps.extraction.statement import (
     StatementResult,
     extract_values,
     header_from_csv,
+    header_from_xls,
     header_from_xlsx,
     rows_from_csv,
     rows_from_text,
+    rows_from_xls,
     rows_from_xlsx,
 )
 from dps.flows.persistence import SqlFlowPersistence
@@ -94,11 +96,14 @@ class StatementProcessingFlow(Flow[StatementState]):
             elif ext == ".xlsx":
                 rows = rows_from_xlsx(data)
                 self.state.header_text = header_from_xlsx(data)
+            elif ext == ".xls":
+                rows = rows_from_xls(data)
+                self.state.header_text = header_from_xls(data)
             elif ext == ".csv":
                 rows = rows_from_csv(data)
                 self.state.header_text = header_from_csv(data)
             else:
-                raise ParseError(f"{ext} statements are not supported; upload PDF, XLSX or CSV")
+                raise ParseError(f"{ext} statements are not supported; upload PDF, XLSX, XLS or CSV")
         except ParseError as ex:
             self.state.error, rows = str(ex), []
         except Exception as ex:  # corrupt workbook / CSV

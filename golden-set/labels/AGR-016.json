@@ -2,7 +2,7 @@
  "documentId": "AGR-016",
  "type": "LOAN_AGREEMENT",
  "sourceFile": "AGR-016.pdf",
- "sha256": "dba241da796ffe7b6c38cfa61472a6eb60706b4fbbf3020e79903b63547f0c6a",
+ "sha256": "bea3da7be084cf3ed918c36a53bc07fea6028641575b47aa322574635af99224",
  "pages": 1,
  "status": "SYNTHETIC",
  "labelledBy": "generator: make_synthetic.py (truth by construction)",
@@ -47,6 +47,16 @@
    "frequency": null,
    "page": 1,
    "quote": "10.1 The Borrower shall maintain insurance over its plants with reputable insurers and keep the policies in force."
+  },
+  {
+   "metric": "ASSET_DISPOSAL_CAP",
+   "category": "FINANCIAL",
+   "operator": "<=",
+   "threshold": 25,
+   "unit": "crore",
+   "frequency": "YEARLY",
+   "page": 1,
+   "quote": "10.2 The Borrower shall not sell, transfer or otherwise dispose of any of its assets, other than assets having a value not exceeding INR 25 crore in any Financial Year."
   }
  ]
 }

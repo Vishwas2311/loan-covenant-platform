@@ -51,8 +51,18 @@ def values_series(db: Session, entity: str, keys: list[str], to: date, frm: date
     }
 
 
+def _covenant_key(term: ExtractedTerm) -> str:
+    """Which covenant a term is about: its library covenant, or its own name when it is a custom one."""
+    return term.covenant_master_id or term.metric_raw.lower()
+
+
 def recommendations(db: Session, cp_id: str) -> list[dict]:
-    """C1: PUBLISHED proposals from loan agreements actively linked to the CP."""
+    """C1: PUBLISHED proposals from loan agreements actively linked to the CP.
+
+    C7: where a linked agreement amends another, the amendment's term replaces the earlier agreement's
+    term for the same covenant (through any chain of amendments); covenants the amendment does not
+    mention keep their earlier terms.
+    """
     stmt = (select(ExtractedTerm, Document)
             .join(Document, Document.id == ExtractedTerm.document_id)
             .join(DocumentCpLink, DocumentCpLink.document_id == Document.id)
@@ -60,8 +70,23 @@ def recommendations(db: Session, cp_id: str) -> list[dict]:
                    Document.type == "LOAN_AGREEMENT", ExtractedTerm.status == "PUBLISHED",
                    ExtractedTerm.category != "INFO")  # FR-29/30 facts are review information, not covenants
             .order_by(ExtractedTerm.created_at))
+    rows = db.execute(stmt).all()
+    amended_by: dict[str, list[str]] = defaultdict(list)
+    for doc in {d.id: d for _, d in rows}.values():
+        if doc.amends_document_id:
+            amended_by[doc.amends_document_id].append(doc.id)
+    keys_by_doc: dict[str, set[str]] = defaultdict(set)
+    for term, doc in rows:
+        keys_by_doc[doc.id].add(_covenant_key(term))
+
+    def replaced(doc_id: str, key: str, seen: frozenset[str] = frozenset()) -> bool:
+        return any(key in keys_by_doc[later] or replaced(later, key, seen | {doc_id})
+                   for later in amended_by.get(doc_id, ()) if later not in seen)
+
     out = []
-    for term, doc in db.execute(stmt).all():
+    for term, doc in rows:
+        if replaced(doc.id, _covenant_key(term)):
+            continue
         custom = None
         if term.covenant_master_id is None:
             custom = {"name": term.metric_raw, "definition": term.expression,

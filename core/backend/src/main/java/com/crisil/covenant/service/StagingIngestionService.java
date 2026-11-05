@@ -9,6 +9,8 @@ import com.crisil.covenant.entity.Measure;
 import com.crisil.covenant.entity.StagingValue;
 import com.crisil.covenant.enums.DataColumnType;
 import com.crisil.covenant.enums.TableLayout;
+import com.crisil.covenant.exception.ApiException;
+import com.crisil.covenant.exception.SourceReadException;
 import com.crisil.covenant.repository.MeasureRepository;
 import com.crisil.covenant.repository.StagingValueRepository;
 import com.crisil.covenant.util.JdbcDataSourceRegistry;
@@ -96,7 +98,7 @@ public class StagingIngestionService {
      * @return the ingest outcome: rows written (0 when the table has no measures / no data) and the
      *         source's optional change timestamp (REST only; {@code null} for MSSQL).
      */
-    @Transactional
+    @Transactional(noRollbackFor = SourceReadException.class)
     public IngestOutcome ingest(DataSourceTable table, String entityKey, LocalDate asOf) {
         return ingest(table, entityKey, asOf, asOf);
     }
@@ -113,17 +115,33 @@ public class StagingIngestionService {
      * @return the ingest outcome: rows written (0 when the table has no measures / no data) and the
      *         source's optional change timestamp (REST only; {@code null} for MSSQL).
      */
-    @Transactional
+    @Transactional(noRollbackFor = SourceReadException.class)
     public IngestOutcome ingest(DataSourceTable table, String entityKey, LocalDate from, LocalDate asOf) {
         List<Measure> measures = measureRepository.findByDataSourceTableId(table.getId());
         if (measures.isEmpty()) {
             return new IngestOutcome(0, null);
         }
         DataSource source = table.getDataSource();
-        SourceRead read = switch (source.getType()) {
-            case MSSQL -> readFromMssql(source, table, measures, entityKey, from, asOf);
-            case REST -> readFromRest(source, table, measures, entityKey, from, asOf);
-        };
+        // A failed read has written nothing, so it is raised as SourceReadException, which does not
+        // roll back the caller's transaction: the assessment can still fall back to the stored copy.
+        // A rejected configuration (bad identifier, host not allowed: a 4xx ApiException) is not an
+        // outage and is raised unchanged.
+        SourceRead read;
+        try {
+            read = switch (source.getType()) {
+                case MSSQL -> readFromMssql(source, table, measures, entityKey, from, asOf);
+                case REST -> readFromRest(source, table, measures, entityKey, from, asOf);
+            };
+        } catch (SourceReadException ex) {
+            throw ex;
+        } catch (ApiException ex) {
+            if (ex.getStatus().is4xxClientError()) {
+                throw ex;
+            }
+            throw new SourceReadException(ex.getMessage(), ex);
+        } catch (RuntimeException ex) {
+            throw new SourceReadException(ex.getMessage(), ex);
+        }
         List<StagingValue> rows = read.rows();
         if (rows.isEmpty()) {
             return new IngestOutcome(0, read.sourceChangedAt());

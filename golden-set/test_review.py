@@ -133,7 +133,6 @@ def test_http_refuses_cross_site_writes_bad_hosts_and_paths(server):
                 {"Content-Type": "application/json", "X-Review": "1"})[0] == 404
     req = urllib.request.Request(server + "/api/labels/AGR-001", data=b"{", method="PUT",
                                  headers={"Content-Type": "application/json", "X-Review": "1"})
-    try:
+    with pytest.raises(urllib.error.HTTPError) as refused:
         urllib.request.urlopen(req, timeout=10)
-    except urllib.error.HTTPError as err:
-        assert err.code == 422
+    assert refused.value.code == 422

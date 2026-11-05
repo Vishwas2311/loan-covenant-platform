@@ -91,7 +91,7 @@ The result today is two half-solutions and manual re-keying, which is slow and e
 |---|---|
 | Security | Entra ID SSO; JWT validated at gateway and in both services; roles RM/APPROVER/AUTHOR/SUPPORT/AUDITOR/SERVICE; no default secrets (startup fails); secrets in Key Vault; CSP; OWASP ASVS L2 target; penetration test before go-live |
 | Privacy | Azure OpenAI via private endpoint; only needed text sent; no model training on bank data; prompt/output logs retained ≤ 90 days (policy to confirm) |
-| Reliability | Core works when DPS is down (onboarding without EXTRACTED rows; assessments ERROR with `DATA_SOURCE_FAILURE`); DPS jobs retry transient errors; idempotent publish/report |
+| Reliability | Core works when DPS is down (onboarding without EXTRACTED rows; assessments use Core's stored copy of the figures while each value is within its measure's max age and carry the note "Data may be stale: the latest refresh of … failed"; with no stored copy, or a value past its max age, they ERROR with `DATA_SOURCE_FAILURE` or missing values); DPS jobs retry transient errors; idempotent publish/report |
 | Performance (targets, to measure) | 50-page text PDF Flow A p95 ≤ 90 s; statement Flow B p95 ≤ 60 s; C2 p95 ≤ 500 ms; daily run 10k covenants ≤ 30 min |
 | Scalability | DPS workers scale on queue depth; Core 2+ instances with clustered Quartz |
 | Data | SQL Server, one schema per service; migrations (Flyway / Alembic); daily backup, point-in-time restore; document retention per bank policy |

@@ -2,7 +2,7 @@
  "documentId": "AGR-019",
  "type": "LOAN_AGREEMENT",
  "sourceFile": "AGR-019.pdf",
- "sha256": "2019034008d79331c362186e3f61bfc618fe1df11bdf4914d70d854b03742780",
+ "sha256": "faae2b097883303d6142a2c32590c7a2ebdabf3406c94e1f476ab4f5cdcbebc4",
  "pages": 1,
  "status": "SYNTHETIC",
  "labelledBy": "generator: make_synthetic.py (truth by construction)",
@@ -37,6 +37,16 @@
    "frequency": "QUARTERLY",
    "page": 1,
    "quote": "12.3 The Borrower shall maintain a Tangible Net Worth of not less than INR 1,200 crore."
+  },
+  {
+   "metric": "MIN_COLLATERAL_VALUE",
+   "category": "FINANCIAL",
+   "operator": ">=",
+   "threshold": 3600,
+   "unit": "crore",
+   "frequency": null,
+   "page": 1,
+   "quote": "13.1 The value of the Security shall at all times be not less than INR 3,600 crore, as certified by an approved valuer."
   }
  ]
 }
