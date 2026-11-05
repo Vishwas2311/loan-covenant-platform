@@ -16,7 +16,7 @@ OpenAI, and the bank's systems replaced by local stand-ins.
 
 - Docker Desktop with at least 12 GB of memory for containers (Settings → Resources).
 - Python 3.12 (for the test scripts).
-- Free ports: 8080, 8180, 9310, 9311, 9320, 9400, 1433.
+- Free ports: 8080, 8180, 9310, 9311, 9320, 9400, 1433. Also 8025 if you use the real-email option (section 5b).
 
 ## 2. One-time setup
 
@@ -84,6 +84,34 @@ python deploy/smoke_real.py
 
 It signs in as several users and checks 12 things: token contents; Core and DPS refusing requests without a token; an RM seeing their own CP but not another RM's; role rules; DPS passing the user's token on to Core; Core calling DPS with its own client-credentials token; and Ask AI answering from Azure OpenAI. It ends with `All checks passed`.
 
+## 5b. Real e-mail (Mailpit), optional
+
+By default the breach e-mails go to the WireMock stub and are not delivered anywhere. To see the actual
+e-mails (RM summaries, borrower reminders, saved reports and the FR-31 escalation digest), add the mail
+file. It runs **Mailpit** (a local inbox) and a small bridge that turns Core's notification calls into
+e-mails. Nothing leaves the machine.
+
+```bash
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml -f deploy/docker-compose.mail.yml --env-file deploy/.env up -d --build
+```
+
+Open the inbox at **http://localhost:8025**. Trigger the daily run (step in section 6) and the e-mails
+appear there; escalations go to `credit.head@covenant.local`. Keep all three `-f` files on every later
+`up`/`down` while you use this mode.
+
+## 5c. Two Core nodes (optional)
+
+To see Core scale out, add the scale file and run two Core nodes behind the gateway. Quartz is switched to
+clustered mode (as in production), so each scheduled job still runs on exactly one node.
+
+```bash
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml -f deploy/docker-compose.scale.yml --env-file deploy/.env up -d --scale core=2
+```
+
+In this mode Core's own host ports (9310/9320) are not published — reach it only through the gateway on
+8080. Each node keeps its own 30-second portfolio cache, so a change made through one node can take up to
+30 seconds to show through the other. You can combine the mail and scale files on one command line.
+
 ## 6. Manual test script
 
 Do these in order; each step says what you should see.
@@ -94,7 +122,7 @@ Do these in order; each step says what you should see.
 | 2 | `rm-anil` | Open CP-1008 in the address bar: `http://localhost:8080/cp/CP-1008` | Not found: it belongs to `rm-priya` |
 | 3 | `rm-anil` | **Documents** → upload a PDF agreement from `golden-set/documents/` to CP-1003 as *Loan agreement* | The job finishes within a minute; extracted terms show with page references |
 | 4 | `rm-anil` | **Onboarding** → CP-1003 | The extracted covenants appear as recommendations with confidence and a quote; apply one |
-| 5 | `rm-anil` | **Documents** → upload a financial statement (CSV or Excel) to CP-1001 with a period end date | Values appear with their cell references; Core re-assesses the covenants that use them |
+| 5 | `rm-anil` | **Documents** → upload a financial statement (CSV, or Excel `.xlsx` / `.xls`) to CP-1001 with a period end date | Values appear with their cell references; Core re-assesses the covenants that use them |
 | 6 | `rm-anil` | **CP workspace** → CP-1001 → a breached covenant → request a waiver | Status *Waiver requested* |
 | 7 | `rm-anil` | Look for an *Approve* button on that request | None: an RM cannot decide (Core also refuses the call with 403) |
 | 8 | `wrm-meera` | Same covenant → approve | Status *Waiver approved*; the status history shows both steps |
@@ -103,11 +131,13 @@ Do these in order; each step says what you should see.
 | 11 | `author-1` | **Covenant library** → search "DSCR" → **Download Excel** | Matching covenants; the Excel file opens. (Creating covenants is done through Core's API; the UI has no form for it yet) |
 | 12 | `support-1` | **Document jobs** | All DPS jobs with their status; a failed one can be retried |
 | 13 | `admin-1` | **Settings** → change a setting | Saved; other roles do not see Settings |
-| 14 | any | **Sign out** | Back at the Keycloak sign-in page |
+| 14 | `rm-anil` | **Documents** → upload an agreement to CP-1003 as *Loan agreement* with **Amendment of** set to the earlier one; publish its DSCR term | On **Onboarding** → CP-1003 the amendment's DSCR replaces the earlier agreement's; covenants it does not mention stay (C7) |
+| 15 | `admin-1` | Stop DPS (`docker stop covenant-platform-dps-api-1`), assess a CP whose figures come from DPS, then start it again (`docker start …`) | The assessment still completes, using Core's stored copy, with the note *"Data may be stale: the latest refresh of … failed"*; with DPS back, the note is gone |
+| 16 | any | **Sign out** | Back at the Keycloak sign-in page |
 
 ### Automated browser tests
 
-The 14 steps above are also automated (Playwright, a real Chromium browser signing in through Keycloak). With the stack running in real mode:
+These steps (and more) are automated (Playwright, a real Chromium browser signing in through Keycloak). With the stack running in real mode:
 
 ```bash
 cd ui
@@ -123,7 +153,7 @@ npx playwright install chromium
 npm run e2e
 ```
 
-It ends with `12 passed` (steps 6–8 are one test). The maker-checker test has the approver *reject* the waiver, so the covenant stays breached and the tests can run again and again. On a failure, `ui/e2e-report/index.html` has a screenshot and a step-by-step trace.
+It runs 58 tests (chromium) and ends with `52 passed` and `6 skipped` (some steps depend on demo data that may not be present, e.g. an open breach to waive). The maker-checker test has the approver *reject* the waiver, so the covenant stays breached and the tests can run again and again. On a failure, `ui/e2e-report/index.html` has a screenshot and a step-by-step trace.
 
 **The daily breach run** normally fires at 06:00. To run it now (as `admin-1`):
 
@@ -131,20 +161,28 @@ It ends with `12 passed` (steps 6–8 are one test). The maker-checker test has 
 python -c "import json,urllib.request as u,urllib.parse as p;env=dict(l.split('=',1) for l in open('deploy/.env').read().splitlines() if '=' in l and not l.startswith('#'));t=json.load(u.urlopen(u.Request('http://localhost:8180/realms/covenant/protocol/openid-connect/token',data=p.urlencode({'grant_type':'password','client_id':'covenant-cli','username':'admin-1','password':env['KC_DEMO_PASSWORD'].strip()}).encode())))['access_token'];print(u.urlopen(u.Request('http://localhost:8080/api/v1/monitoring/notification-runs',method='POST',headers={'Authorization':'Bearer '+t})).read().decode())"
 ```
 
-**The breach emails** go to the bank's notification service, which WireMock stands in for. See what was sent at http://localhost:9311/__admin/requests (search for `/api/v1/notifications`).
+**The breach e-mails:** in the default stack they go to the WireMock stand-in — see the calls at
+http://localhost:9311/__admin/requests (search for `/api/v1/notifications`). If you started with the mail
+file (section 5b), read the delivered e-mails in the Mailpit inbox at http://localhost:8025 instead.
 
 ## 7. Checking the sample agreements (golden set)
 
-Before go-live, a credit analyst confirms the covenants the app should find in the 10 sample agreements (decision D13). A review page makes it quick:
+The set has 20 sample agreements (`AGR-001`…`AGR-020`) and 10 statements (`FS-001`…`FS-010`). The
+synthetic ones carry labels written from their specification, and CI already grades the extractor against
+those on every build (`golden-set/predict.py` then `evaluate.py --statuses SYNTHETIC`). Before go-live a
+credit analyst still confirms the covenants on the real agreements (decision D13). A review page makes
+that quick:
 
 ```bash
 dps/.venv/Scripts/python golden-set/review.py
 ```
 
-Open http://127.0.0.1:8765 and follow the steps in `golden-set/README.md` ("Review page"). Then measure the extractor against the verified labels:
+Open http://127.0.0.1:8765 and follow the steps in `golden-set/README.md` ("Review page") and
+`golden-set/ANALYST-GUIDE.md`. Then measure the extractor against the verified labels:
 
 ```bash
-python golden-set/evaluate.py --predictions <folder with the extractor's AGR-nnn.json output>
+dps/.venv/Scripts/python golden-set/predict.py --out preds
+dps/.venv/Scripts/python golden-set/evaluate.py --predictions preds
 ```
 
 ## 8. Load test (optional)
@@ -168,6 +206,7 @@ These run against the development mode (start without `docker-compose.real.yml`)
 | Address | What |
 |---|---|
 | http://localhost:8080 | The app |
+| http://localhost:8025 | Mailpit inbox (only with the mail file, section 5b) |
 | http://localhost:8180 | Keycloak (sign-in, admin console) |
 | http://localhost:9310/swagger-ui.html | Core API documentation |
 | http://localhost:9320/actuator/prometheus | Core metrics (internal port, no token) |
@@ -184,6 +223,9 @@ Stop, keeping all data:
 ```bash
 docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml --env-file deploy/.env down
 ```
+
+If you started with the mail or scale file (section 5b / 5c), add the same `-f` file(s) to the `down`
+command and append `--remove-orphans`.
 
 Back to the seeded demo data, for a clean demo or screenshots after the browser tests have added uploads, checks and tasks. This deletes the database and DPS volumes but keeps the AI model cache, then starts the stack again and waits until it is ready (it asks you to type RESET first; `--dry-run` only prints what it would do):
 
