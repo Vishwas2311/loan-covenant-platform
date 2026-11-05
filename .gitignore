@@ -33,3 +33,10 @@ deploy/.env
 # local install logs
 *.log
 *.egg-info/
+
+# graphify: commit the graph and report; keep the local cache and machine paths out
+graphify-out/cache/
+graphify-out/.graphify_python
+graphify-out/.graphify_root
+graphify-out/.graphify_*.json
+!graphify-out/.graphify_labels.json

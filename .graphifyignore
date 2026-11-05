@@ -1,0 +1,7 @@
+# Keep the knowledge graph on source code and project documentation.
+# Test fixtures and raw outputs add noise and semantic-extraction cost.
+golden-set/documents/
+golden-set/labels/
+outputs/production-readiness/evidence/
+core/docs/sample-compliance-certificates/
+graphify-out/
