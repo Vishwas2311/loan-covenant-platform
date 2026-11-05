@@ -89,3 +89,12 @@ describe('treemap (FR-25)', () => {
     expect(screen.getByText('Nothing to show yet.')).toBeInTheDocument();
   });
 });
+
+describe('exposure card', () => {
+  it('copes with an answer that has sectors but no total', async () => {
+    const { ExposureBySector } = await import('../pages/Charts');
+    wrap(<ExposureBySector bySector={[{ key: 'STEEL', cps: 1, applied: 1, compliant: 1, breached: 0, error: 0,
+      dispositioned: 0, breachRate: 0, exposureCrore: 500, cpsWithExposure: 1 }]} total={null} />);
+    expect(screen.getByRole('listitem', { name: /Steel/ })).toBeInTheDocument();
+  });
+});

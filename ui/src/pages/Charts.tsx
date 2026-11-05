@@ -87,16 +87,17 @@ const CRORE = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
 const crore = (n: number) => `₹${CRORE.format(n)} cr`;
 
 /** FR-25: facility exposure by sector (tile size) and how much of it is breached (shade and label). */
-export function ExposureBySector({ bySector, total }: { bySector: AnalyticsGroup[]; total: AnalyticsGroup }) {
+export function ExposureBySector({ bySector, total }: { bySector: AnalyticsGroup[]; total?: AnalyticsGroup | null }) {
   const tiles = bySector
     .filter((g) => (g.exposureCrore ?? 0) > 0)
     .map((g) => ({ key: g.key, label: humanize(g.key), value: g.exposureCrore ?? 0, rate: g.breachRate,
       detail: `${g.cps} CP(s)` }));
-  const covered = total.cpsWithExposure ?? 0;
+  const covered = total?.cpsWithExposure ?? 0;
+  const cps = total?.cps ?? 0;
   return (
     <ChartCard title="Exposure by sector"
       subtitle={`Facility amounts in ₹ crore; tile size is exposure, shade is the share of checks breached.${
-        covered < total.cps ? ` ${covered} of ${total.cps} CPs have a facility amount.` : ''}`}
+        covered < cps ? ` ${covered} of ${cps} CPs have a facility amount.` : ''}`}
       actions={<Legend items={RATE_BANDS.map((b) => ({ label: b.label, color: b.color, ring: true }))} />}>
       {tiles.length === 0
         ? <Text size="sm" c="dimmed">No facility amounts yet: the CP service has not sent any.</Text>
@@ -123,7 +124,7 @@ export function Charts() {
       <Grid.Col span={{ base: 12, lg: 5 }}>
         {analytics.data?.bySegment && <BreachRate bySegment={analytics.data.bySegment} bySector={analytics.data.bySector} />}
       </Grid.Col>
-      {analytics.data?.bySector && (
+      {Array.isArray(analytics.data?.bySector) && (
         <Grid.Col span={12}>
           <ExposureBySector bySector={analytics.data.bySector} total={analytics.data.total} />
         </Grid.Col>
