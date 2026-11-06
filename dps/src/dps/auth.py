@@ -81,7 +81,7 @@ class Authenticator:
             )
         except jwt.PyJWTError as exc:
             # The reason only (expired, wrong audience, key fetch failed...), never the token itself.
-            log.warning("Token refused: %s", type(exc).__name__)
+            log.warning("Sign-in refused: %s", type(exc).__name__)
             raise _unauthorized("Invalid token") from exc
         user = claims.get(s.jwt_principal_claim) or claims.get("sub")
         if not user:
