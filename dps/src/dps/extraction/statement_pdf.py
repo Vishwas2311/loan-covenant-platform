@@ -428,17 +428,24 @@ def read_pdf_statement(data: bytes, ocr=None, dpi: int = 200) -> PdfStatement:
     """
     import pdfplumber
 
+    from dps.extraction.statement import _unit, unit_stated
     from dps.extraction.statement_pages import statement_pages
 
-    chosen = statement_pages(data, ocr)
+    selection = statement_pages(data, ocr)
+    chosen, main = selection if selection is not None else (None, 0)
+    main_unit = None
     pages: list[list[Word]] = []
     numbers: list[int] = []
     texts: list[str] = []
     header, ocr_pages, confidences = "", [], []
     with pdfplumber.open(io.BytesIO(data)) as pdf:
-        for index in chosen if chosen is not None else range(len(pdf.pages)):
+        for position, index in enumerate(chosen if chosen is not None else range(len(pdf.pages))):
             page = pdf.pages[index]
             text = page.extract_text() or ""
+            if chosen is not None and position == main:
+                main_unit = _unit(header)
+            if main_unit and unit_stated(text[:1500]) and _unit(text[:1500]) != main_unit:
+                continue  # a runner-up in another unit ("Rs 000'" in a ten-year summary): not these statements
             # A broken font encoding ("(cid:12)") gives text no reader can use: read the page image instead.
             if len(re.findall(r"\w", text)) >= MIN_TEXT_CHARS and len(_GARBLE.findall(text)) < 5:
                 words = _text_words(page)

@@ -204,6 +204,18 @@ def test_the_statement_page_outranks_notes_and_the_auditors_report():
     assert rank([AUDIT, NOTES, BALANCE_SHEET, NOTES])["BS"][0] == 2
 
 
+PROFIT = ("STATEMENT OF PROFIT OR LOSS\n{when}\nRevenue 35,861 27,725\nFinance Cost (11,260) (439)\n"
+          "Profit Before Tax 349,412 91,036\nIncome Tax Expense (28,917) (27,651)\nProfit for the period 320,495\n"
+          "Earnings per share 12.59\n")
+
+
+def test_period_statement_outranks_the_quarter_and_ten_year_summaries_score_down():
+    quarter, period = PROFIT.format(when="For the Quarter Ended 30th September"), PROFIT.format(
+        when="For the Period Ended 30th September")
+    assert rank([quarter, period])["PL"][0] == 1
+    assert rank(["DECADE AT A GLANCE\n" + period, period])["PL"][0] == 1
+
+
 def test_short_files_are_read_whole_and_garbled_text_is_not_usable():
     w = PdfWriter()
     for _ in range(3):
@@ -317,8 +329,8 @@ def test_a_long_report_is_read_only_on_its_statement_pages():
             asked.append(index)
             return []
 
-    chosen = statement_pages(buf.getvalue(), FakeOcr())
-    assert chosen and min(chosen) >= 13
+    chosen, main = statement_pages(buf.getvalue(), FakeOcr())
+    assert min(chosen) >= 13 and 1 <= main <= len(chosen)
     assert all(i >= 11 for i in asked)  # only pages next to the candidates, never the whole report
     table = read_pdf_statement(buf.getvalue())
     got = {v.key: v.value for v in extract_values(table.rows, table.header_text).values if not v.derived}

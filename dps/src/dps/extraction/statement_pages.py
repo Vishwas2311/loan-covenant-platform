@@ -45,6 +45,8 @@ _NOTES = re.compile(r"notes?\s+(forming\s+part|to\s+the\s+(standalone\s+|consoli
 _AUDIT = re.compile(r"independent\s+auditor|auditor'?s\s+report|key\s+audit\s+matters", re.I)
 _AUDIT_START = re.compile(r"independent\s+auditor'?s?\s+report|report\s+of\s+independent\s+registered", re.I)
 _GARBLE = re.compile(r"\(cid:\d+\)|[ĨǆƉǀďƋͿ]")
+_SUMMARY = re.compile(r"decade|ten[- ]year|five[- ]year|at\s+a\s+glance|financial\s+highlights|key\s+figures", re.I)
+_QUARTER = re.compile(r"(quarter|three\s+months)\s+ended", re.I)
 # A page scoring above this is a candidate; at CONFIDENT the type needs no OCR search.
 CANDIDATE, CONFIDENT = 4.0, 9.0
 # Reports longer than this are searched; shorter files are read whole (a statement pack is 2-10 pages).
@@ -75,6 +77,10 @@ def page_score(text: str, kind: str) -> float:
         score -= 2
     if kind == "CF" and not re.search(r"operating\s+activities", t):
         score -= 6
+    if _SUMMARY.search(t[:400]):
+        score -= 6  # "Decade at a glance": ten years of figures, in another unit
+    if kind != "BS" and _QUARTER.search(t[:700]):
+        score -= 3  # an interim report prints the quarter before the period
     return score
 
 
@@ -122,20 +128,30 @@ def page_texts(data: bytes, ocr=None, per_kind: int = 6, window: int = 12) -> li
     return texts
 
 
-def statement_pages(data: bytes, ocr=None) -> list[int] | None:
-    """0-based pages to read, best balance sheet / P&L / cash flow first, then the runners-up.
+def statement_pages(data: bytes, ocr=None) -> tuple[list[int], int] | None:
+    """0-based pages to read and how many of them are the main statements.
 
-    None for a short file (read it whole) or when no page looks like a statement.
+    The best balance sheet / P&L / cash flow come first, then the runners-up. A long report is read only on
+    those pages; a short file (a statement pack) keeps its other pages after them, so an interim report's
+    quarter statement no longer comes before the period. None when no page looks like a statement (a scan:
+    read the file whole).
     """
     from pypdf import PdfReader
 
-    if len(PdfReader(io.BytesIO(data)).pages) <= LONG_REPORT_PAGES:
-        return None
-    ranked = rank(page_texts(data, ocr))
+    count = len(PdfReader(io.BytesIO(data)).pages)
+    short = count <= LONG_REPORT_PAGES
+    texts = [(p.extract_text() or "") for p in PdfReader(io.BytesIO(data)).pages] if short else page_texts(data, ocr)
+    ranked = rank(texts)
     order: list[int] = []
     for position in (0, 1):
         for kind in KINDS:
             pages = ranked[kind]
             if len(pages) > position and pages[position] not in order:
                 order.append(pages[position])
-    return order or None
+        if position == 0:
+            main = len(order)
+    if not order:
+        return None
+    if short:
+        order += [i for i in range(count) if i not in order]
+    return order, main

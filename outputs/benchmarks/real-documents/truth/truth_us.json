@@ -1,0 +1,779 @@
+{
+ "US01": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    6758.9
+   ],
+   "PAT": [
+    888.2
+   ],
+   "PBT": [
+    1154.1
+   ],
+   "TAX": [
+    276.8
+   ],
+   "CASH": [
+    998.0
+   ],
+   "INVENTORY": [
+    1813.5
+   ],
+   "RECEIVABLES": [
+    1092.0
+   ],
+   "CURRENT_ASSETS": [
+    5248.5
+   ],
+   "TOTAL_ASSETS": [
+    9858.5
+   ],
+   "CURRENT_LIABILITIES": [
+    3655.8
+   ],
+   "NET_WORTH": [
+    2131.8
+   ],
+   "LT_DEBT": [
+    3069.6
+   ],
+   "TRADE_PAYABLES": [
+    896.8
+   ],
+   "CFO": [
+    1173.9
+   ],
+   "CFI": [
+    -470.7
+   ],
+   "CFF": [
+    -389.9
+   ],
+   "CAPEX": [
+    282.1
+   ]
+  }
+ },
+ "US02": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    4568.4
+   ],
+   "PAT": [
+    499.8,
+    502.7
+   ],
+   "INTEREST_PAID": [
+    317.0
+   ],
+   "PBT": [
+    625.7
+   ],
+   "TAX": [
+    125.9
+   ],
+   "CASH": [
+    827.6
+   ],
+   "INVENTORY": [
+    740.6
+   ],
+   "TOTAL_ASSETS": [
+    10599.6
+   ],
+   "NET_WORTH": [
+    2595.0,
+    2595.6
+   ],
+   "CFO": [
+    745.9
+   ],
+   "CFI": [
+    -205.7
+   ],
+   "CFF": [
+    -457.9
+   ],
+   "CAPEX": [
+    136.0
+   ]
+  }
+ },
+ "US03": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    3249.4
+   ],
+   "PAT": [
+    174.4,
+    203.8
+   ],
+   "INTEREST_PAID": [
+    17.0
+   ],
+   "PBT": [
+    256.8
+   ],
+   "TAX": [
+    53.0
+   ],
+   "CASH": [
+    226.0
+   ],
+   "INVENTORY": [
+    546.2
+   ],
+   "RECEIVABLES": [
+    310.5
+   ],
+   "CURRENT_ASSETS": [
+    1176.5
+   ],
+   "TOTAL_ASSETS": [
+    3510.4
+   ],
+   "CURRENT_LIABILITIES": [
+    400.4
+   ],
+   "NET_WORTH": [
+    2093.6,
+    2212.4
+   ],
+   "TRADE_PAYABLES": [
+    189.0
+   ],
+   "CFO": [
+    323.4
+   ],
+   "CFI": [
+    -322.6
+   ],
+   "CFF": [
+    -131.5
+   ],
+   "CAPEX": [
+    342.2
+   ]
+  }
+ },
+ "US04": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    1552.4
+   ],
+   "PAT": [
+    31.8,
+    34.1
+   ],
+   "INTEREST_PAID": [
+    34.1
+   ],
+   "PBT": [
+    51.6
+   ],
+   "TAX": [
+    14.2
+   ],
+   "CASH": [
+    66.9
+   ],
+   "INVENTORY": [
+    230.7
+   ],
+   "RECEIVABLES": [
+    127.6
+   ],
+   "CURRENT_ASSETS": [
+    492.4
+   ],
+   "TOTAL_ASSETS": [
+    1600.1
+   ],
+   "CURRENT_LIABILITIES": [
+    651.3
+   ],
+   "NET_WORTH": [
+    271.5,
+    272.6
+   ],
+   "LT_DEBT": [
+    558.3
+   ],
+   "TRADE_PAYABLES": [
+    370.4
+   ],
+   "CFO": [
+    47.0
+   ],
+   "CFI": [
+    -50.4
+   ],
+   "CFF": [
+    -62.1
+   ],
+   "CAPEX": [
+    38.9
+   ]
+  }
+ },
+ "US05": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    470.13,
+    536.59
+   ],
+   "PAT": [
+    -32.24,
+    -31.82
+   ],
+   "INTEREST_PAID": [
+    16.34
+   ],
+   "PBT": [
+    -10.2
+   ],
+   "TAX": [
+    21.62
+   ],
+   "INVENTORY": [
+    25.98
+   ],
+   "RECEIVABLES": [
+    105.98
+   ],
+   "CURRENT_ASSETS": [
+    258.37
+   ],
+   "TOTAL_ASSETS": [
+    555.2
+   ],
+   "CURRENT_LIABILITIES": [
+    187.11
+   ],
+   "NET_WORTH": [
+    56.55
+   ],
+   "LT_DEBT": [
+    276.79
+   ],
+   "TRADE_PAYABLES": [
+    33.54
+   ],
+   "CFO": [
+    89.32
+   ],
+   "CFI": [
+    -28.44
+   ],
+   "CFF": [
+    -53.13
+   ],
+   "CAPEX": [
+    6.33
+   ]
+  }
+ },
+ "US06": {
+  "unit": "thousand",
+  "values": {
+   "REVENUE": [
+    534.7623
+   ],
+   "PAT": [
+    39.7584
+   ],
+   "INTEREST_PAID": [
+    11.8681
+   ],
+   "PBT": [
+    45.9489
+   ],
+   "TAX": [
+    8.9774
+   ],
+   "CASH": [
+    124.2927
+   ],
+   "INVENTORY": [
+    56.3142
+   ],
+   "RECEIVABLES": [
+    109.7604
+   ],
+   "CURRENT_ASSETS": [
+    313.0789
+   ],
+   "TOTAL_ASSETS": [
+    664.0382
+   ],
+   "CURRENT_LIABILITIES": [
+    145.8182
+   ],
+   "NET_WORTH": [
+    223.3048
+   ],
+   "LT_DEBT": [
+    233.1675
+   ],
+   "TRADE_PAYABLES": [
+    55.5403
+   ],
+   "CFO": [
+    59.3255
+   ],
+   "CFI": [
+    -15.4932
+   ],
+   "CFF": [
+    -62.0566
+   ]
+  }
+ },
+ "US07": {
+  "unit": "thousand",
+  "values": {
+   "REVENUE": [
+    360.3979,
+    447.3175
+   ],
+   "PAT": [
+    32.9154,
+    33.8738
+   ],
+   "INTEREST_PAID": [
+    3.3444
+   ],
+   "PBT": [
+    45.8731
+   ],
+   "TAX": [
+    12.9577
+   ],
+   "CASH": [
+    309.1744
+   ],
+   "INVENTORY": [
+    73.0898
+   ],
+   "RECEIVABLES": [
+    22.576
+   ],
+   "CURRENT_ASSETS": [
+    558.6949
+   ],
+   "TOTAL_ASSETS": [
+    804.4815
+   ],
+   "CURRENT_LIABILITIES": [
+    265.8694
+   ],
+   "NET_WORTH": [
+    314.0668,
+    315.685
+   ],
+   "LT_DEBT": [
+    164.9612
+   ],
+   "TRADE_PAYABLES": [
+    38.9237
+   ],
+   "CFO": [
+    56.8922
+   ],
+   "CFI": [
+    377.8775
+   ],
+   "CFF": [
+    -301.03
+   ],
+   "CAPEX": [
+    15.3679
+   ]
+  }
+ },
+ "US08": {
+  "unit": "thousand",
+  "values": {
+   "REVENUE": [
+    1210.616
+   ],
+   "PAT": [
+    47.7764,
+    47.8197
+   ],
+   "INTEREST_PAID": [
+    7.8038
+   ],
+   "PBT": [
+    66.3449
+   ],
+   "TAX": [
+    18.5684
+   ],
+   "CASH": [
+    67.0679
+   ],
+   "INVENTORY": [
+    174.7279
+   ],
+   "RECEIVABLES": [
+    78.4812
+   ],
+   "CURRENT_ASSETS": [
+    340.5656
+   ],
+   "TOTAL_ASSETS": [
+    1339.3119
+   ],
+   "CURRENT_LIABILITIES": [
+    138.0796
+   ],
+   "NET_WORTH": [
+    790.1171,
+    791.5815
+   ],
+   "LT_DEBT": [
+    285.0778
+   ],
+   "TRADE_PAYABLES": [
+    73.1578
+   ],
+   "CFO": [
+    84.5251
+   ],
+   "CFI": [
+    -29.8592
+   ],
+   "CFF": [
+    -61.3996
+   ],
+   "CAPEX": [
+    31.0902
+   ]
+  }
+ },
+ "US10": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    2357.43
+   ],
+   "PAT": [
+    256.85
+   ],
+   "INTEREST_PAID": [
+    39.62,
+    46.5
+   ],
+   "PBT": [
+    333.82
+   ],
+   "TAX": [
+    76.97
+   ],
+   "CASH": [
+    20.72
+   ],
+   "INVENTORY": [
+    231.82
+   ],
+   "RECEIVABLES": [
+    279.12
+   ],
+   "CURRENT_ASSETS": [
+    600.74
+   ],
+   "TOTAL_ASSETS": [
+    2590.17
+   ],
+   "CURRENT_LIABILITIES": [
+    692.03
+   ],
+   "NET_WORTH": [
+    459.83
+   ],
+   "LT_DEBT": [
+    932.07
+   ],
+   "TRADE_PAYABLES": [
+    235.42
+   ],
+   "CFO": [
+    345.16
+   ],
+   "CFI": [
+    -206.63
+   ],
+   "CFF": [
+    -137.86
+   ]
+  }
+ },
+ "US11": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    1316.1
+   ],
+   "PAT": [
+    91.5
+   ],
+   "INTEREST_PAID": [
+    31.4
+   ],
+   "PBT": [
+    112.8
+   ],
+   "TAX": [
+    24.0
+   ],
+   "CASH": [
+    121.2
+   ],
+   "INVENTORY": [
+    201.3
+   ],
+   "RECEIVABLES": [
+    205.7
+   ],
+   "CURRENT_ASSETS": [
+    611.3
+   ],
+   "TOTAL_ASSETS": [
+    1952.4
+   ],
+   "CURRENT_LIABILITIES": [
+    548.7
+   ],
+   "NET_WORTH": [
+    542.1
+   ],
+   "TRADE_PAYABLES": [
+    445.2
+   ],
+   "CFO": [
+    126.2
+   ],
+   "CFI": [
+    -65.6
+   ],
+   "CFF": [
+    -34.4
+   ],
+   "CAPEX": [
+    47.4
+   ]
+  }
+ },
+ "US12": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    1010.3
+   ],
+   "PAT": [
+    -52.2
+   ],
+   "INTEREST_PAID": [
+    25.6
+   ],
+   "PBT": [
+    10.4
+   ],
+   "TAX": [
+    29.3
+   ],
+   "CASH": [
+    34.5
+   ],
+   "INVENTORY": [
+    147.2
+   ],
+   "CURRENT_ASSETS": [
+    334.5
+   ],
+   "TOTAL_ASSETS": [
+    1298.0
+   ],
+   "CURRENT_LIABILITIES": [
+    266.0
+   ],
+   "NET_WORTH": [
+    385.3,
+    389.3
+   ],
+   "LT_DEBT": [
+    468.7
+   ],
+   "TRADE_PAYABLES": [
+    125.7
+   ],
+   "CFO": [
+    178.6
+   ],
+   "CFI": [
+    -76.5
+   ],
+   "CFF": [
+    -107.2
+   ]
+  }
+ },
+ "US13": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    715.2
+   ],
+   "PAT": [
+    -46.55,
+    -46.48
+   ],
+   "INTEREST_PAID": [
+    13.14
+   ],
+   "PBT": [
+    -53.27
+   ],
+   "TAX": [
+    -6.79
+   ],
+   "CASH": [
+    13.8
+   ],
+   "INVENTORY": [
+    141.24
+   ],
+   "RECEIVABLES": [
+    23.75
+   ],
+   "CURRENT_ASSETS": [
+    220.66
+   ],
+   "TOTAL_ASSETS": [
+    489.37
+   ],
+   "CURRENT_LIABILITIES": [
+    224.33
+   ],
+   "NET_WORTH": [
+    82.84,
+    83.29
+   ],
+   "TRADE_PAYABLES": [
+    76.25
+   ],
+   "CFO": [
+    74.1
+   ],
+   "CFI": [
+    -13.95
+   ],
+   "CFF": [
+    -69.3
+   ],
+   "CAPEX": [
+    18.29
+   ]
+  }
+ },
+ "US14": {
+  "unit": "million",
+  "values": {
+   "CASH": [
+    162.45
+   ],
+   "INVENTORY": [
+    102.52
+   ],
+   "RECEIVABLES": [
+    88.14
+   ],
+   "CURRENT_ASSETS": [
+    440.28
+   ],
+   "TOTAL_ASSETS": [
+    841.23
+   ],
+   "CURRENT_LIABILITIES": [
+    91.85
+   ],
+   "NET_WORTH": [
+    593.18,
+    595.68
+   ],
+   "LT_DEBT": [
+    118.64
+   ],
+   "TRADE_PAYABLES": [
+    22.91
+   ]
+  }
+ },
+ "US15": {
+  "unit": "million",
+  "values": {
+   "REVENUE": [
+    1274.9
+   ],
+   "PAT": [
+    134.3,
+    135.6
+   ],
+   "INTEREST_PAID": [
+    31.1
+   ],
+   "PBT": [
+    165.4
+   ],
+   "TAX": [
+    30.4
+   ],
+   "CASH": [
+    69.4
+   ],
+   "INVENTORY": [
+    116.5
+   ],
+   "RECEIVABLES": [
+    152.2
+   ],
+   "CURRENT_ASSETS": [
+    375.4
+   ],
+   "TOTAL_ASSETS": [
+    1562.8
+   ],
+   "CURRENT_LIABILITIES": [
+    466.0
+   ],
+   "NET_WORTH": [
+    377.5,
+    388.2
+   ],
+   "LT_DEBT": [
+    499.8
+   ],
+   "TRADE_PAYABLES": [
+    223.6
+   ],
+   "CFO": [
+    176.0
+   ],
+   "CFI": [
+    -75.0
+   ],
+   "CFF": [
+    -60.7
+   ],
+   "CAPEX": [
+    62.8
+   ]
+  }
+ }
+}

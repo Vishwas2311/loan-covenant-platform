@@ -1,0 +1,4447 @@
+{
+"AG01": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 2.0,
+"page": 11,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 55.4,
+"ocr_pages": 7
+},
+"S_OLD": {
+"terms": [],
+"section": [
+16,
+23,
+32
+],
+"seconds": 111.97,
+"ocr_pages": 7
+},
+"W_PLB": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 2.0,
+"page": 11,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 73.07,
+"ocr_pages": 7
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 2.0,
+"page": 32
+}
+],
+"section": [
+16,
+23,
+32
+],
+"seconds": 135.97,
+"ocr_pages": 7
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 2.0,
+"page": 11,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 61.39,
+"ocr_pages": 7
+},
+"S_NEW": {
+"terms": [],
+"section": [
+16,
+23,
+32
+],
+"seconds": 37.08,
+"ocr_pages": 7
+},
+"S_DOC": {
+"terms": [],
+"section": [
+16,
+23,
+32
+],
+"seconds": 244.8,
+"ocr_pages": 7
+}
+},
+"AG02": {
+"W_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.5,
+"page": 60,
+"metric": "DEBT_TO_EQUITY"
+},
+{
+"family": "FCCR",
+"dir": "min",
+"threshold": 1.5,
+"page": 61,
+"metric": "FIXED_CHARGE_COVERAGE_RATIO"
+}
+],
+"seconds": 176.3,
+"ocr_pages": 13
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.5,
+"page": 86,
+"metric": "DEBT_TO_EQUITY"
+}
+],
+"section": [
+29,
+86,
+92
+],
+"seconds": 125.49,
+"ocr_pages": 13
+},
+"W_PLB": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.5,
+"page": 60,
+"metric": "DEBT_TO_EQUITY"
+},
+{
+"family": "FCCR",
+"dir": "min",
+"threshold": 1.5,
+"page": 61,
+"metric": "FIXED_CHARGE_COVERAGE_RATIO"
+}
+],
+"seconds": 136.1,
+"ocr_pages": 13
+},
+"S_AI": {
+"terms": [
+{
+"family": "OTHER",
+"dir": "min",
+"threshold": 1.25,
+"page": 92
+},
+{
+"family": "OTHER",
+"dir": "min",
+"threshold": 1,
+"page": 92
+}
+],
+"section": [
+29,
+86,
+92
+],
+"seconds": 134.4,
+"ocr_pages": 13
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.5,
+"page": 60,
+"metric": "DEBT_TO_EQUITY"
+},
+{
+"family": "FCCR",
+"dir": "min",
+"threshold": 1.5,
+"page": 61,
+"metric": "FIXED_CHARGE_COVERAGE_RATIO"
+}
+],
+"seconds": 151.85,
+"ocr_pages": 13
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.5,
+"page": 86,
+"metric": "DEBT_TO_EQUITY"
+}
+],
+"section": [
+29,
+86,
+92
+],
+"seconds": 129.3,
+"ocr_pages": 13
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.5,
+"page": 86,
+"metric": "DEBT_TO_EQUITY"
+}
+],
+"section": [
+29,
+86,
+92
+],
+"seconds": 117.07,
+"ocr_pages": 13
+}
+},
+"AG03": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.5,
+"page": 22,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 3.0,
+"page": 22,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 42.4,
+"ocr_pages": 2
+},
+"S_OLD": {
+"terms": [],
+"section": [
+20,
+21,
+32
+],
+"seconds": 35.43,
+"ocr_pages": 2
+},
+"W_PLB": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.5,
+"page": 22,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 3.0,
+"page": 22,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 135.12,
+"ocr_pages": 2
+},
+"S_AI": {
+"terms": [],
+"section": [
+20,
+21,
+32
+],
+"seconds": 38.43,
+"ocr_pages": 2
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.5,
+"page": 22,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 3.0,
+"page": 22,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 52.41,
+"ocr_pages": 2
+},
+"S_NEW": {
+"terms": [],
+"section": [
+20,
+21,
+32
+],
+"seconds": 54.85,
+"ocr_pages": 2
+},
+"S_DOC": {
+"terms": [],
+"section": [
+20,
+21,
+32
+],
+"seconds": 32.49,
+"ocr_pages": 2
+}
+},
+"AG04": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 90.0,
+"page": 79,
+"metric": "DSCR"
+}
+],
+"seconds": 20.08,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 76,
+"metric": "DSCR"
+}
+],
+"section": [
+76,
+125,
+127
+],
+"seconds": 24.97,
+"ocr_pages": 0
+},
+"W_PLB": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 90.0,
+"page": 79,
+"metric": "DSCR"
+}
+],
+"seconds": 1591.31,
+"ocr_pages": 0
+},
+"S_AI": {
+"seconds": 1707.95,
+"error": "ServiceRequestError: HTTPSConnection(host='chatbotnl2sql.openai.azure.com', port=443): Failed to resolve 'chatbotnl2sql.openai.azure.com' ([Errno -3] Temporary failure in name resolution)",
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 76,
+"metric": "DSCR"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 500000000.0,
+"page": 127,
+"metric": "MIN_NET_WORTH"
+}
+],
+"seconds": 24.5,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 76,
+"metric": "DSCR"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 500000000.0,
+"page": 127,
+"metric": "MIN_NET_WORTH"
+}
+],
+"section": [
+76,
+125,
+127
+],
+"seconds": 24.43,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 76,
+"metric": "DSCR"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 500000000.0,
+"page": 127,
+"metric": "MIN_NET_WORTH"
+}
+],
+"section": [
+76,
+125,
+127
+],
+"seconds": 23.42,
+"ocr_pages": 0
+}
+},
+"AG05": {
+"W_OLD": {
+"terms": [],
+"seconds": 6.19,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+2
+],
+"seconds": 9.9,
+"ocr_pages": 0
+},
+"W_PLB": {
+"terms": [],
+"seconds": 15.69,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 1.25,
+"page": 2
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 2
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 1.5,
+"page": 2
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 7500000,
+"page": 2
+}
+],
+"section": [
+2
+],
+"seconds": 14.4,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 1.5,
+"page": 2,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 7500000.0,
+"page": 2,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"seconds": 1.38,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 1.5,
+"page": 2,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 7500000.0,
+"page": 2,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"section": [
+2
+],
+"seconds": 1.35,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "ICR",
+"dir": "max",
+"threshold": 1.5,
+"page": 2,
+"metric": "ICR"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 1.5,
+"page": 2,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 7500000.0,
+"page": 2,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"section": [
+2
+],
+"seconds": 38.94,
+"ocr_pages": 0
+}
+},
+"AG06": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.1,
+"page": 16,
+"metric": "DSCR"
+}
+],
+"seconds": 18.68,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+33,
+43
+],
+"seconds": 6.01,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [],
+"section": [
+33,
+43
+],
+"seconds": 31.46,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.1,
+"page": 16,
+"metric": "DSCR"
+}
+],
+"seconds": 9.73,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+33,
+43
+],
+"seconds": 9.12,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+33,
+43
+],
+"seconds": 22.09,
+"ocr_pages": 0
+}
+},
+"AG07": {
+"W_OLD": {
+"terms": [],
+"seconds": 39.2,
+"ocr_pages": 4
+},
+"S_OLD": {
+"terms": [],
+"section": [
+10
+],
+"seconds": 33.77,
+"ocr_pages": 4
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 10
+},
+{
+"family": "LTV",
+"dir": "max",
+"threshold": 75,
+"page": 10
+}
+],
+"section": [
+10
+],
+"seconds": 36.29,
+"ocr_pages": 4
+},
+"W_NEW": {
+"terms": [],
+"seconds": 48.21,
+"ocr_pages": 4
+},
+"S_NEW": {
+"terms": [],
+"section": [
+10
+],
+"seconds": 55.53,
+"ocr_pages": 4
+},
+"S_DOC": {
+"terms": [],
+"section": [
+10
+],
+"seconds": 81.52,
+"ocr_pages": 4
+}
+},
+"AG08": {
+"W_OLD": {
+"terms": [],
+"seconds": 28.2,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+17,
+19,
+24
+],
+"seconds": 25.51,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 17
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 3000000,
+"page": 17
+}
+],
+"section": [
+17,
+19,
+24
+],
+"seconds": 29.3,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 3000000.0,
+"page": 17,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"seconds": 22.92,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 3000000.0,
+"page": 17,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"section": [
+17,
+19,
+24
+],
+"seconds": 22.44,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 3000000.0,
+"page": 17,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"section": [
+17,
+19,
+24
+],
+"seconds": 81.77,
+"ocr_pages": 0
+}
+},
+"AG09": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.3,
+"page": 28,
+"metric": "DSCR"
+}
+],
+"seconds": 18.64,
+"ocr_pages": 1
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.3,
+"page": 28,
+"metric": "DSCR"
+}
+],
+"section": [
+16,
+25,
+28
+],
+"seconds": 34.29,
+"ocr_pages": 1
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.3,
+"page": 28
+}
+],
+"section": [
+16,
+25,
+28
+],
+"seconds": 37.28,
+"ocr_pages": 1
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.3,
+"page": 15,
+"metric": "DSCR"
+}
+],
+"seconds": 27.12,
+"ocr_pages": 1
+},
+"S_NEW": {
+"terms": [],
+"section": [
+16,
+25,
+28
+],
+"seconds": 24.33,
+"ocr_pages": 1
+},
+"S_DOC": {
+"terms": [],
+"section": [
+16,
+25,
+28
+],
+"seconds": 55.53,
+"ocr_pages": 1
+}
+},
+"AG10": {
+"W_OLD": {
+"terms": [],
+"seconds": 0.49,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+1,
+3
+],
+"seconds": 0.54,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 1956800,
+"page": 3
+}
+],
+"section": [
+1,
+3
+],
+"seconds": 3.5,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 1.76,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+1,
+3
+],
+"seconds": 1.6,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+1,
+3
+],
+"seconds": 44.06,
+"ocr_pages": 0
+}
+},
+"AG11": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.4,
+"page": 11,
+"metric": "DSCR"
+}
+],
+"seconds": 12.3,
+"ocr_pages": 1
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.4,
+"page": 11,
+"metric": "DSCR"
+}
+],
+"section": [
+9,
+11,
+12
+],
+"seconds": 4.22,
+"ocr_pages": 1
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.4,
+"page": 11
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 3000000,
+"page": 12
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 25000000,
+"page": 12
+}
+],
+"section": [
+9,
+11,
+12
+],
+"seconds": 7.53,
+"ocr_pages": 1
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.4,
+"page": 11,
+"metric": "DSCR"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 25000000.0,
+"page": 12,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"seconds": 20.95,
+"ocr_pages": 1
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.4,
+"page": 11,
+"metric": "DSCR"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 25000000.0,
+"page": 12,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"section": [
+9,
+11,
+12
+],
+"seconds": 21.42,
+"ocr_pages": 1
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.4,
+"page": 11,
+"metric": "DSCR"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 25000000.0,
+"page": 12,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"section": [
+9,
+11,
+12
+],
+"seconds": 45.82,
+"ocr_pages": 1
+}
+},
+"AG12": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+}
+],
+"seconds": 6.17,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+}
+],
+"section": [
+9,
+14,
+15
+],
+"seconds": 9.47,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.0,
+"page": 15
+}
+],
+"section": [
+9,
+14,
+15
+],
+"seconds": 11.93,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+}
+],
+"seconds": 15.9,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+}
+],
+"section": [
+9,
+14,
+15
+],
+"seconds": 22.69,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+}
+],
+"section": [
+9,
+14,
+15
+],
+"seconds": 29.06,
+"ocr_pages": 0
+}
+},
+"AG13": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 14,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 14,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 6.47,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 14,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 14,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+3,
+13,
+14
+],
+"seconds": 6.57,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "OTHER",
+"dir": "max",
+"threshold": 0.7,
+"page": 13
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 2.0,
+"page": 13
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 14
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 14
+}
+],
+"section": [
+3,
+13,
+14
+],
+"seconds": 11.52,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 14,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 14,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 21.02,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 14,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 14,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+3,
+13,
+14
+],
+"seconds": 31.68,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 14,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 14,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+3,
+13,
+14
+],
+"seconds": 26.34,
+"ocr_pages": 0
+}
+},
+"AG14": {
+"W_OLD": {
+"terms": [],
+"seconds": 3.95,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+5,
+6,
+10
+],
+"seconds": 2.8,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 5
+}
+],
+"section": [
+5,
+6,
+10
+],
+"seconds": 5.06,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 9.61,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+5,
+6,
+10
+],
+"seconds": 9.93,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+5,
+6,
+10
+],
+"seconds": 21.01,
+"ocr_pages": 0
+}
+},
+"AG15": {
+"W_OLD": {
+"terms": [],
+"seconds": 12.09,
+"ocr_pages": 1
+},
+"S_OLD": {
+"terms": [],
+"section": [
+12,
+18,
+19
+],
+"seconds": 12.11,
+"ocr_pages": 1
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 18
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 18
+}
+],
+"section": [
+12,
+18,
+19
+],
+"seconds": 15.17,
+"ocr_pages": 1
+},
+"W_NEW": {
+"terms": [],
+"seconds": 19.84,
+"ocr_pages": 1
+},
+"S_NEW": {
+"terms": [],
+"section": [
+12,
+18,
+19
+],
+"seconds": 26.49,
+"ocr_pages": 1
+},
+"S_DOC": {
+"terms": [],
+"section": [
+12,
+18,
+19
+],
+"seconds": 31.16,
+"ocr_pages": 1
+}
+},
+"AG16": {
+"W_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 24,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 25,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 25,
+"metric": "CURRENT_RATIO"
+}
+],
+"seconds": 3.59,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 24,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 25,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 25,
+"metric": "CURRENT_RATIO"
+}
+],
+"section": [
+24,
+25,
+28
+],
+"seconds": 3.45,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 24
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 25
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1,
+"page": 25
+}
+],
+"section": [
+24,
+25,
+28
+],
+"seconds": 6.27,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 24,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 25,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 25,
+"metric": "CURRENT_RATIO"
+}
+],
+"seconds": 8.01,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 24,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 25,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 25,
+"metric": "CURRENT_RATIO"
+}
+],
+"section": [
+24,
+25,
+28
+],
+"seconds": 11.22,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 25,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 25,
+"metric": "CURRENT_RATIO"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 24,
+"metric": "DEBT_TO_NET_WORTH"
+}
+],
+"section": [
+24,
+25,
+28
+],
+"seconds": 28.08,
+"ocr_pages": 0
+}
+},
+"AG17": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.75,
+"page": 8,
+"metric": "DSCR"
+}
+],
+"seconds": 4.53,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+4,
+20,
+26
+],
+"seconds": 3.52,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [],
+"section": [
+4,
+20,
+26
+],
+"seconds": 6.03,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 6.05,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+4,
+20,
+26
+],
+"seconds": 5.02,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+4,
+20,
+26
+],
+"seconds": 67.04,
+"ocr_pages": 0
+}
+},
+"AG18": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"seconds": 6.28,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"section": [
+7
+],
+"seconds": 4.34,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 7
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.15,
+"page": 7
+}
+],
+"section": [
+7
+],
+"seconds": 7.34,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DEBT_TO_EBITDA"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"seconds": 7.06,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DEBT_TO_EBITDA"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"section": [
+7
+],
+"seconds": 7.41,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.15,
+"page": 7,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.0,
+"page": 7,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+7
+],
+"seconds": 42.13,
+"ocr_pages": 0
+}
+},
+"AG19": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 19,
+"metric": "DSCR"
+}
+],
+"seconds": 28.06,
+"ocr_pages": 4
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 19,
+"metric": "DSCR"
+}
+],
+"section": [
+6,
+19,
+46
+],
+"seconds": 34.94,
+"ocr_pages": 4
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 19
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 43000000,
+"page": 19
+}
+],
+"section": [
+6,
+19,
+46
+],
+"seconds": 40.13,
+"ocr_pages": 4
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 19,
+"metric": "DSCR"
+}
+],
+"seconds": 28.16,
+"ocr_pages": 4
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 19,
+"metric": "DSCR"
+}
+],
+"section": [
+6,
+19,
+46
+],
+"seconds": 51.74,
+"ocr_pages": 4
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.35,
+"page": 19,
+"metric": "DSCR"
+}
+],
+"section": [
+6,
+19,
+46
+],
+"seconds": 113.14,
+"ocr_pages": 4
+}
+},
+"AG20": {
+"W_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.1,
+"page": 13,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 13,
+"metric": "DSCR"
+}
+],
+"seconds": 1.86,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.1,
+"page": 13,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 13,
+"metric": "DSCR"
+}
+],
+"section": [
+11,
+13
+],
+"seconds": 1.72,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.1,
+"page": 13
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 13
+}
+],
+"section": [
+11,
+13
+],
+"seconds": 4.74,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.1,
+"page": 13,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 13,
+"metric": "DSCR"
+}
+],
+"seconds": 2.19,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.1,
+"page": 13,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 13,
+"metric": "DSCR"
+}
+],
+"section": [
+11,
+13
+],
+"seconds": 1.95,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.1,
+"page": 13,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 13,
+"metric": "DSCR"
+}
+],
+"section": [
+11,
+13
+],
+"seconds": 27.21,
+"ocr_pages": 0
+}
+},
+"AG21": {
+"W_OLD": {
+"terms": [],
+"seconds": 24.33,
+"ocr_pages": 8
+},
+"S_OLD": {
+"terms": [],
+"section": [
+77,
+82,
+100
+],
+"seconds": 23.18,
+"ocr_pages": 8
+},
+"S_AI": {
+"terms": [],
+"section": [
+77,
+82,
+100
+],
+"seconds": 26.11,
+"ocr_pages": 8
+},
+"W_NEW": {
+"terms": [],
+"seconds": 28.11,
+"ocr_pages": 8
+},
+"S_NEW": {
+"terms": [],
+"section": [
+77,
+82,
+100
+],
+"seconds": 26.67,
+"ocr_pages": 8
+},
+"S_DOC": {
+"terms": [],
+"section": [
+77,
+82,
+100
+],
+"seconds": 55.08,
+"ocr_pages": 8
+}
+},
+"AG22": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 12,
+"metric": "DSCR"
+}
+],
+"seconds": 4.19,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 12,
+"metric": "DSCR"
+}
+],
+"section": [
+8,
+12
+],
+"seconds": 3.39,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 25000000,
+"page": 12
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 12
+}
+],
+"section": [
+8,
+12
+],
+"seconds": 6.82,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 12,
+"metric": "DSCR"
+}
+],
+"seconds": 7.53,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 12,
+"metric": "DSCR"
+}
+],
+"section": [
+8,
+12
+],
+"seconds": 7.6,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 2.0,
+"page": 12,
+"metric": "DSCR"
+}
+],
+"section": [
+8,
+12
+],
+"seconds": 23.96,
+"ocr_pages": 0
+}
+},
+"AG23": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 5,
+"metric": "DSCR"
+}
+],
+"seconds": 1.3,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 5,
+"metric": "DSCR"
+}
+],
+"section": [
+5
+],
+"seconds": 0.92,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 5
+}
+],
+"section": [
+5
+],
+"seconds": 3.55,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 5,
+"metric": "DSCR"
+}
+],
+"seconds": 0.82,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 5,
+"metric": "DSCR"
+}
+],
+"section": [
+5
+],
+"seconds": 0.86,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 5,
+"metric": "DSCR"
+}
+],
+"section": [
+5
+],
+"seconds": 16.74,
+"ocr_pages": 0
+}
+},
+"AG24": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"seconds": 7.34,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"section": [
+7,
+15,
+23
+],
+"seconds": 5.77,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "LTV",
+"dir": "max",
+"threshold": 67.7,
+"page": 7
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 7
+}
+],
+"section": [
+7,
+15,
+23
+],
+"seconds": 9.21,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"seconds": 8.04,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 7,
+"metric": "DSCR"
+}
+],
+"section": [
+7,
+15,
+23
+],
+"seconds": 7.51,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+7,
+15,
+23
+],
+"seconds": 35.34,
+"ocr_pages": 0
+}
+},
+"AG25": {
+"W_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 15,
+"metric": "CURRENT_RATIO"
+}
+],
+"seconds": 14.45,
+"ocr_pages": 1
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 15,
+"metric": "CURRENT_RATIO"
+}
+],
+"section": [
+2,
+15,
+17
+],
+"seconds": 14.49,
+"ocr_pages": 1
+},
+"S_AI": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 15
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 15
+}
+],
+"section": [
+2,
+15,
+17
+],
+"seconds": 17.51,
+"ocr_pages": 1
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 15,
+"metric": "CURRENT_RATIO"
+}
+],
+"seconds": 15.53,
+"ocr_pages": 1
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 15,
+"metric": "CURRENT_RATIO"
+}
+],
+"section": [
+2,
+15,
+17
+],
+"seconds": 21.31,
+"ocr_pages": 1
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 15,
+"metric": "DSCR"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 9.0,
+"page": 15,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "CURRENT_RATIO",
+"dir": "min",
+"threshold": 1.0,
+"page": 15,
+"metric": "CURRENT_RATIO"
+}
+],
+"section": [
+2,
+15,
+17
+],
+"seconds": 54.56,
+"ocr_pages": 1
+}
+},
+"AG26": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.5,
+"page": 121,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"seconds": 71.58,
+"ocr_pages": 4
+},
+"S_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 5.0,
+"page": 133,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"section": [
+133,
+134,
+135
+],
+"seconds": 60.13,
+"ocr_pages": 4
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.0,
+"page": 133
+}
+],
+"section": [
+133,
+134,
+135
+],
+"seconds": 63.05,
+"ocr_pages": 4
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.5,
+"page": 121,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"seconds": 96.8,
+"ocr_pages": 4
+},
+"S_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.0,
+"page": 133,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"section": [
+133,
+134,
+135
+],
+"seconds": 80.71,
+"ocr_pages": 4
+},
+"S_DOC": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.0,
+"page": 133,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"section": [
+133,
+134,
+135
+],
+"seconds": 153.84,
+"ocr_pages": 4
+}
+},
+"AG27": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.0,
+"page": 80,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"seconds": 65.29,
+"ocr_pages": 2
+},
+"S_OLD": {
+"terms": [],
+"section": [
+106,
+123,
+138
+],
+"seconds": 66.48,
+"ocr_pages": 2
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 4.75,
+"page": 106
+}
+],
+"section": [
+106,
+123,
+138
+],
+"seconds": 68.79,
+"ocr_pages": 2
+},
+"W_NEW": {
+"terms": [],
+"seconds": 77.67,
+"ocr_pages": 2
+},
+"S_NEW": {
+"terms": [],
+"section": [
+106,
+123,
+138
+],
+"seconds": 87.22,
+"ocr_pages": 2
+},
+"S_DOC": {
+"terms": [],
+"section": [
+106,
+123,
+138
+],
+"seconds": 134.02,
+"ocr_pages": 2
+}
+},
+"AG28": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 2.75,
+"page": 24,
+"metric": "NET_LEVERAGE_RATIO"
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.0,
+"page": 40,
+"metric": "ICR"
+}
+],
+"seconds": 41.34,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 3.5,
+"page": 113,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"section": [
+113,
+115,
+126
+],
+"seconds": 79.57,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.5,
+"page": 113
+}
+],
+"section": [
+113,
+115,
+126
+],
+"seconds": 82.12,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 2.75,
+"page": 24,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"seconds": 64.46,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.5,
+"page": 113,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"section": [
+113,
+115,
+126
+],
+"seconds": 54.52,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 3.5,
+"page": 113,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"section": [
+113,
+115,
+126
+],
+"seconds": 89.3,
+"ocr_pages": 0
+}
+},
+"AG29": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 2.5,
+"page": 2,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 2.31,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+3
+],
+"seconds": 2.65,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 6.0,
+"page": 3
+}
+],
+"section": [
+3
+],
+"seconds": 6.37,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 2.78,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+3
+],
+"seconds": 3.11,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+3
+],
+"seconds": 32.9,
+"ocr_pages": 0
+}
+},
+"AG30": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.5,
+"page": 2,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 0.5,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [],
+"seconds": 0.63,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [],
+"section": [],
+"seconds": 0.63,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 1.29,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [],
+"seconds": 0.98,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [],
+"seconds": 0.53,
+"ocr_pages": 0
+}
+},
+"AG31": {
+"W_OLD": {
+"terms": [
+{
+"family": "ICR",
+"dir": "max",
+"threshold": 3.0,
+"page": 91,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 1.5,
+"page": 6,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 31.94,
+"ocr_pages": 1
+},
+"S_OLD": {
+"terms": [],
+"section": [
+84,
+90,
+133
+],
+"seconds": 31.86,
+"ocr_pages": 1
+},
+"S_AI": {
+"terms": [],
+"section": [
+84,
+90,
+133
+],
+"seconds": 34.79,
+"ocr_pages": 1
+},
+"W_NEW": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 3.0,
+"page": 91,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 1.5,
+"page": 11,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 49.0,
+"ocr_pages": 1
+},
+"S_NEW": {
+"terms": [],
+"section": [
+84,
+90,
+133
+],
+"seconds": 47.61,
+"ocr_pages": 1
+},
+"S_DOC": {
+"terms": [],
+"section": [
+84,
+90,
+133
+],
+"seconds": 145.36,
+"ocr_pages": 1
+}
+},
+"AG32": {
+"W_OLD": {
+"terms": [],
+"seconds": 1.71,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+2,
+3
+],
+"seconds": 1.4,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 10000000,
+"page": 2
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 3000000,
+"page": 2
+},
+{
+"family": "OTHER",
+"dir": "max",
+"threshold": 200000,
+"page": 2
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 1.5,
+"page": 3
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 1000000,
+"page": 3
+}
+],
+"section": [
+2,
+3
+],
+"seconds": 5.77,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 10000000.0,
+"page": 2,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 3.0,
+"page": 2,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"seconds": 6.27,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 10000000.0,
+"page": 2,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 3.0,
+"page": 2,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"section": [
+2,
+3
+],
+"seconds": 4.47,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 10000000.0,
+"page": 2,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+},
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 3.0,
+"page": 2,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"section": [
+2,
+3
+],
+"seconds": 102.94,
+"ocr_pages": 0
+}
+},
+"AG33": {
+"W_OLD": {
+"terms": [],
+"seconds": 0.81,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+3
+],
+"seconds": 0.5,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.2,
+"page": 3
+}
+],
+"section": [
+3
+],
+"seconds": 3.72,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 1.73,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+3
+],
+"seconds": 1.48,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+3
+],
+"seconds": 111.99,
+"ocr_pages": 0
+}
+},
+"AG34": {
+"W_OLD": {
+"terms": [],
+"seconds": 161.88,
+"ocr_pages": 65
+},
+"S_OLD": {
+"terms": [],
+"section": [
+69,
+72,
+75
+],
+"seconds": 153.25,
+"ocr_pages": 65
+},
+"S_AI": {
+"terms": [],
+"section": [
+69,
+72,
+75
+],
+"seconds": 156.0,
+"ocr_pages": 65
+},
+"W_NEW": {
+"terms": [],
+"seconds": 437.61,
+"ocr_pages": 65
+},
+"S_NEW": {
+"terms": [],
+"section": [
+69,
+72,
+75
+],
+"seconds": 448.75,
+"ocr_pages": 65
+},
+"S_DOC": {
+"terms": [],
+"section": [
+69,
+72,
+75
+],
+"seconds": 443.85,
+"ocr_pages": 65
+}
+},
+"AG35": {
+"W_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 14,
+"metric": "DSCR"
+}
+],
+"seconds": 5.66,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 14,
+"metric": "DSCR"
+}
+],
+"section": [
+5,
+7,
+14
+],
+"seconds": 6.34,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "OTHER",
+"dir": "max",
+"threshold": 0.15,
+"page": 14
+},
+{
+"family": "OTHER",
+"dir": "min",
+"threshold": 0.105,
+"page": 14
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 14
+},
+{
+"family": "OTHER",
+"dir": "min",
+"threshold": 0.105,
+"page": 14
+}
+],
+"section": [
+5,
+7,
+14
+],
+"seconds": 12.32,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 85000000.0,
+"page": 7,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 14,
+"metric": "DSCR"
+}
+],
+"seconds": 16.13,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 85000000.0,
+"page": 7,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 14,
+"metric": "DSCR"
+}
+],
+"section": [
+5,
+7,
+14
+],
+"seconds": 18.54,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 85000000.0,
+"page": 7,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.25,
+"page": 14,
+"metric": "DSCR"
+}
+],
+"section": [
+5,
+7,
+14
+],
+"seconds": 109.44,
+"ocr_pages": 0
+}
+},
+"AG36": {
+"W_OLD": {
+"terms": [],
+"seconds": 16.08,
+"ocr_pages": 3
+},
+"S_OLD": {
+"terms": [],
+"section": [
+82,
+83,
+89
+],
+"seconds": 14.27,
+"ocr_pages": 3
+},
+"S_AI": {
+"terms": [],
+"section": [
+82,
+83,
+89
+],
+"seconds": 18.46,
+"ocr_pages": 3
+},
+"W_NEW": {
+"terms": [
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 105000000.0,
+"page": 37,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"seconds": 117.65,
+"ocr_pages": 3
+},
+"S_NEW": {
+"terms": [],
+"section": [
+82,
+83,
+89
+],
+"seconds": 50.67,
+"ocr_pages": 3
+},
+"S_DOC": {
+"terms": [],
+"section": [
+82,
+83,
+89
+],
+"seconds": 98.92,
+"ocr_pages": 3
+}
+},
+"AG37": {
+"W_OLD": {
+"terms": [],
+"seconds": 14.53,
+"ocr_pages": 4
+},
+"S_OLD": {
+"terms": [],
+"section": [
+12
+],
+"seconds": 13.46,
+"ocr_pages": 4
+},
+"S_AI": {
+"terms": [],
+"section": [
+12
+],
+"seconds": 15.79,
+"ocr_pages": 4
+},
+"W_NEW": {
+"terms": [],
+"seconds": 50.33,
+"ocr_pages": 4
+},
+"S_NEW": {
+"terms": [],
+"section": [
+12
+],
+"seconds": 60.45,
+"ocr_pages": 4
+},
+"S_DOC": {
+"terms": [],
+"section": [
+12
+],
+"seconds": 54.74,
+"ocr_pages": 4
+}
+},
+"AG38": {
+"W_OLD": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41,
+"metric": "ICR"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41,
+"metric": "DSCR"
+}
+],
+"seconds": 41.36,
+"ocr_pages": 5
+},
+"S_OLD": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41,
+"metric": "ICR"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41,
+"metric": "DSCR"
+}
+],
+"section": [
+24,
+41,
+77
+],
+"seconds": 35.37,
+"ocr_pages": 5
+},
+"S_AI": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.75,
+"page": 41
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41
+}
+],
+"section": [
+24,
+41,
+77
+],
+"seconds": 40.15,
+"ocr_pages": 5
+},
+"W_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.75,
+"page": 41,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41,
+"metric": "ICR"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.75,
+"page": 41,
+"metric": "DEBT_TO_EBITDA"
+},
+{
+"family": "MIN_NW",
+"dir": "min",
+"threshold": 8.0,
+"page": 104,
+"metric": "MIN_TANGIBLE_NET_WORTH"
+}
+],
+"seconds": 60.94,
+"ocr_pages": 5
+},
+"S_NEW": {
+"terms": [
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.75,
+"page": 41,
+"metric": "DEBT_TO_NET_WORTH"
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41,
+"metric": "ICR"
+},
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41,
+"metric": "DSCR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.75,
+"page": 41,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+24,
+41,
+77
+],
+"seconds": 131.54,
+"ocr_pages": 5
+},
+"S_DOC": {
+"terms": [
+{
+"family": "DSCR",
+"dir": "min",
+"threshold": 1.05,
+"page": 41,
+"metric": "DSCR"
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.25,
+"page": 41,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.75,
+"page": 41,
+"metric": "DEBT_TO_EBITDA"
+},
+{
+"family": "DEBT_TO_NW",
+"dir": "max",
+"threshold": 3.75,
+"page": 41,
+"metric": "DEBT_TO_NET_WORTH"
+}
+],
+"section": [
+24,
+41,
+77
+],
+"seconds": 93.89,
+"ocr_pages": 5
+}
+},
+"AG39": {
+"W_OLD": {
+"terms": [],
+"seconds": 1.17,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+12,
+13
+],
+"seconds": 0.75,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [
+{
+"family": "OTHER",
+"dir": "max",
+"threshold": 30000000,
+"page": 13
+}
+],
+"section": [
+12,
+13
+],
+"seconds": 4.42,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 2.28,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+12,
+13
+],
+"seconds": 1.93,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+12,
+13
+],
+"seconds": 37.14,
+"ocr_pages": 0
+}
+},
+"AG40": {
+"W_OLD": {
+"terms": [],
+"seconds": 27.03,
+"ocr_pages": 4
+},
+"S_OLD": {
+"terms": [],
+"section": [
+55,
+56,
+57
+],
+"seconds": 25.22,
+"ocr_pages": 4
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.25,
+"page": 57
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 3.0,
+"page": 57
+}
+],
+"section": [
+55,
+56,
+57
+],
+"seconds": 28.58,
+"ocr_pages": 4
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 2.0,
+"page": 18,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 51.71,
+"ocr_pages": 4
+},
+"S_NEW": {
+"terms": [],
+"section": [
+55,
+56,
+57
+],
+"seconds": 38.17,
+"ocr_pages": 4
+},
+"S_DOC": {
+"terms": [],
+"section": [
+55,
+56,
+57
+],
+"seconds": 74.12,
+"ocr_pages": 4
+}
+},
+"AG41": {
+"W_OLD": {
+"terms": [
+{
+"family": "ICR",
+"dir": "max",
+"threshold": 2.0,
+"page": 172,
+"metric": "ICR"
+}
+],
+"seconds": 51.39,
+"ocr_pages": 3
+},
+"S_OLD": {
+"terms": [
+{
+"family": "ICR",
+"dir": "max",
+"threshold": 2.0,
+"page": 172,
+"metric": "ICR"
+}
+],
+"section": [
+172,
+176,
+184
+],
+"seconds": 57.09,
+"ocr_pages": 3
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.75,
+"page": 172
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.5,
+"page": 172
+},
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.0,
+"page": 172
+},
+{
+"family": "OTHER",
+"dir": "max",
+"threshold": 100000000,
+"page": 172
+}
+],
+"section": [
+172,
+176,
+184
+],
+"seconds": 61.95,
+"ocr_pages": 3
+},
+"W_NEW": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.0,
+"page": 172,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 1.3,
+"page": 95,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 63.77,
+"ocr_pages": 3
+},
+"S_NEW": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.0,
+"page": 172,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.5,
+"page": 172,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+172,
+176,
+184
+],
+"seconds": 71.33,
+"ocr_pages": 3
+},
+"S_DOC": {
+"terms": [
+{
+"family": "ICR",
+"dir": "min",
+"threshold": 2.0,
+"page": 172,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 3.5,
+"page": 172,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"section": [
+172,
+176,
+184
+],
+"seconds": 131.55,
+"ocr_pages": 3
+}
+},
+"AG42": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.5,
+"page": 200,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"seconds": 34.08,
+"ocr_pages": 6
+},
+"S_OLD": {
+"terms": [],
+"section": [
+165,
+166,
+220
+],
+"seconds": 48.9,
+"ocr_pages": 6
+},
+"S_AI": {
+"terms": [],
+"section": [
+165,
+166,
+220
+],
+"seconds": 51.23,
+"ocr_pages": 6
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "min",
+"threshold": 3.75,
+"page": 25,
+"metric": "NET_LEVERAGE_RATIO"
+}
+],
+"seconds": 36.1,
+"ocr_pages": 6
+},
+"S_NEW": {
+"terms": [],
+"section": [
+165,
+166,
+220
+],
+"seconds": 36.02,
+"ocr_pages": 6
+},
+"S_DOC": {
+"terms": [],
+"section": [
+165,
+166,
+220
+],
+"seconds": 79.63,
+"ocr_pages": 6
+}
+},
+"AG43": {
+"W_OLD": {
+"terms": [
+{
+"family": "ICR",
+"dir": "max",
+"threshold": 2.0,
+"page": 190,
+"metric": "ICR"
+},
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 4.75,
+"page": 93,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 89.64,
+"ocr_pages": 4
+},
+"S_OLD": {
+"terms": [],
+"section": [
+205,
+212,
+213
+],
+"seconds": 62.11,
+"ocr_pages": 4
+},
+"S_AI": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 4.25,
+"page": 205
+}
+],
+"section": [
+205,
+212,
+213
+],
+"seconds": 70.67,
+"ocr_pages": 4
+},
+"W_NEW": {
+"terms": [],
+"seconds": 55.75,
+"ocr_pages": 4
+},
+"S_NEW": {
+"terms": [],
+"section": [
+205,
+212,
+213
+],
+"seconds": 61.28,
+"ocr_pages": 4
+},
+"S_DOC": {
+"terms": [],
+"section": [
+205,
+212,
+213
+],
+"seconds": 119.39,
+"ocr_pages": 4
+}
+},
+"AG44": {
+"W_OLD": {
+"terms": [
+{
+"family": "LEVERAGE",
+"dir": "max",
+"threshold": 5.5,
+"page": 86,
+"metric": "DEBT_TO_EBITDA"
+}
+],
+"seconds": 47.38,
+"ocr_pages": 7
+},
+"S_OLD": {
+"terms": [],
+"section": [
+111,
+126,
+127
+],
+"seconds": 49.84,
+"ocr_pages": 7
+},
+"S_AI": {
+"terms": [],
+"section": [
+111,
+126,
+127
+],
+"seconds": 52.32,
+"ocr_pages": 7
+},
+"W_NEW": {
+"terms": [
+{
+"family": "LIQUIDITY",
+"dir": "min",
+"threshold": 55000000.0,
+"page": 99,
+"metric": "MINIMUM_LIQUIDITY"
+}
+],
+"seconds": 23.06,
+"ocr_pages": 7
+},
+"S_NEW": {
+"terms": [],
+"section": [
+111,
+126,
+127
+],
+"seconds": 20.73,
+"ocr_pages": 7
+},
+"S_DOC": {
+"terms": [],
+"section": [
+111,
+126,
+127
+],
+"seconds": 66.68,
+"ocr_pages": 7
+}
+},
+"AG45": {
+"W_OLD": {
+"terms": [],
+"seconds": 49.87,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [
+5,
+20,
+29
+],
+"seconds": 46.31,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [],
+"section": [
+5,
+20,
+29
+],
+"seconds": 48.48,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 12.05,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [
+5,
+20,
+29
+],
+"seconds": 11.92,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [
+5,
+20,
+29
+],
+"seconds": 147.77,
+"ocr_pages": 0
+}
+},
+"AG47": {
+"W_OLD": {
+"terms": [],
+"seconds": 4.49,
+"ocr_pages": 0
+},
+"S_OLD": {
+"terms": [],
+"section": [],
+"seconds": 2.72,
+"ocr_pages": 0
+},
+"S_AI": {
+"terms": [],
+"section": [],
+"seconds": 2.73,
+"ocr_pages": 0
+},
+"W_NEW": {
+"terms": [],
+"seconds": 1.08,
+"ocr_pages": 0
+},
+"S_NEW": {
+"terms": [],
+"section": [],
+"seconds": 0.98,
+"ocr_pages": 0
+},
+"S_DOC": {
+"terms": [],
+"section": [],
+"seconds": 3.18,
+"ocr_pages": 0
+}
+},
+"AG48": {
+"W_OLD": {
+"terms": [],
+"seconds": 268.21,
+"ocr_pages": 20
+},
+"S_OLD": {
+"terms": [],
+"section": [],
+"seconds": 381.08,
+"ocr_pages": 20
+},
+"S_AI": {
+"terms": [],
+"section": [],
+"seconds": 381.08,
+"ocr_pages": 20
+},
+"W_NEW": {
+"terms": [],
+"seconds": 206.67,
+"ocr_pages": 20
+},
+"S_NEW": {
+"terms": [],
+"section": [],
+"seconds": 230.1,
+"ocr_pages": 20
+},
+"S_DOC": {
+"terms": [],
+"section": [],
+"seconds": 559.52,
+"ocr_pages": 20
+}
+},
+"AG50": {
+"W_OLD": {
+"terms": [],
+"seconds": 4.36,
+"ocr_pages": 1
+},
+"S_OLD": {
+"terms": [],
+"section": [],
+"seconds": 5.73,
+"ocr_pages": 1
+},
+"S_AI": {
+"terms": [],
+"section": [],
+"seconds": 5.73,
+"ocr_pages": 1
+},
+"W_NEW": {
+"terms": [],
+"seconds": 2.71,
+"ocr_pages": 1
+},
+"S_NEW": {
+"terms": [],
+"section": [],
+"seconds": 3.02,
+"ocr_pages": 1
+},
+"S_DOC": {
+"terms": [],
+"section": [],
+"seconds": 12.72,
+"ocr_pages": 1
+}
+},
+"AG52": {
+"W_OLD": {
+"terms": [],
+"seconds": 296.53,
+"ocr_pages": 20
+},
+"S_OLD": {
+"terms": [],
+"section": [
+12,
+39
+],
+"seconds": 225.38,
+"ocr_pages": 20
+},
+"S_AI": {
+"terms": [],
+"section": [
+12,
+39
+],
+"seconds": 227.85,
+"ocr_pages": 20
+},
+"W_NEW": {
+"terms": [],
+"seconds": 202.98,
+"ocr_pages": 20
+},
+"S_NEW": {
+"terms": [],
+"section": [
+12,
+39
+],
+"seconds": 177.62,
+"ocr_pages": 20
+},
+"S_DOC": {
+"terms": [],
+"section": [
+12,
+39
+],
+"seconds": 706.12,
+"ocr_pages": 20
+}
+},
+"AG54": {
+"W_OLD": {
+"terms": [],
+"seconds": 23.9,
+"ocr_pages": 2
+},
+"S_OLD": {
+"terms": [],
+"section": [
+8,
+36
+],
+"seconds": 24.24,
+"ocr_pages": 2
+},
+"S_AI": {
+"terms": [],
+"section": [
+8,
+36
+],
+"seconds": 27.25,
+"ocr_pages": 2
+},
+"W_NEW": {
+"terms": [],
+"seconds": 17.46,
+"ocr_pages": 2
+},
+"S_NEW": {
+"terms": [],
+"section": [
+8,
+36
+],
+"seconds": 18.0,
+"ocr_pages": 2
+},
+"S_DOC": {
+"terms": [],
+"section": [
+8,
+36
+],
+"seconds": 100.14,
+"ocr_pages": 2
+}
+}
+}
