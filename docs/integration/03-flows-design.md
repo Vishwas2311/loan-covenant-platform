@@ -246,6 +246,13 @@ scored 90.9% at about 20 times the time and failed the poor scan, so statements 
 heavy pool when the table reader finds rows; Docling stays for agreements. Benchmark:
 `outputs/benchmarks/statement-pdf-readers/README.md`.
 
+**Real documents (6 November 2026).** On 47 real Indian, Sri Lankan and SEC reports and 50 real loan
+agreements (`outputs/benchmarks/real-documents/README.md`) the table reader, after fixes for units,
+Group/Company columns, signatures and US wording, read 91.9% of hand-checked values right (1 wrong) and
+81.2% of SEC XBRL values; Docling tables 32.6% and 76.0%. Long reports are now searched for their statement
+pages first (`extraction/statement_pages.py`), and an optional second reader (Azure OpenAI, off by
+default) sends a statement to review when it reads a covenant input differently.
+
 **Release gate (R1):** build the golden set (≥ 20 agreements, ≥ 20 statements, including scanned and table-heavy ones). Measure that numbers, table cells and page references are exactly right with this stack. If a document type keeps failing, tune the fallback routing or add a GPU worker for Docling. Engines sit behind one `ParserEngine` interface, so changes don't touch the flows.
 
 ## 9. How this maps to the manager's diagram

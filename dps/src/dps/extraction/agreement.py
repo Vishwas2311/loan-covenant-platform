@@ -28,7 +28,33 @@ FINANCIAL_ALIASES: dict[str, list[str]] = {
     "MIN_NET_WORTH": ["MINIMUM NET WORTH", "NET WORTH"],
     "MINIMUM_LIQUIDITY": ["MINIMUM LIQUIDITY", "MINIMUM CASH BALANCE", "MINIMUM UNRESTRICTED CASH"],
 }
+# Names used in US syndicated and bilateral credit agreements (benchmark of 50 real agreements, 6 November 2026).
+for _metric, _names in {
+    "DEBT_TO_EBITDA": ["CONSOLIDATED LEVERAGE RATIO", "CONSOLIDATED TOTAL LEVERAGE RATIO", "LEVERAGE RATIO",
+                       "FUNDED DEBT TO EBITDA", "TOTAL FUNDED DEBT TO EBITDA", "SENIOR FUNDED DEBT TO EBITDA",
+                       "SENIOR DEBT TO EBITDA", "CASH FLOW LEVERAGE RATIO", "SENIOR SECURED LEVERAGE RATIO",
+                       "CONSOLIDATED SENIOR SECURED LEVERAGE RATIO", "MAXIMUM TOTAL LEVERAGE RATIO"],
+    "NET_LEVERAGE_RATIO": ["TOTAL NET LEVERAGE RATIO", "FIRST LIEN NET LEVERAGE RATIO", "SECURED NET LEVERAGE RATIO",
+                           "CONSOLIDATED NET SENIOR SECURED LEVERAGE RATIO", "SENIOR SECURED NET LEVERAGE RATIO"],
+    "ICR": ["CONSOLIDATED INTEREST COVERAGE RATIO"],
+    "FIXED_CHARGE_COVERAGE_RATIO": ["CONSOLIDATED FIXED CHARGE COVERAGE RATIO", "BASIC FIXED CHARGE COVERAGE RATIO"],
+    "DSCR": ["GLOBAL DEBT SERVICE COVERAGE RATIO", "NET DEBT SERVICE COVERAGE RATIO", "CASH FLOW COVERAGE RATIO",
+             "CASH FLOW COVERAGE", "CASH FLOW TO DEBT SERVICE"],
+    "DEBT_TO_NET_WORTH": ["DEBT TO TANGIBLE NET WORTH", "INDEBTEDNESS TO TANGIBLE NET WORTH",
+                          "FUNDED DEBT TO TANGIBLE NET WORTH", "DEBT-TO-NET WORTH RATIO"],
+    "DEBT_TO_EQUITY": ["NET DEBT TO EQUITY RATIO", "NET DEBT TO EQUITY"],
+}.items():
+    FINANCIAL_ALIASES[_metric] = FINANCIAL_ALIASES[_metric] + [n for n in _names if n not in FINANCIAL_ALIASES[_metric]]
+
 AMOUNT_METRICS = {"MIN_NET_WORTH", "MIN_TANGIBLE_NET_WORTH", "MINIMUM_LIQUIDITY"}
+# A ratio covenant above this is a misread number ("90 days"), not a threshold.
+MAX_RATIO = 25.0
+# Text around a ratio that makes it something other than a maintenance covenant: a pricing grid, an
+# incurrence test for new debt or payments, a cash sweep, or a condition for releasing funds or extending.
+_NOT_A_COVENANT = re.compile(
+    r"pro\s+forma|after\s+giving\s+effect|applicable\s+(rate|margin|percentage)|pricing\s+level|asset\s+sale\s+"
+    r"percentage|ecf\s+percentage|excess\s+cash\s+flow|incremental|until\s+such\s+time|evidence\s+satisfactory|"
+    r"extension\s+(option|period)|extended\s+maturity|release\s+of\s+(the\s+)?(funds|letter)", re.I)
 
 _INTENT = re.compile(r"\b(shall|must|required\s+to|undertakes?\s+to|agree(?:s|d)?\s+to|will\s+not)\b", re.I)
 
@@ -73,12 +99,21 @@ _UNIT = r"\s*(crores?|cr\b|lakhs?|lacs?|million|billion)?"
 # "shall not (be|fall|go|drop) less than / below": a verb may sit between the negation and the comparison.
 # Without it the bare "less than" rule below matches and the floor is read as a ceiling.
 _NOT = r"(?:not|never|at\s+no\s+time)\s+(?:(?:be|fall|go|drop|rise)\s+)?"
+_CUR = r"(?:INR|Rs\.?|₹|\$|LKR)?"
+# "will not permit the Interest Coverage Ratio ... to be less than 3.00": a floor, though it says "less than".
+_PERMIT = r"(?:shall|will)\s+not\s+permit\b[^.;]{0,220}?"
 _WORD_THRESHOLDS: list[tuple[str, str]] = [
+    (_PERMIT + r"(?:to\s+)?(?:be\s+|fall\s+)?(?:less|lower)\s+than\s*" + _CUR + r"\s*" + _NUM + _UNIT, ">="),
+    (_PERMIT + r"(?:to\s+)?(?:exceed|be\s+(?:greater|more|higher)\s+than)\s*" + _CUR + r"\s*" + _NUM + _UNIT, "<="),
+    (r"(?:equals?\s+or\s+exceeds?|equal\s+to\s+or\s+greater\s+than|in\s+excess\s+of)\s*" + _CUR + r"\s*" + _NUM
+     + _UNIT, ">="),
+    (r"(?:never\s+exceed|shall\s+not\s+exceed|equal\s+to\s+or\s+less\s+than)\s*" + _CUR + r"\s*" + _NUM + _UNIT,
+     "<="),
     (r"(?:" + _NOT + r"(?:less|lower)\s+than|" + _NOT + r"below|at\s+least|minimum(?:\s+of)?|no\s+less\s+than"
-     r"|no\s+lower\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, ">="),
+     r"|no\s+lower\s+than)\s*" + _CUR + r"\s*" + _NUM + _UNIT, ">="),
     (r"(?:does\s+not\s+exceed|not\s+(?:to\s+)?exceed(?:ing)?|at\s+no\s+time\s+exceed|at\s+most"
      r"|maximum(?:\s+of)?|" + _NOT + r"(?:more|greater|higher)\s+than|" + _NOT + r"above"
-     r"|no\s+more\s+than|no\s+greater\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, "<="),
+     r"|no\s+more\s+than|no\s+greater\s+than)\s*" + _CUR + r"\s*" + _NUM + _UNIT, "<="),
     (r"(?:greater\s+than|more\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, ">"),
     (r"(?:less\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, "<"),
 ]
@@ -206,7 +241,7 @@ def _threshold(text: str, amount: bool) -> tuple[str, float, str | None, int, in
             return None  # a ratio-sized number is not a net-worth floor
         return op, value, unit, m.start(), m.end(), False
     if amount:  # "a minimum Net Worth of INR 5,000 Crores": a currency amount alone is a floor
-        m = re.search(r"(?:INR|Rs\.?|₹)\s*" + _NUM + _UNIT, text, re.I)
+        m = re.search(r"(?:INR|Rs\.?|₹|\$|LKR)\s*" + _NUM + _UNIT, text, re.I)
         if m:
             return ">=", _number(m.group(1)), (m.group(2) or "").strip().lower() or None, m.start(), m.end(), False
     return None
@@ -260,7 +295,7 @@ def _financial(doc: _Doc, clauses: list[_Clause]) -> list[Term]:
             continue
         combined = f"{c.heading}\n{c.body}"
         found = _threshold(combined, metric in AMOUNT_METRICS)
-        if not found:
+        if not found or not _plausible(metric, found[1], combined[max(0, found[3] - 300):found[4] + 200]):
             continue
         op, value, unit, s, e, corroborated = found
         body_offset = c.start + (doc.text[c.start:].find(c.heading) if c.heading else 0)
@@ -269,6 +304,13 @@ def _financial(doc: _Doc, clauses: list[_Clause]) -> list[Term]:
                              _definition(c.body, metric), 0.95 if corroborated else 0.85)
     _scan_unnumbered(doc, terms)
     return list(terms.values())
+
+
+def _plausible(metric: str, value: float, context: str) -> bool:
+    """A maintenance covenant: a sensible number, not a pricing, incurrence or release condition."""
+    if metric not in AMOUNT_METRICS and value > MAX_RATIO:
+        return False
+    return not _NOT_A_COVENANT.search(context)
 
 
 def _alias_pattern(phrase: str) -> str:
@@ -295,10 +337,15 @@ def _scan_unnumbered(doc: _Doc, terms: dict[str, Term]) -> None:
                     continue
                 window = doc.text[m.end():m.end() + 160]
                 window = re.split(r"\n\s*\n", window, maxsplit=1)[0]
-                found = _threshold(window, metric in AMOUNT_METRICS)
-                if not found:
+                # "will not permit the Leverage Ratio ... to exceed 3.50": the negation sits before the name.
+                lead = doc.text[max(0, m.start() - 120):m.start()]
+                prefix = "will not permit " if re.search(r"(?:shall|will)\s+not\s+permit\b[^.;]*$", lead, re.I) else ""
+                found = _threshold(prefix + window, metric in AMOUNT_METRICS)
+                context = doc.text[max(0, m.start() - 300):m.end() + 200]
+                if not found or not _plausible(metric, found[1], context):
                     continue
                 op, value, unit, s, e, _ = found
+                e -= len(prefix)
                 quote, page = _quote(doc, m.start(), m.end() + e)
                 terms[metric] = Term(metric, "FINANCIAL", op, value, unit, _frequency(window), page, quote,
                                      None, 0.7)

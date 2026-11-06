@@ -71,6 +71,9 @@ class Settings(BaseSettings):
     # Longest wait for one model answer. Kept under the gateway's 120 s so a slow model gives the rules
     # answer instead of a 504 page.
     ai_timeout_seconds: float = 60.0
+    # Statement PDFs: the model also reads the statement pages and a covenant input the two readers read
+    # differently is held for review (extraction/statement_ai.py). Needs ai_model; off by default (cost).
+    statement_ai_check: bool = False
     # Model price per 1,000 tokens (the bank's Azure OpenAI rates); empty leaves the recorded cost empty.
     ai_prompt_cost_per_1k: float | None = None
     ai_completion_cost_per_1k: float | None = None

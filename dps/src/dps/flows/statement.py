@@ -52,6 +52,8 @@ class StatementDeps:
     heavy_pool: bool
     # Table-aware PDF reader (extraction.statement_pdf.read_pdf_statement); None: plain text lines only.
     pdf_reader: Callable[[bytes], PdfStatement] | None = None
+    # Optional second reader (extraction.statement_ai.check): (page text, values) -> disagreements to review.
+    second_reader: Callable[[str, list[LineValue]], list[str]] | None = None
 
 
 class StatementState(BaseModel):
@@ -60,6 +62,7 @@ class StatementState(BaseModel):
     document_id: str = ""
     file_kind: str = ""
     header_text: str = ""
+    page_text: str = ""
     rows: list[list] = Field(default_factory=list)
     values: list[dict] = Field(default_factory=list)
     unit_scale: str = ""
@@ -100,6 +103,7 @@ class StatementProcessingFlow(Flow[StatementState]):
                 table = self._read_table(data)
                 if table is not None and table.rows:
                     rows, self.state.header_text = table.rows, table.header_text
+                    self.state.page_text = "\n\n".join(table.texts)[:60000]
                     if table.ocr_quality is not None and table.ocr_quality < OCR_REVIEW_QUALITY:
                         self.state.parse_issues = [
                             f"LOW_OCR_QUALITY: scanned pages read at {table.ocr_quality:.0%} confidence"]
@@ -142,6 +146,8 @@ class StatementProcessingFlow(Flow[StatementState]):
         self.state.values = [v.as_dict() for v in result.values]
         self.state.unit_scale = result.unit_scale
         self.state.issues = result.issues + self.state.parse_issues
+        if self._deps.second_reader is not None and self.state.page_text and result.values:
+            self.state.issues += self._deps.second_reader(self.state.page_text, result.values)
         self._checkpoint("calculate")
 
     @router(extract_and_calculate)

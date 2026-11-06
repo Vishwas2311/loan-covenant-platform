@@ -772,6 +772,7 @@ Locally there is no real mail server. Either:
 | "<page> is not part of your role" | The page is for other roles | Ask an administrator if you need it |
 | A CP "not found" | It is not one of your CPs | Check the id; ask your manager if it should be yours |
 | A statement is held with "LOW_OCR_QUALITY" | It was a scan and the text recognition was not confident | Check each figure against the scan, correct any, then approve |
+| A statement is held with "SECOND_READER_DIFFERS" | The second reader (when your bank turned it on) read that figure differently from the table reader | Open the page shown, check that one figure, correct it if needed, then approve. The stored value is always the table reader's unless you change it |
 | Ask AI answers from rules, not the model | The AI service is not configured or unreachable | Support: check the AI key |
 | An e-mail did not arrive | It may have failed at the notification service | Support tools → Sent e-mails shows the outcome |
 

@@ -118,10 +118,10 @@ flowchart TB
         end
         subgraph FB["Flow B — financial statements (CrewAI Flow, checkpointed)"]
             direction LR
-            b1["B2·1 Parse<br/>PDF tables: pdfplumber word positions<br/>scans: RapidOCR boxes, straightened<br/>XLSX · XLS · CSV cells"]
+            b1["B2·1 Parse<br/>long reports: find statement pages first<br/>PDF tables: pdfplumber word positions<br/>scans, garbled text: RapidOCR boxes<br/>XLSX · XLS · CSV cells"]
             b2["B2·2 Line items<br/>current annual standalone column<br/>skips note, quarter, prior-year columns<br/>units → crore"]
             b3["B2·3 Derive<br/>EBITDA · total debt · ratios"]
-            b4["B2·4 Data-quality checks<br/>balance · period · signs<br/>required items · scan read below 97%"]
+            b4["B2·4 Data-quality checks<br/>balance · period · signs<br/>required items · scan read below 97%<br/>optional second reader (AI) disagrees"]
             b5["Outcome<br/>reported · needs review<br/>failed · heavy pool"]
             b1 --> b2 --> b3 --> b4 --> b5
         end
@@ -395,7 +395,9 @@ Cross-cutting pieces:
 | `flows/statement.py` | Flow B — financial statements |
 | `flows/persistence.py` | Saves flow checkpoints in `dps_flow_state`, so a review can resume the flow |
 | `parsing.py` | ParserEngine: pypdf text first, RapidOCR for pages without text, Docling in the heavy pool (agreements) |
-| `extraction/statement_pdf.py` | Statement PDFs: reads the table from word positions (pdfplumber, or RapidOCR boxes on scans), picks the current annual standalone column, skips narrative, joins wrapped labels. Chosen by benchmark: [outputs/benchmarks/statement-pdf-readers](../../outputs/benchmarks/statement-pdf-readers/README.md) |
+| `extraction/statement_pdf.py` | Statement PDFs: reads the table from word positions (pdfplumber, or RapidOCR boxes on scans and garbled pages), picks the current annual standalone (Company) column, skips narrative, signatures and % change columns, joins wrapped labels. Chosen by benchmark: [synthetic](../../outputs/benchmarks/statement-pdf-readers/README.md), [real documents](../../outputs/benchmarks/real-documents/README.md) |
+| `extraction/statement_pages.py` | Long PDFs (over 12 pages: annual reports, 10-Ks): finds the balance sheet, P&L and cash-flow pages before reading (right page first for 87.6% of real statements, in the first two for 96.4%) |
+| `extraction/statement_ai.py` | Optional second reader (`DPS_STATEMENT_AI_CHECK`): the model reads the same pages; a covenant input it reads differently holds the statement for review. Its numbers are never stored |
 | `extraction/agreement.py`, `extraction/mapping.py`, `extraction/validation.py` | Find covenants; map them to Core's library; citation, confidence and operator checks |
 | `extraction/terms_info.py` | Agreement facts that are not covenants (testing basis, cure periods, definitions) |
 | `extraction/statement.py`, `catalog.py` | Read statement line items (PDF, XLSX, XLS, CSV) and the line-item catalogue served to Core |

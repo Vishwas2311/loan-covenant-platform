@@ -28,7 +28,8 @@ LINE_ALIASES: dict[str, list[str]] = {
     "LT_DEBT": ["long-term borrowings", "long term borrowings", "long-term debt", "long term debt"],
     "NET_DEBT": ["net debt"],
     "CASH": ["cash and cash equivalents", "cash and bank balances", "cash and equivalents", "cash"],
-    "NET_WORTH": ["total equity", "net worth", "shareholders funds", "shareholders' funds"],
+    "NET_WORTH": ["total equity", "net worth", "shareholders funds", "shareholders' funds", "shareholder's fund",
+                  "shareholders' fund", "shareholders fund"],
     "TANGIBLE_NET_WORTH": ["tangible net worth"],
     "CURRENT_ASSETS": ["total current assets", "current assets"],
     "CURRENT_LIABILITIES": ["total current liabilities", "current liabilities"],
@@ -39,7 +40,8 @@ LINE_ALIASES: dict[str, list[str]] = {
     "OTHER_INCOME": ["other income"],
     "TOTAL_INCOME": ["total income"],
     "MATERIAL_COST": ["cost of materials consumed", "cost of goods sold", "cost of sales", "raw materials consumed"],
-    "EMPLOYEE_COST": ["employee benefits expense", "employee benefit expense", "employee costs", "staff costs"],
+    "EMPLOYEE_COST": ["employee benefits expense", "employee benefit expense", "employee benefits", "employee costs",
+                      "staff costs"],
     "OTHER_EXPENSES": ["other expenses"],
     "TOTAL_EXPENSES": ["total expenses"],
     "PBT": ["profit before tax", "profit before income tax", "pbt"],
@@ -50,12 +52,13 @@ LINE_ALIASES: dict[str, list[str]] = {
     "INTANGIBLES": ["intangible assets", "goodwill and intangible assets"],
     "INVESTMENTS": ["non-current investments", "investments"],
     "TOTAL_ASSETS": ["total assets"],
-    "SHARE_CAPITAL": ["equity share capital", "share capital"],
+    "SHARE_CAPITAL": ["equity share capital", "share capital", "stated capital"],
     "RESERVES": ["other equity", "reserves and surplus"],
     "TRADE_PAYABLES": ["trade payables", "creditors"],
     "PROVISIONS": ["provisions"],
     "LEASE_LIABILITIES": ["lease liabilities"],
-    "TOTAL_EQUITY_AND_LIABILITIES": ["total equity and liabilities", "total liabilities and equity"],
+    "TOTAL_EQUITY_AND_LIABILITIES": ["total equity and liabilities", "total liabilities and equity",
+                                     "total equity & liabilities", "total liabilities & equity"],
     "CFO": ["net cash from operating activities", "net cash generated from operating activities",
             "net cash flow from operating activities", "cash generated from operations"],
     "CFI": ["net cash used in investing activities", "net cash from investing activities",
@@ -64,6 +67,97 @@ LINE_ALIASES: dict[str, list[str]] = {
             "net cash flow from financing activities"],
     "DIVIDENDS_PAID": ["dividends paid", "dividend paid"],
 }
+
+# Wording from real US 10-K and Sri Lankan statements (outputs/benchmarks/statement-pdf-readers/real.md).
+for _key, _phrases in {
+    "REVENUE": [
+        "net revenues",
+        "net revenue",
+        "total revenues",
+        "total sales and revenues",
+        "sales and revenues",
+    ],
+    "PAT": [
+        "net earnings",
+        "net income",
+        "net (loss) income",
+        "net income (loss)",
+        "net (loss) earnings",
+        "net earnings (loss)",
+        "profit for the year",
+        "profit for the period",
+    ],
+    "PBT": [
+        "earnings before income taxes",
+        "income before income taxes",
+        "(loss) earnings before income taxes",
+        "income (loss) before income taxes",
+        "profit before income tax expense",
+        "income before taxes",
+    ],
+    "TAX": [
+        "provision for income taxes",
+        "income tax (expense)",
+        "income tax expense/(reversal)",
+    ],
+    "INTEREST_PAID": [
+        "interest expense, net",
+        "finance expenses",
+        "finance expense",
+    ],
+    "DEPRECIATION": [
+        "depreciation, depletion and amortization",
+        "depreciation and amortisation expense",
+    ],
+    "RECEIVABLES": [
+        "accounts receivable",
+        "trade and other receivables",
+    ],
+    "NET_WORTH": [
+        "total stockholders' equity",
+        "total shareholders' equity",
+        "stockholders' equity",
+        "shareholders' equity",
+        "total equity attributable to equity holders of the company",
+        "equity attributable to owners of the company",
+        "equity attributable to equity holders of the parent",
+        "total equity attributable to equity holders",
+    ],
+    "LT_DEBT": [
+        "long-term debt, less current portion",
+        "long-term debt, net",
+    ],
+    "TRADE_PAYABLES": [
+        "accounts payable",
+        "trade and other payables",
+    ],
+    "CFO": [
+        "net cash provided by operating activities",
+        "net cash provided by (used in) operating activities",
+        "net cash (used in) provided by operating activities",
+        "net cash generated from/(used in) operating activities",
+        "net cash flows from operating activities",
+    ],
+    "CFI": [
+        "net cash provided by (used in) investing activities",
+        "net cash (used in) provided by investing activities",
+        "net cash flows used in investing activities",
+        "net cash flows from investing activities",
+    ],
+    "CFF": [
+        "net cash provided by (used in) financing activities",
+        "net cash (used in) provided by financing activities",
+        "net cash flows used in financing activities",
+        "net cash flows from financing activities",
+    ],
+    "CAPEX": [
+        "capital expenditures",
+        "purchases of property, plant and equipment",
+        "purchase of property, plant & equipment",
+        "acquisition of property, plant and equipment",
+    ],
+}.items():
+    LINE_ALIASES[_key] = LINE_ALIASES[_key] + [x for x in _phrases if x not in LINE_ALIASES[_key]]
 
 # C6: which statement each standard line belongs to, in the order a spread shows them.
 SECTIONS: dict[str, list[str]] = {
@@ -77,19 +171,29 @@ SECTIONS: dict[str, list[str]] = {
     "CASH_FLOW": ["CFO", "CAPEX", "CFI", "PRINCIPAL_PAID", "EMI_AMOUNT", "DIVIDENDS_PAID", "CFF"],
 }
 # Lines that contain an alias but mean something else.
-_EXCLUDE = re.compile(r"\b(ratio|margin|%|per\s+share|growth|cover)\b", re.I)
+_EXCLUDE = re.compile(r"\b(ratio|margin|%|per\s+share|growth|cover|impairment|changes?\s+in|increase|decrease)\b",
+                      re.I)
 
 TO_CRORE = {"crore": 1.0, "lakh": 0.01, "million": 0.1, "billion": 100.0, "thousand": 0.0001, "rupee": 1e-7}
-_UNIT_HINT = re.compile(r"(?:in|amounts?\s+in|₹|rs\.?|inr)\s*(?:in\s+)?(crores?|cr\b|lakhs?|lacs?|millions?|mn\b|"
-                        r"billions?|bn\b|thousands?|'000|rupees)", re.I)
+# The rupee sign often comes out of a PDF as a stray character: "All amounts are in ` Lakhs".
+_UNIT_HINT = re.compile(r"(?:in|amounts?\s+in|₹|rs\.?|inr|lkr|rupees|\$)\s*(?:[`´₹]\s*|I\s+)?(?:in\s+)?"
+                        r"(crores?|cr\b|lakhs?|lacs?|millions?|mn\b|billions?|bn\b|thousands?|'?000(?![\d,])|rupees?)"
+                        r"|\b(millions?|thousands?)\s+of\s+(?:u\.?s\.?\s+)?(?:dollars|rupees)", re.I)
 # "Amounts in INR" / "in rupees" with no scale word after it: plain rupees (golden set: such a statement
 # was read as crore, every amount 10^7 too large).
-_RUPEE_HINT = re.compile(r"(?:amounts?\s+in|figures?\s+in|in)\s+(?:inr|rs\.?|₹|rupees)\b(?!\s*(?:in\s+)?(?:crores?|"
-                         r"cr\b|lakhs?|lacs?|millions?|mn\b|billions?|bn\b|thousands?|'000))", re.I)
+_RUPEE_HINT = re.compile(r"(?:amounts?\s+in|figures?\s+in|in)\s+(?:inr|rs\.?|₹|rupees?)\b(?!\s*(?:in\s+)?(?:crores?|"
+                         r"cr\b|lakhs?|lacs?|millions?|mn\b|billions?|bn\b|thousands?|'?000))", re.I)
+# A column headed just "Rs." or "LKR" with no scale word: plain rupees (Sri Lankan annual reports).
+_CURRENCY_ONLY = re.compile(r"(?<![a-z])(?:rs\.|lkr|inr)(?![a-z])", re.I)
+_INLINE_CRORE = re.compile(r"\d\s*(?:cr|crores?)\b", re.I)
 _NUMBER = re.compile(r"\(?-?[0-9][0-9,]*(?:\.[0-9]+)?\)?")
 REQUIRED = ("EBITDA", "TOTAL_DEBT", "NET_WORTH")
 # Amounts the catalog keeps as positive figures although a cash-flow statement prints them as outflows.
 _OUTFLOWS = frozenset({"CAPEX", "PRINCIPAL_PAID", "DIVIDENDS_PAID"})
+# Expense lines are kept as positive amounts although many statements print them in brackets "(8,910)".
+# Tax is not among them: a negative tax line is a credit.
+_EXPENSES = frozenset({"INTEREST_PAID", "DEPRECIATION", "MATERIAL_COST", "EMPLOYEE_COST", "OTHER_EXPENSES",
+                       "TOTAL_EXPENSES"})
 
 
 @dataclass
@@ -113,12 +217,20 @@ class StatementResult:
     issues: list[str] = field(default_factory=list)
 
 
+def _quotes(text: str) -> str:
+    # "Rs.’000": a typographic apostrophe is still the thousands mark
+    return (text or "").replace("’", "'").replace("‘", "'")
+
+
 def _unit(text: str) -> str:
     """The scale the statement states; "crore" when it states none (see :func:`unit_stated`)."""
-    m = _UNIT_HINT.search(text or "")
+    text = _quotes(text)
+    m = _UNIT_HINT.search(text)
     if not m:
-        return "rupee" if _RUPEE_HINT.search(text or "") else "crore"
-    word = m.group(1).lower()
+        if _INLINE_CRORE.search(text or ""):
+            return "crore"  # "Rs. 1,234.5 Cr" on every value
+        return "rupee" if _RUPEE_HINT.search(text or "") or _CURRENCY_ONLY.search(text or "") else "crore"
+    word = (m.group(1) or m.group(2)).lower()
     if word.startswith(("cr",)):
         return "crore"
     if word.startswith(("lakh", "lac")):
@@ -127,24 +239,61 @@ def _unit(text: str) -> str:
         return "million"
     if word.startswith(("bill", "bn")):
         return "billion"
-    if word.startswith(("thous", "'000")):
+    if word.startswith(("thous", "'000", "000")):
         return "thousand"
     return "rupee"
 
 
 def unit_stated(text: str) -> bool:
-    return bool(_UNIT_HINT.search(text or "") or _RUPEE_HINT.search(text or ""))
+    text = _quotes(text)
+    return bool(_UNIT_HINT.search(text or "") or _RUPEE_HINT.search(text or "") or _CURRENCY_ONLY.search(text or "")
+                or _INLINE_CRORE.search(text or ""))
+
+
+_NUMBERING = re.compile(r"^\s*(?:\(?[a-z0-9]{1,4}[.)]\s*)+")
+# Lines read as totals only when the label says so (or is exactly the phrase).
+_TOTALS = frozenset({"CURRENT_ASSETS", "CURRENT_LIABILITIES", "TOTAL_ASSETS"})
+# Families worded in too many ways for a phrase list: "Net Cash Flows Provided by (Used in) Operating
+# Activities", "Income of consolidated group before income taxes".
+_PATTERNS = [
+    ("CFO", re.compile(r"\bnet\s+cash\b.{0,60}\boperating\s+activities\b")),
+    ("CFI", re.compile(r"\bnet\s+cash\b.{0,60}\binvesting\s+activities\b")),
+    ("CFF", re.compile(r"\bnet\s+cash\b.{0,60}\bfinancing\s+activities\b")),
+    ("PBT", re.compile(r"\b(profit|income|earnings)\b.{0,50}\bbefore\s+(income\s+)?tax(es|ation)?\b")),
+]
+
+
+def _plain(text: str) -> str:
+    # "Trade & Other Payables" is "trade and other payables"; "Profit/(Loss) for the year" is "profit for the year"
+    text = text.lower().replace("’", "'").replace("&", " and ")
+    text = re.sub(r"\s*/\s*\((loss|profit)\)|\((loss|profit)\)\s*/\s*", "", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def match_key(label: str) -> str | None:
-    text = " " + re.sub(r"\s+", " ", (label or "").lower()).strip() + " "
+    text = " " + _plain(label or "") + " "
     if _EXCLUDE.search(text):
         return None
-    best, best_len = None, 0
+    lead = _NUMBERING.sub("", text.strip())
+    best, best_phrase = None, ""
     for key, phrases in LINE_ALIASES.items():
-        for phrase in phrases:
-            if re.search(r"(?<![a-z])" + re.escape(phrase) + r"(?![a-z])", text) and len(phrase) > best_len:
-                best, best_len = key, len(phrase)
+        for phrase in map(_plain, phrases):
+            # "non-current assets" is not "current assets": a hyphen before the phrase is no word boundary.
+            if re.search(r"(?<![a-z-])" + re.escape(phrase) + r"(?![a-z])", text) and len(phrase) > len(best_phrase):
+                best, best_phrase = key, phrase
+    if best and re.search(r"\bnon[- ]current\b", text) and "non" not in best_phrase:
+        return None  # "Total Non Current Assets" is not total current assets
+    if best and lead.startswith("other ") and not best_phrase.startswith("other"):
+        return None  # "Other current assets" is one line inside current assets, not the total
+    if "exceptional" in text and (best == "PBT" or re.search(r"before\s+(income\s+)?tax", text)):
+        return None  # "Profit before exceptional items and tax" is not the profit before tax
+    for key, rx in _PATTERNS:
+        if rx.search(text):
+            return key
+    if best in _TOTALS and not (lead.startswith("total") or lead.strip(" :") == best_phrase):
+        return None  # "Prepaid expenses and other current assets" is not total current assets
+    if best == "LT_DEBT" and re.search(r"current\s+(portion|maturities)|due\s+within", text):
+        return None  # the part of long-term debt due within a year is not long-term debt
     return best
 
 
@@ -277,12 +426,37 @@ def extract_values(rows: list[tuple[str, float, int | None, str | None]], header
     scale = _unit(header_text)
     factor = TO_CRORE[scale]
     found: dict[str, LineValue] = {}
+    dues: list[float] = []
+    expense_signs: list[float] = []
     for label, value, page, cell in rows:
         key = match_key(label)
+        lead = _NUMBERING.sub("", label.lower().strip())
+        if key == "REVENUE" and lead.startswith("total") and "OTHER_INCOME" in found:
+            key = "TOTAL_INCOME"  # Indian "Total revenue" after other income is the total income
+        if key == "NET_WORTH" and key in found and "attributable" in found[key].label.lower() \
+                and "attributable" not in lead:
+            del found[key]  # with non-controlling interests the total equity is the net worth
+        if key in ("REVENUE", "TAX") and key in found and lead.startswith("total") \
+                and not _NUMBERING.sub("", found[key].label.lower()).startswith("total"):
+            del found[key]  # "Net sales" then "Total net sales and revenues": the total is the revenue
+        if key in _EXPENSES and key not in found or re.search(r"\b(cost of sales|administrative expenses|"
+                                                             r"distribution expenses)\b", lead):
+            expense_signs.append(value)
+        if "outstanding dues" in lead and len(dues) < 2:
+            dues.append(value)  # trade payables split into micro / small enterprises and the rest
+            if len(dues) == 2:
+                found.pop("TRADE_PAYABLES", None)
+                key, value, label = "TRADE_PAYABLES", sum(dues), "trade payables (micro and small + others)"
+            elif key == "TRADE_PAYABLES":
+                key = None
         if key and key not in found:  # first occurrence = current period / primary statement
-            if key in _OUTFLOWS:
+            if key in _OUTFLOWS or key in _EXPENSES:
                 value = abs(value)  # "Purchase of property, plant and equipment (135.88)" is capex of 135.88
             found[key] = LineValue(key, round(value * factor, 6), "INR_CR", False, page, cell, label[:120])
+    if "TAX" in found and sum(1 for v in expense_signs if v < 0) > len(expense_signs) / 2:
+        # Expenses printed in brackets ("Figures in brackets indicate deductions"): "(316,523)" is a tax
+        # charge and a bare "8,993" a tax credit. The catalog keeps a charge positive.
+        found["TAX"].value = -found["TAX"].value
     result = StatementResult(list(found.values()), scale)
     derive(result)
     check(result)

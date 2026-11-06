@@ -27,7 +27,7 @@ import math
 import re
 import statistics
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from dps.extraction.statement import LINE_ALIASES, match_key, parse_number
 
@@ -35,13 +35,19 @@ log = logging.getLogger(__name__)
 
 Row = tuple[str, float, int | None, str | None]
 
-_AMOUNT = re.compile(r"^\(?-?(?:₹)?[0-9][0-9,]*(?:\.[0-9]+)?\)?$")
+_AMOUNT = re.compile(r"^\(?-?(?:₹|\$)?[0-9][0-9,]*(?:\.[0-9]+)?\)?$")
 _DASHES = {"-", "–", "—", "nil"}
-_UNITS = {"cr", "crore", "crores", "lakh", "lakhs", "rs", "₹", "inr", "mn", "million"}
+# Currency marks and units printed next to amounts ("$ 32,494", "1,234.5 Cr", "LKR 1,000").
+_UNITS = {"cr", "crore", "crores", "lakh", "lakhs", "rs", "₹", "inr", "mn", "million", "$", "us$", "lkr", "€", "£"}
 _YEAR = re.compile(r"(?<!\d)(20\d\d)(?:\s*-\s*(\d\d))?(?!\d)")
-_BARE_BORROWINGS = re.compile(r"(\(?[ivx]+\)\s*)?borrowings", re.I)
+_SHORT_DATE = re.compile(r"(?<!\d)\d{1,2}[-/ ](?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*"
+                         r"[-/ ](\d\d)(?!\d)", re.I)
+_CHANGES = re.compile(r"changes?\s+in\s+(operating\s+)?(assets|working\s+capital)"
+                      r"|working\s+capital\s+(changes|adjustments)", re.I)
+_BARE_BORROWINGS = re.compile(r"(\(?[ivx]+\)\s*)?(interest[- ]bearing\s+)?(loans\s+(and|&)\s+)?borrowings", re.I)
 _SECTIONS = [(re.compile(r"non[- ]current liabilities", re.I), "Long-term borrowings"),
-             (re.compile(r"^current liabilities", re.I), "Short-term borrowings")]
+             (re.compile(r"^(\(?[0-9ivxa-z]{1,4}[.)]\s*)?current liabilities", re.I), "Short-term borrowings")]
+_GARBLE = re.compile(r"\(cid:\d+\)|[ĨǆƉǀďƋͿ]")
 # Text pages need this many word characters; fewer means a scan (same rule as ParserEngine).
 MIN_TEXT_CHARS = 40
 CHAR_W = 5.0  # points; about one character at statement font sizes
@@ -62,13 +68,24 @@ class PdfStatement:
     header_text: str
     ocr_pages: list[int]
     ocr_quality: float | None  # mean OCR confidence over scanned pages, None when none were scanned
+    texts: list[str] = field(default_factory=list)  # full text of each page read, for the second reader
 
 
 # ----------------------------------------------------------------------------------------------------
 # Words
 # ----------------------------------------------------------------------------------------------------
 def _text_words(page) -> list[Word]:
-    return [Word(w["text"], w["x0"], w["x1"], w["top"]) for w in page.extract_words(x_tolerance=1.5)]
+    words: list[Word] = []
+    for w in page.extract_words(x_tolerance=1.5):
+        prev = words[-1] if words else None
+        if (prev is not None and abs(prev.top - w["top"]) < 1 and abs(w["x0"] - prev.x1) < 1
+                and prev.text[-1:].isdigit() and w["text"][:1] in "0123456789,"):
+            # Some PDFs space the characters of one amount apart: "4" "1,651.24" is 41,651.24.
+            prev.text += w["text"]
+            prev.x1 = w["x1"]
+            continue
+        words.append(Word(w["text"], w["x0"], w["x1"], w["top"]))
+    return words
 
 
 def ocr_words(boxes: Iterable[tuple[list, str, float]], dpi: int) -> list[Word]:
@@ -99,10 +116,22 @@ def _is_amount(text: str) -> bool:
     return bool(_AMOUNT.match(text.replace("Rs.", ""))) or text.lower() in _DASHES
 
 
+_MONTH = re.compile(r"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[.,]?$", re.I)
+
+
+def _date_line(line: list[Word]) -> bool:
+    """A heading row of dates: "31 March 2025   31 March 2024", "2025 2024 2023", "FY 2024-25"."""
+    numbers = [w.text for w in line if _is_amount(w.text)]
+    if not numbers:
+        return False
+    month = any(_MONTH.match(w.text) for w in line)
+    return all(re.fullmatch(r"(19|20)\d\d", n) or (month and re.fullmatch(r"\d{1,2},?", n)) for n in numbers)
+
+
 def _amount(text: str) -> float | None:
     if text.lower() in _DASHES:
         return None
-    return parse_number(text.replace("Rs.", "").replace("₹", ""))
+    return parse_number(text.replace("Rs.", "").replace("₹", "").replace("$", ""))
 
 
 def _lines(words: list[Word]) -> list[list[Word]]:
@@ -130,13 +159,23 @@ def _segments(line: list[Word]) -> list[_Segment]:
     for w in line:
         cur = segs[-1]
         low = w.text.lower().strip(".,")
-        if _is_amount(w.text):
+        if prev is None and re.fullmatch(r"\(\d{1,2}\)|\d{1,2}\.", w.text):
+            cur.label.append(w)  # "(2) Non-current liabilities": the item number opens the label
+        elif _is_amount(w.text):
             cur.amounts.append(w)
         elif low in _UNITS:
             pass  # "Rs. 1,234.5 Cr"
         elif w.text.endswith("%"):
-            cur.sentence = True  # a percentage is never an amount
+            if not cur.amounts:
+                cur.sentence = True  # "grew 12% to 5,400": a percentage in a sentence
+            # after the amounts it is a "% Change" column: never an amount, and no sentence either
         else:
+            if cur.amounts and low in ("and", "or", "&") and not cur.sentence:
+                cur.label.extend(cur.amounts)  # amounts quoted inside the label, not the row's figures
+                cur.amounts = []
+                cur.label.append(w)
+                prev = w
+                continue
             if cur.amounts:
                 if prev is not None and w.x0 - prev.x1 > 4 * CHAR_W:
                     segs.append(_Segment([w], []))  # a second table on the same line
@@ -169,6 +208,24 @@ def _phrases(line: list[Word]) -> list[list[Word]]:
     return out
 
 
+def _heading_parts(line: list[Word]) -> list[list[Word]]:
+    """Phrases, except that years and dates stand alone: "In thousands 2025 2024 2023" heads three columns."""
+    out: list[list[Word]] = []
+    for phrase in _phrases(line):
+        run: list[Word] = []
+        for w in phrase:
+            if _YEAR.search(w.text) or re.fullmatch(r"\d{1,2}[./-]\d{1,2}[./-]\d{2,4}", w.text):
+                if run:
+                    out.append(run)
+                    run = []
+                out.append([w])
+            else:
+                run.append(w)
+        if run:
+            out.append(run)
+    return out
+
+
 def _column_of(cols: list[tuple[float, float]], x: float) -> int | None:
     for i, (a, b) in enumerate(cols):
         if a - 2 * CHAR_W <= x <= b + 2 * CHAR_W:
@@ -177,26 +234,41 @@ def _column_of(cols: list[tuple[float, float]], x: float) -> int | None:
 
 
 def _is_note_column(header: str, values: list[float]) -> bool:
-    return "note" in header.lower() or (len(values) >= 3 and all(v.is_integer() and 0 < v <= 60 for v in values))
+    # "Note" / "Notes" / "Note No." heads a short column; "The accompanying notes are an integral part" does not.
+    words = header.lower().split()
+    named = any(re.fullmatch(r"notes?\.?", w) for w in words)
+    small = sum(1 for v in values if v.is_integer() and 0 < v <= 99) >= max(1, 0.6 * len(values))
+    # Unnamed: nearly all small whole numbers ("25", "26", ... with a "34.07" sub-note among them).
+    mostly = len(values) >= 3 and sum(1 for v in values if v.is_integer() and 0 < v <= 60) >= 0.8 * len(values)
+    return (named and (len(words) <= 6 or small)) or mostly
 
 
 def choose_column(headers: dict[int, str], values: dict[int, list[float]]) -> int | None:
     """The current annual standalone column, from the header words above each column."""
     best: tuple[float, int, int] | None = None
+    fullest = max((len(v) for v in values.values()), default=0)
     for col, vals in values.items():
         h = headers.get(col, "").lower()
         if _is_note_column(h, vals):
             continue
+        if len(vals) < 0.25 * fullest:
+            continue  # a stray number (a membership number under the signatures) is no column of figures
         score = 0.0
-        if re.search(r"quarter|qtr|\bq[1-4]\b|half|six months|nine months|month", h):
+        # "Twelve months ended" is the year; three, six or nine months, quarters and halves are not.
+        if re.search(r"quarter|qtr|\bq[1-4]\b|half|\b(three|six|nine|3|6|9)\s+months|\bmonth\s+ended", h):
             score -= 50
         if re.search(r"year|\bfy|annual|audited", h):
             score += 5
-        if "consolidated" in h:
-            score -= 20
+        if "consolidated" in h and any("standalone" in x.lower() for x in headers.values()):
+            score -= 20  # only against a standalone column; a page title "Consolidated statements" is no penalty
+        if "group" in h and any("company" in x.lower() for x in headers.values()):
+            score -= 20  # Sri Lankan "Group | Company" columns: the company is the standalone entity
         if "previous" in h or "prior" in h:
             score -= 30
+        if re.search(r"\bchange\b|variance|increase|decrease", h):
+            score -= 50  # "Change + / (-)": the difference between two columns
         years = [int(a) + (1 if b else 0) for a, b in _YEAR.findall(h)]
+        years += [2000 + int(y) for y in _SHORT_DATE.findall(h)]  # "30-Sep-25"
         if years:
             score += (max(years) - 2000) * 10
         cand = (score, -col, col)
@@ -205,26 +277,79 @@ def choose_column(headers: dict[int, str], values: dict[int, list[float]]) -> in
     return best[2] if best else None
 
 
-def rows_from_words(pages: list[list[Word]]) -> list[Row]:
+_MARKER = re.compile(r"\b(group|company|consolidated|standalone|quarter|year|months?)\b", re.I)
+
+
+def _spread_markers(lines: list[list[Word]], segs: list[list[_Segment]], reach: dict[int, tuple[float, float]],
+                    headers: dict[int, str]) -> None:
+    """A heading over a pair of columns names both: "GROUP" over "2025 2024", "Quarter ended" over two dates.
+
+    Only heading lines above the first row of figures, so a signature ("Company Secretary") names nothing.
+    On a line with several such headings each column takes the nearest; a lone one covers what it overlaps.
+    """
+    for line, ss in zip(lines, segs, strict=True):
+        if any(s.amounts and not s.sentence for s in ss) and not _date_line(line):
+            return
+        if any(s.sentence for s in ss) or len(line) > 12:
+            continue  # narrative ("... against 4,800 last year") heads no column
+        marks = [p for p in _phrases(line) if len(p) <= 5 and _MARKER.search(" ".join(w.text for w in p))]
+        if not marks or not reach:
+            continue
+        for col, (a, b) in reach.items():
+            centre = (a + b) / 2
+            if len(marks) > 1:
+                p = min(marks, key=lambda p: abs((p[0].x0 + p[-1].x1) / 2 - centre))
+            else:
+                p = marks[0]
+                if min(p[-1].x1, b) - max(p[0].x0, a) <= 0:
+                    continue
+            words = " ".join(m.group(0) for m in _MARKER.finditer(" ".join(w.text for w in p)))
+            if words.lower() not in headers.get(col, "").lower():
+                headers[col] = (headers.get(col, "") + " " + words).strip()
+
+
+def rows_from_words(pages: list[list[Word]], numbers: list[int] | None = None) -> list[Row]:
+    """Rows from each page's words; ``numbers`` are the pages' 1-based numbers in the file (default 1, 2, ...)."""
     out: list[Row] = []
-    for page_no, words in enumerate(pages, start=1):
+    for index, words in enumerate(pages):
+        page_no = numbers[index] if numbers else index + 1
         lines = _lines(words)
         segs = [_segments(line) for line in lines]
-        cols = _columns([a.x1 for ss in segs for s in ss if not s.sentence for a in s.amounts])
-
-
+        rights = [a.x1 for line, ss in zip(lines, segs, strict=True) if not _date_line(line)
+                  for s in ss if not s.sentence for a in s.amounts]
+        cols = _columns(rights)
+        sizes = [sum(1 for x in rights if a <= x <= b) for a, b in cols]
+        # Below the statement's last line come the signatures ("Date: 29th May, 2025" under the prior-year
+        # column); they head no column.
+        last = max((i for i, ss in enumerate(segs) for s in ss
+                    if s.amounts and not s.sentence and match_key(" ".join(w.text for w in s.label))), default=-1)
         headers: dict[int, str] = {}
-        reach = {i: (a - 14 * CHAR_W, b + CHAR_W) for i, (a, b) in enumerate(cols)}
+        # Headings go to columns of figures, not to a stray number's column ("31 March 2025" over one amount).
+        reach = {i: (a - 14 * CHAR_W, b + CHAR_W) for i, (a, b) in enumerate(cols)
+                 if sizes[i] >= 0.25 * max(sizes)}
         parsed: list[dict] = []
         section = ""
-        for line, ss in zip(lines, segs, strict=True):
-            if not any(s.amounts and not s.sentence for s in ss):
+        changes = False  # inside "Changes in operating assets and liabilities" of a cash flow statement
+        for index, (line, ss) in enumerate(zip(lines, segs, strict=True)):
+            if _date_line(line) or not any(s.amounts and not s.sentence for s in ss):
                 text = " ".join(w.text for w in line).strip()
-                if not any(_is_amount(w.text) for w in line):  # a sentence quoting amounts is no header
-                    for phrase in _phrases(line):  # a heading goes to the column it overlaps most
+                # a row of dates is a heading; a sentence quoting amounts is not
+                if (_date_line(line) or not any(_is_amount(w.text) for w in line)) and (index < last or last < 0):
+                    for phrase in _heading_parts(line):  # a heading goes to the column it overlaps most
+                        if any("%" in w.text for w in phrase):
+                            continue  # "% Change" heads percentages, which are never read as amounts
                         x0, x1 = phrase[0].x0, phrase[-1].x1
                         overlap = {i: min(x1, b) - max(x0, a) for i, (a, b) in reach.items()}
                         best_col = max(overlap, key=overlap.get, default=None)
+                        if len(phrase) == 1 and _YEAR.search(phrase[0].text) and reach:
+                            # A year sits right-aligned or centred over its own column: nearest edge or centre.
+                            mid = (x0 + x1) / 2
+                            best_col = min(reach, key=lambda i: min(abs(x1 - cols[i][1]),
+                                                                               abs(mid - sum(cols[i]) / 2)))
+                            overlap[best_col] = max(overlap.get(best_col, 0), 1)
+                        over = [i for i, (a, b) in enumerate(cols) if min(x1, b) > max(x0, a - 2 * CHAR_W)]
+                        if len(phrase) > 1 and len(over) > 1:
+                            continue  # a title across several columns ("Years ended December 31, 2025, 2024")
                         if best_col is not None and overlap[best_col] > 0:
                             words_text = " ".join(w.text for w in phrase)
                             headers[best_col] = (headers.get(best_col, "") + " " + words_text).strip()
@@ -233,6 +358,10 @@ def rows_from_words(pages: list[list[Word]]) -> list[Row]:
                     parsed[-1]["open"] = False
                 elif any(rx.search(text) for rx, _ in _SECTIONS):
                     section = text
+                if _CHANGES.search(text):
+                    changes = True
+                elif re.search(r"investing|financing", text, re.I):
+                    changes = False
                 continue
             for s in ss:
                 if s.sentence or not s.amounts:
@@ -243,12 +372,17 @@ def rows_from_words(pages: list[list[Word]]) -> list[Row]:
                     if c is not None and c not in vals:
                         vals[c] = _amount(a.text)
                 label = " ".join(w.text for w in s.label).strip(" .:-")
+                if re.match(r"(net\s+)?cash\s+(generated|provided|used|from|flows?)|net\s+cash", label, re.I):
+                    changes = False
+                elif changes:
+                    label = "change in " + label  # "Accounts receivable (1,532.9)" there is a movement, not a balance
                 parsed.append({"label": label, "vals": vals, "section": section, "open": True})
         by_col: dict[int, list[float]] = {}
         for r in parsed:
             for c, v in r["vals"].items():
                 if v is not None:
                     by_col.setdefault(c, []).append(v)
+        _spread_markers(lines, segs, reach, headers)
         best = choose_column(headers, by_col)
         for r in parsed:
             label = r["label"]
@@ -287,15 +421,26 @@ def ocr_label(label: str) -> str:
 # Entry point
 # ----------------------------------------------------------------------------------------------------
 def read_pdf_statement(data: bytes, ocr=None, dpi: int = 200) -> PdfStatement:
-    """Rows from a statement PDF. ``ocr`` is a RapidOcrBackend (or None: scanned pages give no rows)."""
+    """Rows from a statement PDF. ``ocr`` is a RapidOcrBackend (or None: scanned pages give no rows).
+
+    A long report (an annual report, a 10-K) is searched first and only its statement pages are read, the
+    best balance sheet / P&L / cash flow page before the runners-up (extraction.statement_pages).
+    """
     import pdfplumber
 
+    from dps.extraction.statement_pages import statement_pages
+
+    chosen = statement_pages(data, ocr)
     pages: list[list[Word]] = []
+    numbers: list[int] = []
+    texts: list[str] = []
     header, ocr_pages, confidences = "", [], []
     with pdfplumber.open(io.BytesIO(data)) as pdf:
-        for index, page in enumerate(pdf.pages):
+        for index in chosen if chosen is not None else range(len(pdf.pages)):
+            page = pdf.pages[index]
             text = page.extract_text() or ""
-            if len(re.findall(r"\w", text)) >= MIN_TEXT_CHARS:
+            # A broken font encoding ("(cid:12)") gives text no reader can use: read the page image instead.
+            if len(re.findall(r"\w", text)) >= MIN_TEXT_CHARS and len(_GARBLE.findall(text)) < 5:
                 words = _text_words(page)
             elif ocr is not None:
                 boxes = ocr.ocr_boxes(data, index, dpi)
@@ -307,10 +452,12 @@ def read_pdf_statement(data: bytes, ocr=None, dpi: int = 200) -> PdfStatement:
             else:
                 words = []
             pages.append(words)
-            if index < 2:
-                header += text[:600] + " "
-    rows = rows_from_words(pages)
+            numbers.append(index + 1)
+            texts.append(text)
+            # The unit is stated under each statement's heading, sometimes well down the page.
+            header += text[:1500] + " "
+    rows = rows_from_words(pages, numbers)
     if ocr_pages:
         rows = [(ocr_label(r[0]) if r[2] in ocr_pages else r[0], *r[1:]) for r in rows]
     quality = round(sum(confidences) / len(confidences), 3) if confidences else None
-    return PdfStatement(rows, header, ocr_pages, quality)
+    return PdfStatement(rows, header, ocr_pages, quality, texts)

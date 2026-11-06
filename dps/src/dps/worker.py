@@ -158,9 +158,19 @@ def build_runners(settings: Settings, database: Database, store: FileStore, core
         deps = IntakeDeps(database.session_factory, read_file, parser, core, settings.review_confidence, heavy)
         return _kickoff(AgreementIntakeFlow(deps), job)
 
+    second_reader = None
+    if settings.statement_ai_check and settings.ai_model:  # pragma: no cover - live model
+        from dps.advisor import crewai_completion
+        from dps.extraction.statement_ai import check
+
+        completion = crewai_completion(settings.ai_model, settings.ai_temperature, settings.ai_timeout_seconds)
+
+        def second_reader(text, values):
+            return check(text, values, completion)
+
     def run_statement(job: Job) -> tuple[str, str, str]:
         deps = StatementDeps(database.session_factory, read_file, parser, settings.core_data_source_id, heavy,
-                             lambda data: read_pdf_statement(data, ocr))
+                             lambda data: read_pdf_statement(data, ocr), second_reader)
         return _kickoff(StatementProcessingFlow(deps), job)
 
     return {"AGREEMENT_INTAKE": run_intake, "STATEMENT_PROCESSING": run_statement}
