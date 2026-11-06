@@ -138,16 +138,25 @@ test('15. a covenant opens with its trend and its schedule', async ({ page }) =>
   await signIn(page, 'rm-anil', '/cp/CP-1005');
   await page.getByRole('button', { name: 'Minimum DSCR' }).click();
   const drawer = page.getByRole('dialog');
-  await expect(drawer.getByRole('img', { name: /Trend of \d+ results, limit [\d.]+/ })).toBeVisible();
+  const trend = drawer.getByRole('img', { name: /Trend of \d+ results, limit [\d.]+/ });
+  // Fresh demo data holds one result per covenant, and the chart needs two: check it once more.
+  const tooFew = drawer.getByText('A chart appears once there are at least two numeric results.');
+  await expect(trend.or(tooFew)).toBeVisible();
+  if (await tooFew.isVisible()) {
+    await drawer.getByRole('button', { name: 'Check now' }).click();
+    await expect(page.getByText(/^Checked: /)).toBeVisible();
+  }
+  await expect(trend).toBeVisible();
   await drawer.getByRole('tab', { name: 'Schedule and changes' }).click();
   await expect(drawer.getByRole('button', { name: 'Pause monitoring' })).toBeVisible();
 });
 
 test('16. an RM records the result of a person-checked covenant', async ({ page }) => {
-  await signIn(page, 'rm-anil', '/cp/CP-1001');
-  const row = page.getByRole('row').filter({ hasText: 'Insurance Cover Maintained' });
+  // A manual covenant from the demo data (CP-1010 belongs to rm-priya).
+  await signIn(page, 'rm-priya', '/cp/CP-1010');
+  const row = page.getByRole('row').filter({ hasText: 'Export Authorisation Valid' });
   await row.getByRole('button', { name: 'Record result' }).click();
-  await page.getByLabel('What you checked').fill('e2e: insurance policy seen, valid to March 2027');
+  await page.getByLabel('What you checked').fill('e2e: export licence seen, valid to March 2027');
   await page.getByRole('button', { name: 'Save result' }).click();
   await expect(page.getByText('Result recorded.')).toBeVisible();
   await expect(row.getByText('Compliant')).toBeVisible();
