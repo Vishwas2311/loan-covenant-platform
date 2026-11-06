@@ -22,10 +22,10 @@ PUB = KEY.public_key().public_bytes(serialization.Encoding.PEM,
 ISS, AUD = "https://issuer.test/v2.0", "api://dps"
 
 
-def token(user="rm-anil", roles=("RM",), iss=ISS, aud=AUD, exp_in=300, key=KEY):
-    now = int(time.time())
+def token(user="rm-anil", roles=("RM",), iss=ISS, aud=AUD, exp_in=300, key=KEY, iat_in=0):
+    now = int(time.time()) + iat_in
     claims = {"iss": iss, "aud": aud, "sub": "sub-" + user, "preferred_username": user,
-              "roles": list(roles), "iat": now, "exp": now + exp_in}
+              "roles": list(roles), "iat": now, "exp": now - iat_in + exp_in}
     return jwt.encode(claims, key, algorithm="RS256")
 
 
@@ -43,11 +43,18 @@ def test_jwt_valid_token(jwt_client):
 
 
 @pytest.mark.parametrize("bad", [
-    token(iss="https://evil"), token(aud="other"), token(exp_in=-10),
+    token(iss="https://evil"), token(aud="other"), token(exp_in=-120),
     token(key=rsa.generate_private_key(public_exponent=65537, key_size=2048)), "garbage",
 ])
 def test_jwt_rejects_bad_tokens(jwt_client, bad):
     assert jwt_client.get("/dps/v1/catalog", headers={"Authorization": "Bearer " + bad}).status_code == 401
+
+
+@pytest.mark.parametrize("skew", [-10, 10])
+def test_jwt_allows_a_small_clock_difference(jwt_client, skew):
+    # Issued "in the future" or expired seconds ago: the identity provider's clock is a little off.
+    t = token(iat_in=skew) if skew > 0 else token(exp_in=skew)
+    assert jwt_client.get("/dps/v1/catalog", headers={"Authorization": "Bearer " + t}).status_code == 200
 
 
 def test_jwt_ignores_dev_headers(jwt_client):

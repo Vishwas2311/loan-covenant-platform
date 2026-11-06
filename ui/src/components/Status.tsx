@@ -31,7 +31,8 @@ export function StatusBadge({ value }: { value: string | null | undefined }) {
 export function Loading() {
   return (
     <Center py="xl">
-      <Loader aria-label="Loading" />
+      {/* Mantine draws the loader as a bare span; a role is what makes its label valid (axe aria-prohibited-attr). */}
+      <Loader role="status" aria-label="Loading" />
     </Center>
   );
 }

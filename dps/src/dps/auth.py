@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 import jwt
@@ -12,6 +13,8 @@ from dps.settings import AuthMode, Settings
 
 USER_HEADER = "X-User"
 ROLES_HEADER = "X-Roles"
+
+log = logging.getLogger(__name__)
 
 ADMIN, APPROVER, AUDITOR, AUTHOR, RM, SERVICE, SUPPORT = (
     "ADMIN", "APPROVER", "AUDITOR", "AUTHOR", "RM", "SERVICE", "SUPPORT")
@@ -73,9 +76,12 @@ class Authenticator:
                 token, key, algorithms=["RS256"],
                 audience=s.jwt_audience or None,
                 issuer=s.jwt_issuer or None,
+                leeway=s.jwt_leeway_seconds,
                 options={"require": ["exp", "iat"], "verify_aud": bool(s.jwt_audience)},
             )
         except jwt.PyJWTError as exc:
+            # The reason only (expired, wrong audience, key fetch failed...), never the token itself.
+            log.warning("Token refused: %s", type(exc).__name__)
             raise _unauthorized("Invalid token") from exc
         user = claims.get(s.jwt_principal_claim) or claims.get("sub")
         if not user:

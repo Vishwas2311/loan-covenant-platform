@@ -32,7 +32,7 @@ def create_app(settings: Settings | None = None, *, cp_checker: CpAccessChecker 
     app.state.limiter = RateLimiter()
     app.state.authenticator = Authenticator(settings)
     app.state.cp_checker = cp_checker or CoreCpAccessChecker(settings.core_base_url, settings.core_timeout_seconds)
-    completion = (crewai_completion(settings.ai_model, settings.ai_temperature)
+    completion = (crewai_completion(settings.ai_model, settings.ai_temperature, settings.ai_timeout_seconds)
                   if settings.ai_model and not advisor else None)
     app.state.advisor = advisor or Advisor(completion)
     app.state.core_fetch = core_fetch or ask.core_fetch(settings.core_base_url, settings.core_timeout_seconds)

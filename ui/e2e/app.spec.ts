@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { demoPassword, envValue, sessionAs, signIn, uniqueAgreement } from './helpers';
+import { closeSessions, demoPassword, envValue, sessionAs, signIn, uniqueAgreement } from './helpers';
+
+test.afterEach(closeSessions);
 
 // The manual script in docs/local-real-testing.md (section 6), automated. Each test signs in for real.
 

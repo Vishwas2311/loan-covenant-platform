@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     jwt_public_key_pem: str = ""  # alternative to JWKS (tests, air-gapped)
     jwt_principal_claim: str = "preferred_username"
     jwt_roles_claim: str = "roles"
+    # Clock difference allowed between the identity provider and DPS, in seconds (Core allows 60).
+    jwt_leeway_seconds: int = 30
 
     # Covenant Core, used for CP ownership checks and C5 data-events.
     core_base_url: str = "http://localhost:9310"
@@ -66,6 +68,9 @@ class Settings(BaseSettings):
     ai_model: str = ""
     # Empty: the model's default (required by newer Azure OpenAI models). Set e.g. 0 where the model allows it.
     ai_temperature: float | None = None
+    # Longest wait for one model answer. Kept under the gateway's 120 s so a slow model gives the rules
+    # answer instead of a 504 page.
+    ai_timeout_seconds: float = 60.0
     # Model price per 1,000 tokens (the bank's Azure OpenAI rates); empty leaves the recorded cost empty.
     ai_prompt_cost_per_1k: float | None = None
     ai_completion_cost_per_1k: float | None = None

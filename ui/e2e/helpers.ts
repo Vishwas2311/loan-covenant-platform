@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { expect, type Browser, type Page } from '@playwright/test';
+import { expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -25,8 +25,11 @@ export function demoPassword(): string {
 
 /** Opens the app and signs in on the Keycloak page, landing on `path`. */
 export async function signIn(page: Page, user: string, path = '/portfolio'): Promise<void> {
-  await page.goto(path);
-  await page.waitForURL(/\/realms\/covenant\//);
+  // On a busy machine Docker's port forwarding sometimes resets the first connection; try it again.
+  await expect(async () => {
+    await page.goto(path);
+    await page.waitForURL(/\/realms\/covenant\//, { timeout: 30_000 });
+  }).toPass({ timeout: 120_000, intervals: [2_000, 5_000] });
   await page.locator('#username').fill(user);
   await page.locator('#password').fill(demoPassword());
   await page.locator('#kc-login').click();
@@ -34,12 +37,23 @@ export async function signIn(page: Page, user: string, path = '/portfolio'): Pro
   await expect(page.getByText(`${user} (`).first()).toBeVisible();
 }
 
-/** A fresh browser session (own cookies), signed in as `user`. */
+const openSessions: BrowserContext[] = [];
+
+/** A fresh browser session (own cookies), signed in as `user`. Closed by {@link closeSessions}. */
 export async function sessionAs(browser: Browser, user: string, path?: string): Promise<Page> {
   const context = await browser.newContext();
+  openSessions.push(context);
   const page = await context.newPage();
   await signIn(page, user, path);
   return page;
+}
+
+/**
+ * Closes every session opened by {@link sessionAs}. Run it after each test: an open session keeps its
+ * page polling Core, and a full run otherwise piles up enough of them to slow the later tests.
+ */
+export async function closeSessions(): Promise<void> {
+  await Promise.all(openSessions.splice(0).map((c) => c.close()));
 }
 
 /** Bytes of a golden-set agreement, made unique so DPS does not treat it as a re-upload. */

@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import { envValue, sessionAs, signIn } from './helpers';
+import { closeSessions, envValue, sessionAs, signIn } from './helpers';
+
+test.afterEach(closeSessions);
 
 // Every page, as every role: no error box, no failed API call, no console error, and the right menus.
 // A page that calls an endpoint its own role may not use shows up here as a 401/403.
