@@ -1,0 +1,22 @@
+{
+ "documentId": "FS-019",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-019.pdf",
+ "sha256": "8da245806aeadfe8ed7c53166675a295d87adb883023958a6d80468833f46046",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Ind AS: both debts labelled just 'Borrowings' under section headings",
+ "generatorId": "S09",
+ "values": {
+  "LT_DEBT": 1199.06,
+  "ST_DEBT": 255.84,
+  "TRADE_PAYABLES": 425.66,
+  "CURRENT_LIABILITIES": 873.41,
+  "SHARE_CAPITAL": 100.0,
+  "RESERVES": 1420.14,
+  "NET_WORTH": 1520.14,
+  "CASH": 262.01
+ }
+}

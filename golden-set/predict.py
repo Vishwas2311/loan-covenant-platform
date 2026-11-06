@@ -29,7 +29,13 @@ def predict_agreement(data: bytes) -> dict:
 def predict_statement(name: str, data: bytes) -> dict:
     from dps.extraction import statement as st
 
-    if name.endswith(".csv"):
+    if name.endswith(".pdf"):
+        from dps.extraction.statement_pdf import read_pdf_statement
+        from dps.parsing import RapidOcrBackend
+
+        table = read_pdf_statement(data, RapidOcrBackend())
+        rows, header = table.rows, table.header_text
+    elif name.endswith(".csv"):
         rows, header = st.rows_from_csv(data), st.header_from_csv(data)
     elif name.endswith(".xls"):
         rows, header = st.rows_from_xls(data), st.header_from_xls(data)

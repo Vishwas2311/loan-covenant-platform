@@ -1,0 +1,25 @@
+{
+ "documentId": "FS-011",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-011.pdf",
+ "sha256": "0cce3319703f2e05b7419684b82173df743da1863a1054fcf07466531da041c2",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "MIS one page, dot leaders, one value per line",
+ "generatorId": "S01",
+ "values": {
+  "REVENUE": 1901.79,
+  "EBITDA": 500.08,
+  "DEPRECIATION": 82.7,
+  "INTEREST_PAID": 59.51,
+  "PAT": 292.89,
+  "ST_DEBT": 200.09,
+  "LT_DEBT": 320.97,
+  "CASH": 41.27,
+  "NET_WORTH": 968.93,
+  "CURRENT_ASSETS": 604.19,
+  "CURRENT_LIABILITIES": 396.86
+ }
+}

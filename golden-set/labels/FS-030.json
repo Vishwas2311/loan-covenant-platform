@@ -1,0 +1,26 @@
+{
+ "documentId": "FS-030",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-030.pdf",
+ "sha256": "bde086631fb17c7bfb4d9f739d7222703a0aee75a726bbed525d1497478dcf48",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Three year columns, current year last",
+ "generatorId": "H02",
+ "values": {
+  "INVENTORY": 248.6,
+  "RECEIVABLES": 244.96,
+  "CASH": 104.39,
+  "CURRENT_ASSETS": 691.42,
+  "TOTAL_ASSETS": 1765.59,
+  "SHARE_CAPITAL": 100.0,
+  "RESERVES": 863.5,
+  "NET_WORTH": 963.5,
+  "LT_DEBT": 319.67,
+  "ST_DEBT": 180.62,
+  "TRADE_PAYABLES": 215.13,
+  "CURRENT_LIABILITIES": 458.85
+ }
+}

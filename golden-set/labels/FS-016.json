@@ -1,0 +1,33 @@
+{
+ "documentId": "FS-016",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-016.pdf",
+ "sha256": "1b8d3054c9ebee53bb61eefdad6aec1e522325ec1247647c8b40fd2579bdb396",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Previous year in the first column, current year second",
+ "generatorId": "S06",
+ "values": {
+  "REVENUE": 7305.39,
+  "OTHER_INCOME": 126.6,
+  "TOTAL_INCOME": 7431.99,
+  "MATERIAL_COST": 3818.93,
+  "EMPLOYEE_COST": 460.83,
+  "OTHER_EXPENSES": 584.63,
+  "EBITDA": 2441.0,
+  "DEPRECIATION": 364.43,
+  "INTEREST_PAID": 195.47,
+  "PBT": 2007.7,
+  "TAX": 505.94,
+  "PAT": 1501.76,
+  "SHARE_CAPITAL": 50.0,
+  "RESERVES": 2319.79,
+  "NET_WORTH": 2369.79,
+  "LT_DEBT": 1641.02,
+  "ST_DEBT": 753.78,
+  "TRADE_PAYABLES": 662.6,
+  "CURRENT_LIABILITIES": 1680.46
+ }
+}

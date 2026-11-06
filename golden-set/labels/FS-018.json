@@ -1,0 +1,28 @@
+{
+ "documentId": "FS-018",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-018.pdf",
+ "sha256": "4ed9ccaa3e2449c2ba55d058bf4328a0e25115b76056b9934e673b352f077508",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Standalone and consolidated, four number columns",
+ "generatorId": "S08",
+ "values": {
+  "REVENUE": 2658.99,
+  "EBITDA": 959.09,
+  "DEPRECIATION": 99.51,
+  "INTEREST_PAID": 106.3,
+  "PBT": 804.96,
+  "TAX": 202.85,
+  "PAT": 602.11,
+  "SHARE_CAPITAL": 100.0,
+  "RESERVES": 1371.13,
+  "NET_WORTH": 1471.13,
+  "LT_DEBT": 740.19,
+  "ST_DEBT": 171.92,
+  "TRADE_PAYABLES": 296.55,
+  "CURRENT_LIABILITIES": 528.8
+ }
+}

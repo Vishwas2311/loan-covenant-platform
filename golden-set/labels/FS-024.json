@@ -1,0 +1,26 @@
+{
+ "documentId": "FS-024",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-024.pdf",
+ "sha256": "b00aced78582f87225dbbaefb6b65bc2ad5e9b6f69bf41bc5090f000db39affb",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Poor scan of S03 at 100 dpi, blur, skew 1.5°",
+ "generatorId": "S14",
+ "values": {
+  "REVENUE": 2751.31,
+  "OTHER_INCOME": 36.22,
+  "TOTAL_INCOME": 2787.53,
+  "MATERIAL_COST": 1390.77,
+  "EMPLOYEE_COST": 220.64,
+  "OTHER_EXPENSES": 323.4,
+  "EBITDA": 816.5,
+  "DEPRECIATION": 87.95,
+  "INTEREST_PAID": 42.18,
+  "PBT": 722.59,
+  "TAX": 182.09,
+  "PAT": 540.5
+ }
+}

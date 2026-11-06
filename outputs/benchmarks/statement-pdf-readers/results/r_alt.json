@@ -1,0 +1,1044 @@
+{
+ "S01": {
+  "M7": {
+   "values": {
+    "REVENUE": 1901.79,
+    "EBITDA": 500.08,
+    "DEPRECIATION": 82.7,
+    "INTEREST_PAID": 59.51,
+    "PAT": 292.89,
+    "ST_DEBT": 200.09,
+    "LT_DEBT": 320.97,
+    "CASH": 41.27,
+    "NET_WORTH": 968.93,
+    "CURRENT_ASSETS": 604.19,
+    "CURRENT_LIABILITIES": 396.86
+   },
+   "issues": [],
+   "rows": 11,
+   "route": {},
+   "seconds": 3.72
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 1901.79,
+    "EBITDA": 500.08,
+    "DEPRECIATION": 82.7,
+    "INTEREST_PAID": 59.51,
+    "PAT": 292.89,
+    "ST_DEBT": 200.09,
+    "LT_DEBT": 320.97,
+    "CASH": 41.27,
+    "NET_WORTH": 968.93,
+    "CURRENT_ASSETS": 604.19,
+    "CURRENT_LIABILITIES": 396.86
+   },
+   "issues": [],
+   "rows": 11,
+   "route": {},
+   "seconds": 5.72
+  },
+  "M9": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 5.78
+  }
+ },
+ "S02": {
+  "M7": {
+   "values": {
+    "FIXED_ASSETS": 3628.58,
+    "INVENTORY": 1042.65,
+    "RECEIVABLES": 800.63,
+    "CASH": 487.34,
+    "CURRENT_ASSETS": 2615.02,
+    "TOTAL_ASSETS": 8314.82,
+    "SHARE_CAPITAL": 250.0,
+    "RESERVES": 3805.36,
+    "NET_WORTH": 4055.36,
+    "LT_DEBT": 2342.93,
+    "ST_DEBT": 618.32,
+    "TRADE_PAYABLES": 774.76,
+    "CURRENT_LIABILITIES": 1753.27
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 13,
+   "route": {},
+   "seconds": 0.26
+  },
+  "M8": {
+   "values": {
+    "INVENTORY": 1042.65,
+    "CASH": 487.34,
+    "TOTAL_ASSETS": 8314.82,
+    "NET_WORTH": 4055.36
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT"
+   ],
+   "rows": 13,
+   "route": {},
+   "seconds": 0.26
+  },
+  "M9": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 1.26
+  }
+ },
+ "S03": {
+  "M7": {
+   "values": {
+    "REVENUE": 2751.31,
+    "OTHER_INCOME": 36.22,
+    "TOTAL_INCOME": 2787.53,
+    "MATERIAL_COST": 1390.77,
+    "EMPLOYEE_COST": 220.64,
+    "OTHER_EXPENSES": 323.4,
+    "EBITDA": 816.5,
+    "DEPRECIATION": 87.95,
+    "INTEREST_PAID": 42.18,
+    "PBT": 722.59,
+    "TAX": 182.09,
+    "PAT": 540.5
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 12,
+   "route": {},
+   "seconds": 0.3
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 2751.31,
+    "OTHER_INCOME": 36.22,
+    "MATERIAL_COST": 1390.77,
+    "EMPLOYEE_COST": 220.64,
+    "OTHER_EXPENSES": 323.4,
+    "DEPRECIATION": 87.95,
+    "INTEREST_PAID": 42.18,
+    "TAX": 182.09
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 12,
+   "route": {},
+   "seconds": 0.36
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 2751.31,
+    "OTHER_INCOME": 36.22,
+    "TOTAL_INCOME": 2787.53,
+    "MATERIAL_COST": 1390.77,
+    "EMPLOYEE_COST": 220.64,
+    "OTHER_EXPENSES": 323.4,
+    "EBITDA": 816.5,
+    "DEPRECIATION": 87.95,
+    "INTEREST_PAID": 42.18,
+    "PBT": 722.59,
+    "TAX": 182.09,
+    "PAT": 540.5
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 12,
+   "route": {},
+   "seconds": 1.14
+  }
+ },
+ "S04": {
+  "M7": {
+   "values": {
+    "CASH": 733.33
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 5,
+   "route": {},
+   "seconds": 0.14
+  },
+  "M8": {
+   "values": {
+    "CASH": 733.33
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 5,
+   "route": {},
+   "seconds": 0.1
+  },
+  "M9": {
+   "values": {
+    "CFO": 733.33,
+    "CAPEX": -135.88,
+    "CFI": -144.36,
+    "CFF": -155.27,
+    "CASH": 91.14
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 5,
+   "route": {},
+   "seconds": 1.1
+  }
+ },
+ "S05": {
+  "M7": {
+   "values": {
+    "FIXED_ASSETS": 2481.272,
+    "INVENTORY": 845.19,
+    "RECEIVABLES": 526.13,
+    "CASH": 348.2,
+    "CURRENT_ASSETS": 1920.8,
+    "TOTAL_ASSETS": 4878.41,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1504.07,
+    "NET_WORTH": 1604.07,
+    "LT_DEBT": 2000.8,
+    "ST_DEBT": 487.95,
+    "TRADE_PAYABLES": 486.38,
+    "CURRENT_LIABILITIES": 1188.86,
+    "REVENUE": 5907.79,
+    "OTHER_INCOME": 95.27,
+    "TOTAL_INCOME": 6003.07,
+    "MATERIAL_COST": 3363.18,
+    "EMPLOYEE_COST": 573.78,
+    "OTHER_EXPENSES": 734.89,
+    "EBITDA": 1235.94,
+    "DEPRECIATION": 340.7,
+    "INTEREST_PAID": 92.9,
+    "PBT": 897.61,
+    "TAX": 226.2,
+    "PAT": 671.41,
+    "CFO": 976.51,
+    "CAPEX": -506.99,
+    "CFI": -552.23,
+    "CFF": -121.19
+   },
+   "issues": [],
+   "rows": 29,
+   "route": {},
+   "seconds": 0.7
+  },
+  "M8": {
+   "values": {
+    "INVENTORY": 845.19,
+    "CASH": 348.2,
+    "TOTAL_ASSETS": 4878.41,
+    "NET_WORTH": 1604.07,
+    "REVENUE": 5907.79,
+    "OTHER_INCOME": 95.27,
+    "MATERIAL_COST": 3363.18,
+    "EMPLOYEE_COST": 573.78,
+    "OTHER_EXPENSES": 734.89,
+    "DEPRECIATION": 340.7,
+    "INTEREST_PAID": 92.9,
+    "TAX": 226.2,
+    "CFO": 976.51,
+    "CAPEX": -506.99,
+    "CFI": -552.23,
+    "CFF": -121.19
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT"
+   ],
+   "rows": 29,
+   "route": {},
+   "seconds": 0.65
+  },
+  "M9": {
+   "values": {
+    "INVENTORY": 845.19,
+    "RECEIVABLES": 526.13,
+    "CASH": 348.2,
+    "CURRENT_ASSETS": 1920.8,
+    "TOTAL_ASSETS": 4878.41,
+    "SHARE_CAPITAL": 1.2,
+    "RESERVES": 1.3,
+    "NET_WORTH": 1604.07,
+    "ST_DEBT": 1.7,
+    "TRADE_PAYABLES": 1.8,
+    "CURRENT_LIABILITIES": 1188.86,
+    "REVENUE": 5907.79,
+    "OTHER_INCOME": 95.27,
+    "TOTAL_INCOME": 6003.07,
+    "MATERIAL_COST": 3363.18,
+    "EMPLOYEE_COST": 573.78,
+    "OTHER_EXPENSES": 734.89,
+    "EBITDA": 1235.94,
+    "DEPRECIATION": 340.7,
+    "INTEREST_PAID": 92.9,
+    "PBT": 897.61,
+    "TAX": 226.2,
+    "PAT": 671.41,
+    "CFO": 976.51,
+    "CAPEX": -506.99,
+    "CFI": -552.23,
+    "CFF": -121.19
+   },
+   "issues": [],
+   "rows": 27,
+   "route": {},
+   "seconds": 3.34
+  }
+ },
+ "S06": {
+  "M7": {
+   "values": {
+    "REVENUE": 7305.39,
+    "OTHER_INCOME": 126.6,
+    "TOTAL_INCOME": 7431.99,
+    "MATERIAL_COST": 3818.93,
+    "EMPLOYEE_COST": 460.83,
+    "OTHER_EXPENSES": 584.63,
+    "EBITDA": 2441.0,
+    "DEPRECIATION": 364.43,
+    "INTEREST_PAID": 195.47,
+    "PBT": 2007.7,
+    "TAX": 505.94,
+    "PAT": 1501.76,
+    "SHARE_CAPITAL": 50.0,
+    "RESERVES": 2319.79,
+    "NET_WORTH": 2369.79,
+    "LT_DEBT": 1641.02,
+    "ST_DEBT": 753.78,
+    "TRADE_PAYABLES": 662.6,
+    "CURRENT_LIABILITIES": 1680.46
+   },
+   "issues": [],
+   "rows": 19,
+   "route": {},
+   "seconds": 0.31
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 7305.39,
+    "OTHER_INCOME": 126.6,
+    "DEPRECIATION": 364.43,
+    "INTEREST_PAID": 195.47,
+    "TAX": 505.94,
+    "RESERVES": 2319.79
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 19,
+   "route": {},
+   "seconds": 0.4
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 7305.39,
+    "OTHER_INCOME": 126.6,
+    "TOTAL_INCOME": 7431.99,
+    "MATERIAL_COST": 3818.93,
+    "EMPLOYEE_COST": 460.83,
+    "OTHER_EXPENSES": 584.63,
+    "EBITDA": 2441.0,
+    "DEPRECIATION": 364.43,
+    "INTEREST_PAID": 195.47,
+    "PBT": 2007.7,
+    "TAX": 505.94,
+    "PAT": 1501.76,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 2921.53,
+    "NET_WORTH": 3021.53,
+    "ST_DEBT": 433.35,
+    "TRADE_PAYABLES": 698.04,
+    "CURRENT_LIABILITIES": 1340.67
+   },
+   "issues": [],
+   "rows": 18,
+   "route": {},
+   "seconds": 1.15
+  }
+ },
+ "S07": {
+  "M7": {
+   "values": {
+    "REVENUE": 3455.43,
+    "OTHER_INCOME": 25.1,
+    "TOTAL_INCOME": 3480.52,
+    "OTHER_EXPENSES": 387.54,
+    "EBITDA": 990.27,
+    "DEPRECIATION": 141.57,
+    "INTEREST_PAID": 56.84,
+    "PBT": 816.96,
+    "TAX": 205.87,
+    "PAT": 611.08
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 12,
+   "route": {},
+   "seconds": 0.3
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 3455.43,
+    "OTHER_INCOME": 25.1,
+    "OTHER_EXPENSES": 387.54,
+    "DEPRECIATION": 141.57,
+    "INTEREST_PAID": 56.84,
+    "TAX": 205.87
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 12,
+   "route": {},
+   "seconds": 0.41
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 3455.43,
+    "OTHER_INCOME": 25.1,
+    "TOTAL_INCOME": 3480.52,
+    "MATERIAL_COST": 1892.33,
+    "OTHER_EXPENSES": 387.54,
+    "EBITDA": 990.27,
+    "DEPRECIATION": 141.57,
+    "INTEREST_PAID": 56.84,
+    "PBT": 816.96,
+    "TAX": 205.87,
+    "PAT": 611.08
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 12,
+   "route": {},
+   "seconds": 1.25
+  }
+ },
+ "S08": {
+  "M7": {
+   "values": {
+    "REVENUE": 2658.99,
+    "EBITDA": 959.09,
+    "DEPRECIATION": 99.51,
+    "INTEREST_PAID": 106.3,
+    "PBT": 804.96,
+    "TAX": 202.85,
+    "PAT": 602.11,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1371.13,
+    "NET_WORTH": 1471.13,
+    "LT_DEBT": 740.19,
+    "ST_DEBT": 171.92,
+    "TRADE_PAYABLES": 296.55,
+    "CURRENT_LIABILITIES": 528.8
+   },
+   "issues": [],
+   "rows": 14,
+   "route": {},
+   "seconds": 0.32
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 2658.99,
+    "DEPRECIATION": 99.51,
+    "INTEREST_PAID": 106.3,
+    "TAX": 202.85,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1371.13,
+    "LT_DEBT": 740.19,
+    "ST_DEBT": 171.92,
+    "TRADE_PAYABLES": 296.55,
+    "CURRENT_LIABILITIES": 528.8
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, NET_WORTH"
+   ],
+   "rows": 14,
+   "route": {},
+   "seconds": 0.5
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 2658.99,
+    "EBITDA": 959.09,
+    "DEPRECIATION": 99.51,
+    "INTEREST_PAID": 106.3,
+    "PBT": 804.96,
+    "TAX": 202.85,
+    "PAT": 602.11,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1371.13,
+    "NET_WORTH": 1471.13,
+    "LT_DEBT": 740.19,
+    "ST_DEBT": 171.92,
+    "TRADE_PAYABLES": 296.55,
+    "CURRENT_LIABILITIES": 528.8
+   },
+   "issues": [],
+   "rows": 14,
+   "route": {},
+   "seconds": 1.25
+  }
+ },
+ "S09": {
+  "M7": {
+   "values": {
+    "ST_DEBT": 255.84
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, NET_WORTH"
+   ],
+   "rows": 2,
+   "route": {},
+   "seconds": 0.18
+  },
+  "M8": {
+   "values": {
+    "ST_DEBT": 255.84,
+    "TRADE_PAYABLES": 425.66,
+    "CURRENT_LIABILITIES": 873.41,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1420.14,
+    "NET_WORTH": 1520.14,
+    "CASH": 262.01
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 8,
+   "route": {},
+   "seconds": 0.2
+  },
+  "M9": {
+   "values": {
+    "TRADE_PAYABLES": 425.66,
+    "CURRENT_LIABILITIES": 873.41,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1420.14,
+    "NET_WORTH": 1520.14,
+    "CASH": 262.01
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT"
+   ],
+   "rows": 7,
+   "route": {},
+   "seconds": 1.3
+  }
+ },
+ "S10": {
+  "M7": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 0.47
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 5485.5,
+    "EBITDA": 1504.0,
+    "TOTAL_DEBT": 1729.8,
+    "NET_WORTH": 2354.0
+   },
+   "issues": [
+    "UNIT_NOT_STATED: amounts read as INR crore"
+   ],
+   "rows": 4,
+   "route": {},
+   "seconds": 2.19
+  },
+  "M9": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 0.87
+  }
+ },
+ "S11": {
+  "M7": {
+   "values": {
+    "REVENUE": 4509.51,
+    "EBITDA": 1026.43,
+    "INTEREST_PAID": 88.46,
+    "PAT": 586.16,
+    "LT_DEBT": 1244.52,
+    "ST_DEBT": 387.07,
+    "NET_WORTH": 2117.17
+   },
+   "issues": [],
+   "rows": 11,
+   "route": {},
+   "seconds": 0.14
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 4509.51,
+    "EBITDA": 1026.43,
+    "INTEREST_PAID": 88.46,
+    "PAT": 586.16,
+    "LT_DEBT": 1244.52,
+    "ST_DEBT": 387.07,
+    "NET_WORTH": 2117.17
+   },
+   "issues": [],
+   "rows": 11,
+   "route": {},
+   "seconds": 0.11
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 4509.51,
+    "EBITDA": 1026.43,
+    "INTEREST_PAID": 88.46,
+    "PAT": 586.16,
+    "LT_DEBT": 1244.52,
+    "ST_DEBT": 387.07,
+    "NET_WORTH": 2117.17
+   },
+   "issues": [],
+   "rows": 11,
+   "route": {},
+   "seconds": 0.98
+  }
+ },
+ "S12": {
+  "M7": {
+   "values": {
+    "FIXED_ASSETS": 1970.42,
+    "INVENTORY": 558.63,
+    "RECEIVABLES": 623.52,
+    "CASH": 263.13,
+    "CURRENT_ASSETS": 1559.57,
+    "TOTAL_ASSETS": 3893.9,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 1269.46,
+    "NET_WORTH": 1369.46,
+    "LT_DEBT": 1351.7,
+    "ST_DEBT": 500.7,
+    "TRADE_PAYABLES": 431.63,
+    "CURRENT_LIABILITIES": 1048.99
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 17,
+   "route": {},
+   "seconds": 0.32
+  },
+  "M8": {
+   "values": {
+    "INVENTORY": 558.63,
+    "CASH": 263.13,
+    "TOTAL_ASSETS": 3893.9,
+    "NET_WORTH": 1369.46
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT"
+   ],
+   "rows": 17,
+   "route": {},
+   "seconds": 0.4
+  },
+  "M9": {
+   "values": {
+    "INVENTORY": 558.63,
+    "RECEIVABLES": 623.52,
+    "CASH": 263.13,
+    "CURRENT_ASSETS": 1559.57,
+    "TOTAL_ASSETS": 3893.9,
+    "SHARE_CAPITAL": 12.0,
+    "RESERVES": 13.0,
+    "NET_WORTH": 1369.46,
+    "ST_DEBT": 17.0,
+    "TRADE_PAYABLES": 18.0,
+    "CURRENT_LIABILITIES": 1048.99,
+    "LT_DEBT": 150.21
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 15,
+   "route": {},
+   "seconds": 2.26
+  }
+ },
+ "S13": {
+  "M7": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 0.06
+  },
+  "M8": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 0.0
+  },
+  "M9": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 1.25
+  }
+ },
+ "S14": {
+  "M7": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 0.06
+  },
+  "M8": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 0.0
+  },
+  "M9": {
+   "values": {},
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT, NET_WORTH"
+   ],
+   "rows": 0,
+   "route": {},
+   "seconds": 1.07
+  }
+ },
+ "S15": {
+  "M7": {
+   "values": {
+    "REVENUE": 8714.99,
+    "OTHER_INCOME": 45.1,
+    "INVENTORY": 843.44,
+    "TOTAL_INCOME": 8760.08,
+    "RECEIVABLES": 932.91,
+    "MATERIAL_COST": 4883.87,
+    "CASH": 697.1,
+    "EMPLOYEE_COST": 504.6,
+    "CURRENT_ASSETS": 2832.9,
+    "OTHER_EXPENSES": 1212.95,
+    "TOTAL_ASSETS": 9882.41,
+    "EBITDA": 2113.56,
+    "DEPRECIATION": 265.86,
+    "SHARE_CAPITAL": 100.0,
+    "INTEREST_PAID": 322.34,
+    "RESERVES": 5030.83,
+    "PBT": 1570.45,
+    "NET_WORTH": 5130.83,
+    "TAX": 395.75,
+    "PAT": 1174.7
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT"
+   ],
+   "rows": 21,
+   "route": {},
+   "seconds": 0.34
+  },
+  "M8": {
+   "values": {
+    "CURRENT_ASSETS": 8714.99,
+    "INVENTORY": 843.44,
+    "RECEIVABLES": 932.91,
+    "CASH": 697.1,
+    "TOTAL_ASSETS": 9882.41,
+    "DEPRECIATION": 265.86,
+    "SHARE_CAPITAL": 100.0,
+    "INTEREST_PAID": 322.34,
+    "RESERVES": 5030.83,
+    "NET_WORTH": 5130.83,
+    "TAX": 395.75
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT"
+   ],
+   "rows": 16,
+   "route": {},
+   "seconds": 0.63
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 8714.99,
+    "OTHER_INCOME": 45.1,
+    "TOTAL_INCOME": 8760.08,
+    "MATERIAL_COST": 4883.87,
+    "EMPLOYEE_COST": 504.6,
+    "OTHER_EXPENSES": 1212.95,
+    "EBITDA": 2113.56,
+    "DEPRECIATION": 265.86,
+    "INTEREST_PAID": 322.34,
+    "PBT": 1570.45,
+    "TAX": 395.75,
+    "PAT": 1174.7,
+    "INVENTORY": 843.44,
+    "RECEIVABLES": 932.91,
+    "CASH": 697.1,
+    "CURRENT_ASSETS": 2832.9,
+    "TOTAL_ASSETS": 9882.41,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 5030.83,
+    "NET_WORTH": 5130.83
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT"
+   ],
+   "rows": 21,
+   "route": {},
+   "seconds": 1.19
+  }
+ },
+ "S16": {
+  "M7": {
+   "values": {
+    "CFO": 934.33,
+    "CAPEX": -269.34,
+    "CFI": -286.84,
+    "CFF": -148.44,
+    "PAT": 708.33,
+    "NET_WORTH": 1217.96,
+    "TOTAL_DEBT": 927.85
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 7,
+   "route": {},
+   "seconds": 0.18
+  },
+  "M8": {
+   "values": {
+    "CFO": 934.33,
+    "CAPEX": -269.34,
+    "CFI": -286.84,
+    "CFF": -148.44,
+    "PAT": 708.33,
+    "NET_WORTH": 1217.96,
+    "TOTAL_DEBT": 927.85
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 7,
+   "route": {},
+   "seconds": 0.09
+  },
+  "M9": {
+   "values": {
+    "CFO": 934.33,
+    "CAPEX": -269.34,
+    "CFI": -286.84,
+    "CFF": -148.44,
+    "PAT": 708.33,
+    "NET_WORTH": 1217.96,
+    "TOTAL_DEBT": 927.85
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA"
+   ],
+   "rows": 7,
+   "route": {},
+   "seconds": 0.92
+  }
+ },
+ "S17": {
+  "M7": {
+   "values": {
+    "FIXED_ASSETS": 2133.71,
+    "INVENTORY": 671.85,
+    "RECEIVABLES": 509.0,
+    "CASH": 218.71,
+    "CURRENT_ASSETS": 1577.61,
+    "TOTAL_ASSETS": 3870.88,
+    "SHARE_CAPITAL": 500.0,
+    "RESERVES": 1514.63,
+    "NET_WORTH": 2014.63,
+    "LT_DEBT": 789.41,
+    "ST_DEBT": 293.19,
+    "TRADE_PAYABLES": 436.25,
+    "CURRENT_LIABILITIES": 960.03,
+    "REVENUE": 5080.27,
+    "OTHER_INCOME": 86.87,
+    "TOTAL_INCOME": 5167.14,
+    "MATERIAL_COST": 3018.06,
+    "EMPLOYEE_COST": 327.58,
+    "OTHER_EXPENSES": 639.94,
+    "EBITDA": 1094.69,
+    "DEPRECIATION": 259.74,
+    "INTEREST_PAID": 160.2,
+    "PBT": 761.62,
+    "TAX": 191.93,
+    "PAT": 569.69
+   },
+   "issues": [],
+   "rows": 25,
+   "route": {},
+   "seconds": 0.56
+  },
+  "M8": {
+   "values": {
+    "INVENTORY": 671.85,
+    "CASH": 218.71,
+    "TOTAL_ASSETS": 3870.88,
+    "NET_WORTH": 2014.63,
+    "REVENUE": 5080.27,
+    "OTHER_INCOME": 86.87,
+    "MATERIAL_COST": 3018.06,
+    "EMPLOYEE_COST": 327.58,
+    "OTHER_EXPENSES": 639.94,
+    "DEPRECIATION": 259.74,
+    "INTEREST_PAID": 160.2,
+    "TAX": 191.93
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: EBITDA, TOTAL_DEBT"
+   ],
+   "rows": 28,
+   "route": {},
+   "seconds": 0.66
+  },
+  "M9": {
+   "values": {
+    "INVENTORY": 671.85,
+    "RECEIVABLES": 509.0,
+    "CASH": 218.71,
+    "CURRENT_ASSETS": 1577.61,
+    "TOTAL_ASSETS": 3870.88,
+    "SHARE_CAPITAL": 500.0,
+    "RESERVES": 1514.63,
+    "NET_WORTH": 2014.63,
+    "LT_DEBT": 789.41,
+    "ST_DEBT": 293.19,
+    "TRADE_PAYABLES": 436.25,
+    "CURRENT_LIABILITIES": 960.03,
+    "REVENUE": 5080.27,
+    "OTHER_INCOME": 86.87,
+    "TOTAL_INCOME": 5167.14,
+    "MATERIAL_COST": 3018.06,
+    "EMPLOYEE_COST": 327.58,
+    "OTHER_EXPENSES": 639.94,
+    "EBITDA": 1094.69,
+    "DEPRECIATION": 259.74,
+    "INTEREST_PAID": 160.2,
+    "PBT": 761.62,
+    "TAX": 191.93,
+    "PAT": 569.69
+   },
+   "issues": [],
+   "rows": 24,
+   "route": {},
+   "seconds": 2.89
+  }
+ },
+ "S18": {
+  "M7": {
+   "values": {
+    "REVENUE": 2286.37,
+    "OTHER_INCOME": 34.12,
+    "TOTAL_INCOME": 2320.49,
+    "MATERIAL_COST": 1143.61,
+    "EMPLOYEE_COST": 136.95,
+    "OTHER_EXPENSES": 250.06,
+    "EBITDA": 755.76,
+    "DEPRECIATION": 102.48,
+    "INTEREST_PAID": 61.72,
+    "PBT": 625.68,
+    "TAX": 157.67,
+    "PAT": 468.01,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 706.85,
+    "NET_WORTH": 806.85,
+    "LT_DEBT": 463.92,
+    "ST_DEBT": 187.67,
+    "TRADE_PAYABLES": 250.03,
+    "CURRENT_LIABILITIES": 542.83
+   },
+   "issues": [],
+   "rows": 19,
+   "route": {},
+   "seconds": 0.3
+  },
+  "M8": {
+   "values": {
+    "REVENUE": 2286.37,
+    "OTHER_INCOME": 34.12,
+    "TOTAL_INCOME": 2320.49,
+    "EBITDA": 755.76,
+    "DEPRECIATION": 102.48,
+    "INTEREST_PAID": 61.72,
+    "TAX": 157.67,
+    "RESERVES": 706.85,
+    "NET_WORTH": 806.85
+   },
+   "issues": [
+    "MISSING_LINE_ITEMS: TOTAL_DEBT"
+   ],
+   "rows": 19,
+   "route": {},
+   "seconds": 0.27
+  },
+  "M9": {
+   "values": {
+    "REVENUE": 2286.37,
+    "OTHER_INCOME": 34.12,
+    "TOTAL_INCOME": 2320.49,
+    "MATERIAL_COST": 1143.61,
+    "EMPLOYEE_COST": 136.95,
+    "OTHER_EXPENSES": 250.06,
+    "EBITDA": 755.76,
+    "DEPRECIATION": 102.48,
+    "INTEREST_PAID": 61.72,
+    "PBT": 625.68,
+    "TAX": 157.67,
+    "PAT": 468.01,
+    "SHARE_CAPITAL": 100.0,
+    "RESERVES": 706.85,
+    "NET_WORTH": 806.85,
+    "LT_DEBT": 463.92,
+    "ST_DEBT": 187.67,
+    "TRADE_PAYABLES": 250.03,
+    "CURRENT_LIABILITIES": 542.83
+   },
+   "issues": [],
+   "rows": 20,
+   "route": {},
+   "seconds": 1.19
+  }
+ }
+}

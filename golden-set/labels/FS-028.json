@@ -1,0 +1,33 @@
+{
+ "documentId": "FS-028",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-028.pdf",
+ "sha256": "b010d6ca06839fa678aad8918520270dacaa07f6a4a08a07933008f370d4a687",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Merged two-row header, years under 'Year ended 31 March'",
+ "generatorId": "S18",
+ "values": {
+  "REVENUE": 2286.37,
+  "OTHER_INCOME": 34.12,
+  "TOTAL_INCOME": 2320.49,
+  "MATERIAL_COST": 1143.61,
+  "EMPLOYEE_COST": 136.95,
+  "OTHER_EXPENSES": 250.06,
+  "EBITDA": 755.76,
+  "DEPRECIATION": 102.48,
+  "INTEREST_PAID": 61.72,
+  "PBT": 625.68,
+  "TAX": 157.67,
+  "PAT": 468.01,
+  "SHARE_CAPITAL": 100.0,
+  "RESERVES": 706.85,
+  "NET_WORTH": 806.85,
+  "LT_DEBT": 463.92,
+  "ST_DEBT": 187.67,
+  "TRADE_PAYABLES": 250.03,
+  "CURRENT_LIABILITIES": 542.83
+ }
+}

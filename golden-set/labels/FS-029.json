@@ -1,0 +1,26 @@
+{
+ "documentId": "FS-029",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-029.pdf",
+ "sha256": "43733dd069890ef6ca3d6876fc6c1e6f6d6a33ec815761d34bd914394f3d67ff",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Times 9 pt, ALL-CAPS labels, (Audited) headers",
+ "generatorId": "H01",
+ "values": {
+  "REVENUE": 5565.45,
+  "OTHER_INCOME": 44.09,
+  "TOTAL_INCOME": 5609.53,
+  "MATERIAL_COST": 3310.26,
+  "EMPLOYEE_COST": 535.39,
+  "OTHER_EXPENSES": 601.23,
+  "EBITDA": 1118.57,
+  "DEPRECIATION": 277.74,
+  "INTEREST_PAID": 113.33,
+  "PBT": 771.59,
+  "TAX": 194.44,
+  "PAT": 577.15
+ }
+}

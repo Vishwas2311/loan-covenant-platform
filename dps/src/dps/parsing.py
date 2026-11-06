@@ -75,16 +75,21 @@ class RapidOcrBackend:
         return self._engine
 
     def ocr_page(self, pdf_bytes: bytes, page_index: int) -> tuple[str, float]:  # pragma: no cover
-        import pypdfium2 as pdfium
-
-        pdf = pdfium.PdfDocument(pdf_bytes)
-        image = pdf[page_index].render(scale=self._dpi / 72).to_pil()
-        result, _ = self._ensure()(image)
+        result = self.ocr_boxes(pdf_bytes, page_index, self._dpi)
         if not result:
             return "", 0.0
         lines = [r[1] for r in result]
         confidence = sum(float(r[2]) for r in result) / len(result)
         return "\n".join(lines), confidence
+
+    def ocr_boxes(self, pdf_bytes: bytes, page_index: int, dpi: int) -> list:  # pragma: no cover
+        """RapidOCR's raw result for one page: [(four corner points in pixels, text, confidence), ...]."""
+        import pypdfium2 as pdfium
+
+        pdf = pdfium.PdfDocument(pdf_bytes)
+        image = pdf[page_index].render(scale=dpi / 72).to_pil()
+        result, _ = self._ensure()(image)
+        return list(result or [])
 
 
 class ParserEngine:

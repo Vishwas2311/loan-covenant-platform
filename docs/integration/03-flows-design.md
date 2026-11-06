@@ -237,6 +237,15 @@ Options C and D (Azure Content Understanding, Azure AI Document Intelligence) ar
 3. **No per-page cost and no new vendor contract.**
 4. **Scans and complex tables are still covered** by the Docling fallback, without paying its speed cost on every document.
 
+**As built (6 November 2026).** pdfplumber was planned here for statement tables but was not wired in at
+first: statement PDFs were read as plain text, taking the first number on each line, which was right on
+48% of the values in a 24-document benchmark (note numbers, quarters, previous years and narrative were
+taken instead) and 0% on scans. It is now in place as `extraction/statement_pdf.py`: pdfplumber word
+positions (RapidOCR boxes on scans) and a column picker, 99.1% on the same benchmark. Docling tables
+scored 90.9% at about 20 times the time and failed the poor scan, so statements no longer go to the
+heavy pool when the table reader finds rows; Docling stays for agreements. Benchmark:
+`outputs/benchmarks/statement-pdf-readers/README.md`.
+
 **Release gate (R1):** build the golden set (≥ 20 agreements, ≥ 20 statements, including scanned and table-heavy ones). Measure that numbers, table cells and page references are exactly right with this stack. If a document type keeps failing, tune the fallback routing or add a GPU worker for Docling. Engines sit behind one `ParserEngine` interface, so changes don't touch the flows.
 
 ## 9. How this maps to the manager's diagram

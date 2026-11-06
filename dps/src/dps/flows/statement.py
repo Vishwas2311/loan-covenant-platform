@@ -7,6 +7,7 @@ queues a C5 data-event per linked CP so Core re-assesses at once. Compliance is 
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,11 +31,16 @@ from dps.extraction.statement import (
     rows_from_xls,
     rows_from_xlsx,
 )
+from dps.extraction.statement_pdf import PdfStatement
 from dps.flows.persistence import SqlFlowPersistence
 from dps.models import Document, EventOutbox, StatementValue, utcnow
 from dps.parsing import ParseError, needs_heavy
 
 ACTOR = "dps-flow-b"
+# A scan read below this mean OCR confidence is held for a person to confirm the figures. Benchmark: clean
+# scans read at 0.986-0.993 with every value right; a blurred 100 dpi scan read at 0.952 and lost 3 of 12 lines.
+OCR_REVIEW_QUALITY = 0.97
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,6 +50,8 @@ class StatementDeps:
     parser: object
     data_source_id: str
     heavy_pool: bool
+    # Table-aware PDF reader (extraction.statement_pdf.read_pdf_statement); None: plain text lines only.
+    pdf_reader: Callable[[bytes], PdfStatement] | None = None
 
 
 class StatementState(BaseModel):
@@ -57,6 +65,7 @@ class StatementState(BaseModel):
     unit_scale: str = ""
     issues: list[str] = Field(default_factory=list)
     route: str = ""
+    parse_issues: list[str] = Field(default_factory=list)
     error: str = ""
     outcome: Literal["", "REPORTED", "NEEDS_REVIEW", "FAILED", "HEAVY"] = ""
 
@@ -88,11 +97,18 @@ class StatementProcessingFlow(Flow[StatementState]):
         self.state.file_kind = ext.lstrip(".")
         try:
             if ext == ".pdf":
-                pages = self._deps.parser.parse(data)
-                if not self._deps.heavy_pool and needs_heavy(pages):
-                    self.state.route = "heavy"
-                rows = rows_from_text([(p.no, p.text) for p in pages])
-                self.state.header_text = " ".join(p.text[:600] for p in pages[:2])
+                table = self._read_table(data)
+                if table is not None and table.rows:
+                    rows, self.state.header_text = table.rows, table.header_text
+                    if table.ocr_quality is not None and table.ocr_quality < OCR_REVIEW_QUALITY:
+                        self.state.parse_issues = [
+                            f"LOW_OCR_QUALITY: scanned pages read at {table.ocr_quality:.0%} confidence"]
+                else:
+                    pages = self._deps.parser.parse(data)
+                    if not self._deps.heavy_pool and needs_heavy(pages):
+                        self.state.route = "heavy"
+                    rows = rows_from_text([(p.no, p.text) for p in pages])
+                    self.state.header_text = " ".join(p.text[:600] for p in pages[:2])
             elif ext == ".xlsx":
                 rows = rows_from_xlsx(data)
                 self.state.header_text = header_from_xlsx(data)
@@ -111,12 +127,21 @@ class StatementProcessingFlow(Flow[StatementState]):
         self.state.rows = [list(r) for r in rows]
         self._checkpoint("parse")
 
+    def _read_table(self, data: bytes) -> PdfStatement | None:
+        if self._deps.pdf_reader is None:
+            return None
+        try:
+            return self._deps.pdf_reader(data)
+        except Exception as ex:  # an odd PDF: the plain-text reader below still gets a go
+            log.warning("Table reader failed, using text lines: %s", type(ex).__name__)
+            return None
+
     @listen(parse_document)
     def extract_and_calculate(self) -> None:
         result: StatementResult = extract_values([tuple(r) for r in self.state.rows], self.state.header_text)
         self.state.values = [v.as_dict() for v in result.values]
         self.state.unit_scale = result.unit_scale
-        self.state.issues = result.issues
+        self.state.issues = result.issues + self.state.parse_issues
         self._checkpoint("calculate")
 
     @router(extract_and_calculate)

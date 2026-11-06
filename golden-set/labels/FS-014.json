@@ -1,0 +1,19 @@
+{
+ "documentId": "FS-014",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-014.pdf",
+ "sha256": "5ee45a610a6e9afd2f22e0165b3fdeff47bb8941f9b1f06d984a91297f223cba",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Cash flow, negatives in brackets, labels wrapped over two lines",
+ "generatorId": "S04",
+ "values": {
+  "CFO": 733.33,
+  "CAPEX": 135.88,
+  "CFI": -144.36,
+  "CFF": -155.27,
+  "CASH": 91.14
+ }
+}

@@ -1,0 +1,20 @@
+doc   layout                                                                            M1         M10          M2          M4          M5          M6          M7          M8          M9
+H01   Times 9 pt, ALL-CAPS labels, (Audited) headers                             4/12 w8 F     11/12 F   4/12 w8 F     12/12 F     12/12 F     12/12 F     12/12 F     12/12 F     12/12 F
+H02   Three year columns, current year last                                     0/12 w12 F     12/12 F  0/12 w12 F     12/12 F     12/12 F     12/12 F     12/12 F     12/12 F  0/12 w12 F
+H03   ₹ in every cell, 'Previous Year' first, 'Current Year' second               0/11 w11       10/11    0/11 w11       11/11       11/11       11/11       11/11    0/11 w11    10/11 w1
+H04   Half-year columns before the annual columns                               0/12 w11 F     11/12 F  0/12 w12 F     12/12 F     12/12 F     12/12 F     12/12 F     12/12 F     12/12 F
+H05   Dense 8 pt page, P&L then balance sheet, wrapped labels                        23/24       23/24       24/24       24/24       24/24       24/24       24/24  16/24 w2 F      0/24 F
+H06   Scan of H01 at 200 dpi, 1.0° skew                                             0/12 F     11/12 F  2/12 w10 F     12/12 F   4/12 w7 F      0/12 F      0/12 F      0/12 F      0/12 F
+
+method  accuracy  correct  silent wrong  flagged wrong  missing  seconds
+M1         32.5%       27            11             31       14      9.5
+M10        94.0%       78             0              0        5     48.4
+M2         36.1%       30            11             42        0    119.5
+M4        100.0%       83             0              0        0      6.9
+M5         90.4%       75             0              7        1     97.2
+M6         85.5%       71             0              0       12      0.4
+M7         85.5%       71             0              0       12      3.9
+M8         62.7%       52            11              2       18      1.5
+M9         41.0%       34             1             12       36     10.9
+
+83 truth values over 6 documents. Per-doc cell: correct/total, wN = N wrong, F = DPS would hold it for review

@@ -118,10 +118,10 @@ flowchart TB
         end
         subgraph FB["Flow B — financial statements (CrewAI Flow, checkpointed)"]
             direction LR
-            b1["B2·1 Parse<br/>PDF · XLSX · XLS · CSV<br/>OCR for scans"]
-            b2["B2·2 Line items<br/>page / cell reference<br/>units → crore"]
+            b1["B2·1 Parse<br/>PDF tables: pdfplumber word positions<br/>scans: RapidOCR boxes, straightened<br/>XLSX · XLS · CSV cells"]
+            b2["B2·2 Line items<br/>current annual standalone column<br/>skips note, quarter, prior-year columns<br/>units → crore"]
             b3["B2·3 Derive<br/>EBITDA · total debt · ratios"]
-            b4["B2·4 Data-quality checks<br/>balance · period · signs<br/>required items"]
+            b4["B2·4 Data-quality checks<br/>balance · period · signs<br/>required items · scan read below 97%"]
             b5["Outcome<br/>reported · needs review<br/>failed · heavy pool"]
             b1 --> b2 --> b3 --> b4 --> b5
         end
@@ -233,7 +233,7 @@ flowchart TB
 | UI | React 18, Mantine, TanStack Query, Vite build; served by **nginx**, which is also the gateway on port 8080 (`/api` → Core, `/dps` → DPS) | New |
 | Sign-in | OpenID Connect: **Keycloak 26** locally, **Microsoft Entra ID** in production; JWT on every call; roles RM, APPROVER, AUTHOR, ADMIN, AUDITOR, SUPPORT, BORROWER | New |
 | Core | Java 17, Spring Boot 3.5, Spring Security (JWT resource server), JPA, Quartz (clustered in production), formula engine, Flyway `V1`–`V32` | covenant-monitoring, extended |
-| DPS | Python 3.12, FastAPI, **CrewAI Flows** (Flow A agreements, Flow B statements), SQLAlchemy + Alembic, pypdf, RapidOCR, **Docling** (heavy pool), openpyxl, xlrd. All reading runs inside the bank: Azure Document Intelligence was considered and rejected, so no document leaves the network for parsing | covenanttrackingphase1.2, rebuilt |
+| DPS | Python 3.12, FastAPI, **CrewAI Flows** (Flow A agreements, Flow B statements), SQLAlchemy + Alembic, pypdf, RapidOCR, **Docling** (heavy pool, agreements), **pdfplumber** (statement tables), openpyxl, xlrd. All reading runs inside the bank: Azure Document Intelligence was considered and rejected, so no document leaves the network for parsing | covenanttrackingphase1.2, rebuilt |
 | AI | **Azure OpenAI** through DPS: Ask AI, agreement questions, statement narratives; token use stored per call; per-user rate limits on calls that cost money. Core's AI status suggestions (C3) call an external service by default (WireMock locally) and use DPS only when `COVENANT_AI_PROVIDER=dps`. DPS uses a model only when `DPS_AI_MODEL=azure/<deployment>` is set; left empty, suggestions come from fixed rules and every other feature still works. Each model call is cut off after `DPS_AI_TIMEOUT_SECONDS` (60 s, under the gateway's 120 s); a slower answer falls back to the rules answer. AI is advisory: a person decides | Both, consolidated |
 | ML thresholds | Core asks an ML service for suggested thresholds at onboarding; locally a mock inside Core answers (`/internal/mock-ml`) | covenant-monitoring |
 | Database | **SQL Server 2022** (Core's `covenant` database and DPS's tables), `READ_COMMITTED_SNAPSHOT` on | covenant-monitoring |
@@ -258,10 +258,10 @@ flowchart TB
         dpsapi["dps-api — FastAPI :9400"]
         w1["dps-worker<br/>standard pool"]
         w2["dps-worker-heavy<br/>heavy pool (Docling)"]
-        sql[("sqlserver :1433 — SQL Server 2022<br/>covenant DB · DPS tables<br/>demo customer tables (MSSQL data sources)")]
+        sql[("sqlserver :1433 — SQL Server 2022<br/>covenant DB (Core)<br/>demo customer tables (MSSQL data sources)")]
         init["stack-init<br/>creates databases and logins"]
         stubs["bank-stubs — WireMock :9311<br/>CP + RM/WRM · covenant attributes · data catalogue + values<br/>obligor values · notifications · workflow cases<br/>file upload / download · AI suggestions"]
-        vol[("document store volume")]
+        vol[("dpsdata volume<br/>DPS tables (SQLite dps.db, local only)<br/>document store")]
         mp["mail-bridge :8090 → mailpit :8025<br/>(docker-compose.mail.yml, optional)"]
     end
 
@@ -272,9 +272,6 @@ flowchart TB
     ui --> core
     ui --> dpsapi
     core --> sql
-    dpsapi --> sql
-    w1 --> sql
-    w2 --> sql
     dpsapi --> vol
     w1 --> vol
     w2 --> vol
@@ -289,6 +286,8 @@ flowchart TB
     dpsapi -. verifies JWT .-> kc
 ```
 
+Locally DPS keeps its tables in a SQLite file (`DPS_DATABASE_URL=sqlite:////data/dps.db`); in production
+`DPS_DATABASE_URL` points at SQL Server, and CI runs the DPS tests and migrations on SQL Server too.
 In production the same images run on the bank's platform, Keycloak is replaced by Entra ID, WireMock by
 the bank's real services, and Core can run as several nodes (`docker-compose.scale.yml` shows two).
 
@@ -395,7 +394,8 @@ Cross-cutting pieces:
 | `flows/intake.py` | Flow A — loan agreements |
 | `flows/statement.py` | Flow B — financial statements |
 | `flows/persistence.py` | Saves flow checkpoints in `dps_flow_state`, so a review can resume the flow |
-| `parsing.py` | ParserEngine: pypdf text first, RapidOCR for pages without text, Docling in the heavy pool |
+| `parsing.py` | ParserEngine: pypdf text first, RapidOCR for pages without text, Docling in the heavy pool (agreements) |
+| `extraction/statement_pdf.py` | Statement PDFs: reads the table from word positions (pdfplumber, or RapidOCR boxes on scans), picks the current annual standalone column, skips narrative, joins wrapped labels. Chosen by benchmark: [outputs/benchmarks/statement-pdf-readers](../../outputs/benchmarks/statement-pdf-readers/README.md) |
 | `extraction/agreement.py`, `extraction/mapping.py`, `extraction/validation.py` | Find covenants; map them to Core's library; citation, confidence and operator checks |
 | `extraction/terms_info.py` | Agreement facts that are not covenants (testing basis, cure periods, definitions) |
 | `extraction/statement.py`, `catalog.py` | Read statement line items (PDF, XLSX, XLS, CSV) and the line-item catalogue served to Core |

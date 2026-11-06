@@ -1,0 +1,26 @@
+{
+ "documentId": "FS-013",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-013.pdf",
+ "sha256": "870f212c4432f76e43cf83a0475cdee87424023899662ff5ec19ad6dced6212d",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "P&L in lakhs, Indian digit grouping, note column",
+ "generatorId": "S03",
+ "values": {
+  "REVENUE": 2751.31,
+  "OTHER_INCOME": 36.22,
+  "TOTAL_INCOME": 2787.53,
+  "MATERIAL_COST": 1390.77,
+  "EMPLOYEE_COST": 220.64,
+  "OTHER_EXPENSES": 323.4,
+  "EBITDA": 816.5,
+  "DEPRECIATION": 87.95,
+  "INTEREST_PAID": 42.18,
+  "PBT": 722.59,
+  "TAX": 182.09,
+  "PAT": 540.5
+ }
+}

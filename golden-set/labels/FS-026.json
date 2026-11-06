@@ -1,0 +1,21 @@
+{
+ "documentId": "FS-026",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-026.pdf",
+ "sha256": "80233405129a52643dd50abc9d1bf5902519ce4fbaf28b6877048db6ae0b4936",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Minus signs, no thousands separators",
+ "generatorId": "S16",
+ "values": {
+  "CFO": 934.33,
+  "CAPEX": 269.34,
+  "CFI": -286.84,
+  "CFF": -148.44,
+  "PAT": 708.33,
+  "NET_WORTH": 1217.96,
+  "TOTAL_DEBT": 927.85
+ }
+}

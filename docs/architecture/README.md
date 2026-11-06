@@ -11,7 +11,7 @@ with its stack, component diagram, main journeys, data model and API map.
 
 The complete Covenexa architecture in a single diagram: [covenant-platform.md, section 0](covenant-platform.md#0-the-whole-system-in-one-diagram).
 
-The same diagram as an image, sharp when zoomed: [Covenexa-full-architecture-14614px.png](Covenexa-full-architecture-14614px.png). Every feature of the three apps side by side, with a search box and filters (open the file in a browser): [three-app-feature-comparison.html](three-app-feature-comparison.html).
+The same diagram as an image, sharp when zoomed: [Covenexa-full-architecture.png](Covenexa-full-architecture.png). Every feature of the three apps side by side, with a search box and filters (open the file in a browser): [three-app-feature-comparison.html](three-app-feature-comparison.html).
 
 ## How the three relate
 

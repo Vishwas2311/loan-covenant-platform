@@ -1,0 +1,21 @@
+{
+ "documentId": "FS-021",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-021.pdf",
+ "sha256": "affe29cb36d4f438025d38657e723cad978d5100c5b776002d47574386d0ba44",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Ratios, margins and growth % mixed with amounts; dashes for nil",
+ "generatorId": "S11",
+ "values": {
+  "REVENUE": 4509.51,
+  "EBITDA": 1026.43,
+  "INTEREST_PAID": 88.46,
+  "PAT": 586.16,
+  "LT_DEBT": 1244.52,
+  "ST_DEBT": 387.07,
+  "NET_WORTH": 2117.17
+ }
+}

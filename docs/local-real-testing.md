@@ -167,7 +167,8 @@ file (section 5b), read the delivered e-mails in the Mailpit inbox at http://loc
 
 ## 7. Checking the sample agreements (golden set)
 
-The set has 20 sample agreements (`AGR-001`…`AGR-020`) and 10 statements (`FS-001`…`FS-010`). The
+The set has 20 sample agreements (`AGR-001`…`AGR-020`) and 34 statements (`FS-001`…`FS-034`; FS-011 onwards
+are PDFs, three of them scans). The
 synthetic ones carry labels written from their specification, and CI already grades the extractor against
 those on every build (`golden-set/predict.py` then `evaluate.py --statuses SYNTHETIC`). Before go-live a
 credit analyst still confirms the covenants on the real agreements (decision D13). A review page makes

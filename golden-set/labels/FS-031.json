@@ -1,0 +1,25 @@
+{
+ "documentId": "FS-031",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-031.pdf",
+ "sha256": "71baf983cf5b75b8997af71b8324d841999df74c6508f8e75d360eda30aa8ea3",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "₹ in every cell, 'Previous Year' first, 'Current Year' second",
+ "generatorId": "H03",
+ "values": {
+  "REVENUE": 8828.21,
+  "EBITDA": 2317.71,
+  "DEPRECIATION": 285.51,
+  "INTEREST_PAID": 265.45,
+  "PBT": 1871.31,
+  "TAX": 471.57,
+  "PAT": 1399.74,
+  "CASH": 647.83,
+  "NET_WORTH": 2393.19,
+  "LT_DEBT": 1999.11,
+  "ST_DEBT": 516.75
+ }
+}

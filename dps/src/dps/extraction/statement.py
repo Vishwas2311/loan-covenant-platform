@@ -88,6 +88,8 @@ _RUPEE_HINT = re.compile(r"(?:amounts?\s+in|figures?\s+in|in)\s+(?:inr|rs\.?|₹
                          r"cr\b|lakhs?|lacs?|millions?|mn\b|billions?|bn\b|thousands?|'000))", re.I)
 _NUMBER = re.compile(r"\(?-?[0-9][0-9,]*(?:\.[0-9]+)?\)?")
 REQUIRED = ("EBITDA", "TOTAL_DEBT", "NET_WORTH")
+# Amounts the catalog keeps as positive figures although a cash-flow statement prints them as outflows.
+_OUTFLOWS = frozenset({"CAPEX", "PRINCIPAL_PAID", "DIVIDENDS_PAID"})
 
 
 @dataclass
@@ -278,6 +280,8 @@ def extract_values(rows: list[tuple[str, float, int | None, str | None]], header
     for label, value, page, cell in rows:
         key = match_key(label)
         if key and key not in found:  # first occurrence = current period / primary statement
+            if key in _OUTFLOWS:
+                value = abs(value)  # "Purchase of property, plant and equipment (135.88)" is capex of 135.88
             found[key] = LineValue(key, round(value * factor, 6), "INR_CR", False, page, cell, label[:120])
     result = StatementResult(list(found.values()), scale)
     derive(result)

@@ -1,0 +1,26 @@
+{
+ "documentId": "FS-012",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-012.pdf",
+ "sha256": "c5d8a16ab6ff685e31227f6574dff9371b5aab8461aa09c3fe1332a8e3c99ecd",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "Balance sheet, note column, two years, grid",
+ "generatorId": "S02",
+ "values": {
+  "INVENTORY": 1042.65,
+  "RECEIVABLES": 800.63,
+  "CASH": 487.34,
+  "CURRENT_ASSETS": 2615.02,
+  "TOTAL_ASSETS": 8314.82,
+  "SHARE_CAPITAL": 250.0,
+  "RESERVES": 3805.36,
+  "NET_WORTH": 4055.36,
+  "LT_DEBT": 2342.93,
+  "ST_DEBT": 618.32,
+  "TRADE_PAYABLES": 774.76,
+  "CURRENT_LIABILITIES": 1753.27
+ }
+}

@@ -91,6 +91,7 @@ Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit;
 - **Ask AI no longer shows "Gateway Time-out" (BUG-26):** a model answer slower than 60 s falls back to the rules answer.
 - **Sign-in tokens (BUG-27):** 30 s of clock difference is allowed, and every refusal is logged with its reason.
 - **Accessibility (BUG-28):** the loading spinner is announced correctly.
+- **Statement PDFs are read as tables (BUG-29 to BUG-31):** a benchmark of 10 readers on 24 statement PDFs moved DPS from 48% to 99.1% of values right, scans included; see `outputs/benchmarks/statement-pdf-readers/`.
 - **Browser tests are stable (RISK-06 closed):** on freshly reset demo data, 52 passed, 0 failed, 0 flaky.
 
 ## Still true from the baseline

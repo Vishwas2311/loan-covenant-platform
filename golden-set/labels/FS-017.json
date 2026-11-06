@@ -1,0 +1,26 @@
+{
+ "documentId": "FS-017",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-017.pdf",
+ "sha256": "c67e4a1f95d58230fc5ce09884d7edda6b50b030567debd1fc70136c17f05a72",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "SEBI results: three quarter columns before the annual column",
+ "generatorId": "S07",
+ "values": {
+  "REVENUE": 3455.43,
+  "OTHER_INCOME": 25.1,
+  "TOTAL_INCOME": 3480.52,
+  "MATERIAL_COST": 1892.33,
+  "EMPLOYEE_COST": 185.29,
+  "OTHER_EXPENSES": 387.54,
+  "EBITDA": 990.27,
+  "DEPRECIATION": 141.57,
+  "INTEREST_PAID": 56.84,
+  "PBT": 816.96,
+  "TAX": 205.87,
+  "PAT": 611.08
+ }
+}

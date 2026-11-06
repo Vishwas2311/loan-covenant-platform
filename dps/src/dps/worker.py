@@ -142,12 +142,14 @@ class Worker:
 
 def build_runners(settings: Settings, database: Database, store: FileStore, core: CoreClient) -> dict[str, FlowRunner]:
     """Wires the flows with their dependencies (imported here so the API process never loads CrewAI)."""
+    from dps.extraction.statement_pdf import read_pdf_statement
     from dps.flows.intake import AgreementIntakeFlow, IntakeDeps
     from dps.flows.statement import StatementDeps, StatementProcessingFlow
     from dps.parsing import DoclingEngine, ParserEngine, RapidOcrBackend
 
     heavy = settings.worker_pool == "HEAVY"
-    parser = DoclingEngine() if heavy else ParserEngine(RapidOcrBackend() if settings.ocr_enabled else None)
+    ocr = RapidOcrBackend() if settings.ocr_enabled else None
+    parser = DoclingEngine() if heavy else ParserEngine(ocr)
 
     def read_file(doc: Document) -> bytes:
         return store.path(doc.storage_path).read_bytes()
@@ -157,7 +159,8 @@ def build_runners(settings: Settings, database: Database, store: FileStore, core
         return _kickoff(AgreementIntakeFlow(deps), job)
 
     def run_statement(job: Job) -> tuple[str, str, str]:
-        deps = StatementDeps(database.session_factory, read_file, parser, settings.core_data_source_id, heavy)
+        deps = StatementDeps(database.session_factory, read_file, parser, settings.core_data_source_id, heavy,
+                             lambda data: read_pdf_statement(data, ocr))
         return _kickoff(StatementProcessingFlow(deps), job)
 
     return {"AGREEMENT_INTAKE": run_intake, "STATEMENT_PROCESSING": run_statement}

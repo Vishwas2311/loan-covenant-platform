@@ -1,0 +1,33 @@
+doc   layout                                                                            M1         M10          M2          M3          M4          M5          M6          M7          M8          M9
+S01   MIS one page, dot leaders, one value per line                                  11/11      0/11 F       11/11      0/11 F       11/11       11/11       11/11       11/11       11/11      0/11 F
+S02   Balance sheet, note column, two years, grid                                4/12 w8 F     12/12 F   4/12 w8 F   4/12 w8 F     12/12 F     12/12 F     12/12 F     12/12 F      4/12 F      0/12 F
+S03   P&L in lakhs, Indian digit grouping, note column                           4/12 w8 F     11/12 F   4/12 w8 F      0/12 F     12/12 F     12/12 F     12/12 F     12/12 F      8/12 F     12/12 F
+S04   Cash flow, negatives in brackets, labels wrapped over two lines             0/5 w1 F    4/5 w1 F    3/5 w2 F       0/5 F    4/5 w1 F    4/5 w1 F    4/5 w1 F    0/5 w1 F    0/5 w1 F    4/5 w1 F
+S05   Three statements on three pages, ₹ million, note column                    11/28 w17    26/28 w1   11/28 w17      0/28 F    27/28 w1    27/28 w1    27/28 w1    27/28 w1  15/28 w1 F    22/28 w5
+S06   Previous year in the first column, current year second                      0/19 w19       18/19    0/19 w19      0/19 F       19/19       19/19       19/19       19/19      6/19 F    12/19 w6
+S07   SEBI results: three quarter columns before the annual column               0/12 w8 F     11/12 F  0/12 w12 F      0/12 F     12/12 F     12/12 F     12/12 F     10/12 F      6/12 F     11/12 F
+S08   Standalone and consolidated, four number columns                               13/14       13/14       14/14      0/14 F       14/14       14/14       14/14       14/14     10/14 F       14/14
+S09   Ind AS: both debts labelled just 'Borrowings' under section headings        2/8 w4 F       8/8 F    2/8 w4 F       0/8 F       8/8 F       8/8 F       8/8 F       1/8 F       7/8 F       6/8 F
+S10   'Rs. 1,234.5 Cr' written on every value, no unit header                        7/7 F         6/7    4/7 w1 F       0/7 F       7/7 F       0/7 F       7/7 F       0/7 F       4/7 F       0/7 F
+S11   Ratios, margins and growth % mixed with amounts; dashes for nil                  7/7         6/7         7/7       0/7 F         7/7         7/7         7/7         7/7         7/7         7/7
+S12   Balance sheet followed by notes that repeat the labels with other number   4/12 w8 F     12/12 F   4/12 w8 F      0/12 F     12/12 F     12/12 F     12/12 F     12/12 F      4/12 F   7/12 w5 F
+S13   Scan of S02 at 150 dpi, slight skew and noise                                 0/12 F     12/12 F   4/12 w8 F      0/12 F     12/12 F     12/12 F      0/12 F      0/12 F      0/12 F      0/12 F
+S14   Poor scan of S03 at 100 dpi, blur, skew 1.5°                                  0/12 F     11/12 F      0/12 F      0/12 F      9/12 F      0/12 F      0/12 F      0/12 F      0/12 F      0/12 F
+S15   Balance sheet and P&L side by side on one landscape page                     20/20 F     19/20 F     20/20 F      0/20 F     20/20 F     20/20 F     20/20 F     20/20 F  10/20 w1 F     20/20 F
+S16   Minus signs, no thousands separators                                        6/7 w1 F    6/7 w1 F    6/7 w1 F       0/7 F    6/7 w1 F    6/7 w1 F    6/7 w1 F    6/7 w1 F    6/7 w1 F    6/7 w1 F
+S17   Narrative pages before the statements quote other numbers                   8/24 w16       23/24    8/24 w16      0/24 F       24/24       24/24       24/24       24/24     12/24 F       24/24
+S18   Merged two-row header, years under 'Year ended 31 March'                       19/19       18/19       19/19       19/19       19/19       19/19       19/19       19/19      9/19 F       19/19
+
+method  accuracy  correct  silent wrong  flagged wrong  missing  seconds
+M1         48.1%      116            52             38       35     16.9
+M10        89.6%      216             1              2       22    129.7
+M2         50.2%      121            52             52       16    638.7
+M3          9.5%       23             0              8      210      1.9
+M4         97.5%      235             1              2        3     25.6
+M5         90.9%      219             1              2       19    517.1
+M6         88.8%      214             1              2       24      0.5
+M7         80.5%      194             1              2       44      8.7
+M8         49.4%      119             0              4      118     12.9
+M9         68.0%      164            11              7       59     30.2
+
+241 truth values over 18 documents. Per-doc cell: correct/total, wN = N wrong, F = DPS would hold it for review

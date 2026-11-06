@@ -1,0 +1,21 @@
+{
+ "documentId": "FS-020",
+ "type": "FINANCIAL_STATEMENT",
+ "sourceFile": "FS-020.pdf",
+ "sha256": "d0bfe75b0595dae7dec88e20983ef5afa0a1edddb379c183db14217c9bc109c8",
+ "unit": "INR crore",
+ "status": "SYNTHETIC",
+ "labelledBy": "generator: statement_pdfs/gen_html.py and gen_holdout.py (truth by construction)",
+ "reviewedBy": null,
+ "layout": "'Rs. 1,234.5 Cr' written on every value, no unit header",
+ "generatorId": "S10",
+ "values": {
+  "REVENUE": 5485.5,
+  "EBITDA": 1504.03,
+  "INTEREST_PAID": 171.9,
+  "PAT": 818.87,
+  "TOTAL_DEBT": 1729.85,
+  "CASH": 217.59,
+  "NET_WORTH": 2354.03
+ }
+}
