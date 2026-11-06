@@ -1,5 +1,13 @@
 # Covenant Monitoring System
 
+> **Note.** This is the second team's original README for covenant-monitoring, kept for reference along with
+> `core/docs/` and `core/_userstories/`. In Covenexa this code is the **Core** service and has changed since:
+> Spring Boot 3.5.16, SQL Server in the Docker stack and production (H2 only for tests and a bare `mvn` run),
+> JWT sign-in instead of the `X-User` header,
+> a new UI in `ui/` (the old `frontend/` is gone), and many new features. For the current system read
+> [`../README.md`](../README.md), [`../docs/architecture/covenant-platform.md`](../docs/architecture/covenant-platform.md),
+> [`../docs/user-guide.md`](../docs/user-guide.md) and [`../docs/runbook.md`](../docs/runbook.md).
+
 A corporate-credit **covenant monitoring platform**. It maintains a reusable library of covenant rules
 (financial and non-financial), recommends and applies them per **Credit Proposal** (`CP_ID`), evaluates
 compliance on a schedule against real time-series customer data, and gives Relationship Managers a daily

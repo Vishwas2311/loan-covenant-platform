@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Built by | Our team, on top of [covenanttrackingphase1.2](covenanttrackingphase1.2.md) and [covenant-monitoring](covenant-monitoring.md) |
-| Location | `C:\Users\vishw\covenant-platform`, GitHub `Vishwas2311/loan-covenant-platform` |
+| Location | This repository, GitHub `Vishwas2311/loan-covenant-platform` (clone it anywhere) |
 | Folders | `core/` (Java service), `dps/` (Python service), `ui/` (React app), `deploy/` (Docker Compose files, Keycloak realm, stack-init, mail bridge, smoke test), `contracts/` (OpenAPI contracts, Redocly lint), `golden-set/` (extraction test set, review tool), `loadtest/`, `scripts/` (line-ending fixer, demo-data reset), `.github/workflows/` (CI, Security, E2E), `docs/`, `outputs/` (readiness review), `graphify-out/` (code knowledge graph) |
 | In one line | covenant-monitoring became **Core**, the system of record that decides compliance; covenanttrackingphase1.2 became the **Document Processing Service (DPS)**, which reads agreements and statements; a new UI, real sign-in, borrower portal and production packaging were built around them |
 
@@ -234,7 +234,7 @@ flowchart TB
 | Sign-in | OpenID Connect: **Keycloak 26** locally, **Microsoft Entra ID** in production; JWT on every call; roles RM, APPROVER, AUTHOR, ADMIN, AUDITOR, SUPPORT, BORROWER | New |
 | Core | Java 17, Spring Boot 3.5, Spring Security (JWT resource server), JPA, Quartz (clustered in production), formula engine, Flyway `V1`–`V32` | covenant-monitoring, extended |
 | DPS | Python 3.12, FastAPI, **CrewAI Flows** (Flow A agreements, Flow B statements), SQLAlchemy + Alembic, pypdf, RapidOCR, **Docling** (heavy pool), openpyxl, xlrd. All reading runs inside the bank: Azure Document Intelligence was considered and rejected, so no document leaves the network for parsing | covenanttrackingphase1.2, rebuilt |
-| AI | **Azure OpenAI** through DPS: Ask AI, agreement questions, statement narratives; token use stored per call; per-user rate limits on calls that cost money. Core's AI status suggestions (C3) call an external service by default (WireMock locally) and use DPS only when `COVENANT_AI_PROVIDER=dps`. DPS uses a model only when `DPS_AI_MODEL=azure/<deployment>` is set; left empty, suggestions come from fixed rules and every other feature still works. AI is advisory: a person decides | Both, consolidated |
+| AI | **Azure OpenAI** through DPS: Ask AI, agreement questions, statement narratives; token use stored per call; per-user rate limits on calls that cost money. Core's AI status suggestions (C3) call an external service by default (WireMock locally) and use DPS only when `COVENANT_AI_PROVIDER=dps`. DPS uses a model only when `DPS_AI_MODEL=azure/<deployment>` is set; left empty, suggestions come from fixed rules and every other feature still works. Each model call is cut off after `DPS_AI_TIMEOUT_SECONDS` (60 s, under the gateway's 120 s); a slower answer falls back to the rules answer. AI is advisory: a person decides | Both, consolidated |
 | ML thresholds | Core asks an ML service for suggested thresholds at onboarding; locally a mock inside Core answers (`/internal/mock-ml`) | covenant-monitoring |
 | Database | **SQL Server 2022** (Core's `covenant` database and DPS's tables), `READ_COMMITTED_SNAPSHOT` on | covenant-monitoring |
 | Files | Document store volume for original PDFs and spreadsheets | New |
@@ -388,7 +388,7 @@ Cross-cutting pieces:
 |---|---|
 | `main.py`, `settings.py`, `db.py` | App factory, configuration, database sessions; refuses SQL Server without `READ_COMMITTED_SNAPSHOT` |
 | `api.py`, `errors.py` | All `/dps/v1` endpoints and the error envelope |
-| `auth.py`, `access.py` | Checks the user's JWT; asks Core whether the user may see each CP (cached 30 s) |
+| `auth.py`, `access.py` | Checks the user's JWT (allowing `DPS_JWT_LEEWAY_SECONDS`, 30 s, of clock difference; the reason for a refusal is logged, never the token); asks Core whether the user may see each CP (cached 30 s) |
 | `service_auth.py`, `core_client.py` | DPS's own client-credentials token, and its calls to Core (library, measures, data events) |
 | `ratelimit.py` | Per-user limits on Ask AI, agreement questions and uploads |
 | `jobs.py`, `worker.py` | Job queue on `dps_job` (leases, 3 attempts, heavy pool); the worker process and the event outbox sender |
@@ -628,7 +628,7 @@ flowchart LR
     end
     subgraph e2e["E2E workflow"]
         e1["Full stack in Docker<br/>throwaway secrets, Keycloak"]
-        e2["Playwright: 58 tests<br/>roles, journeys, accessibility"]
+        e2["Playwright: 58 tests<br/>roles, journeys, accessibility<br/>tests set up their own data · one retry, reported as flaky"]
         e1 --> e2
     end
 ```

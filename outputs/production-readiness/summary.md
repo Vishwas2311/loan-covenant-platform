@@ -85,6 +85,14 @@ Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit;
 - **Two Core nodes:** 250 users at 46 req/s with 0 errors on the same host (one node: 8% errors). Quartz runs clustered across the nodes.
 - **Flaky golden-set test (BUG-24)** fixed: the review tool reset the connection instead of refusing.
 
+## After the review (6 November 2026)
+
+- **Deletes are audited (BUG-25):** removing a certificate, a due date, an evidence file or an exchange rate is recorded with who and when, in Support → Audit log.
+- **Ask AI no longer shows "Gateway Time-out" (BUG-26):** a model answer slower than 60 s falls back to the rules answer.
+- **Sign-in tokens (BUG-27):** 30 s of clock difference is allowed, and every refusal is logged with its reason.
+- **Accessibility (BUG-28):** the loading spinner is announced correctly.
+- **Browser tests are stable (RISK-06 closed):** on freshly reset demo data, 52 passed, 0 failed, 0 flaky.
+
 ## Still true from the baseline
 
 - **PRD performance targets pass with wide margins.**
@@ -115,5 +123,6 @@ Above about 100–150 concurrent RMs on one 8-CPU host, Core's CPU is the limit;
 - `feature-test-matrix.md`
 - `bug-and-risk-findings.md`
 - `test-results.md` (section 9 is the phase 1 re-test)
+- `pen-test-local.md` (scoped local penetration test)
 - `improvement-plan.md`
 - `evidence/`

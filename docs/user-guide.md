@@ -557,8 +557,9 @@ go to it. "Nothing needs you right now" when clear.
 
 In **Ask about your portfolio**, type a question (for example "Which of my covenants are breached?"
 or "Which breaches should I escalate?") and press **Ask**. The answer is written by the AI model from **your CPs
-only**, citing the records it used. Another RM's CPs are never used. Without an AI key, a rules-based
-answer is given instead.
+only**, citing the records it used. Another RM's CPs are never used. Without an AI key, or when the model
+takes longer than a minute, a rules-based answer is given instead. The same applies to questions about one
+agreement.
 
 ## 13. Covenant library
 

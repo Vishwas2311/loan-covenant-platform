@@ -4,6 +4,8 @@
 
 **Status:** draft v2, 2026-11-02, for manager and two-team review. It includes the "Processing & Orchestration" layer (CrewAI Flow A / Flow B / Background Workers) the manager asked for.
 
+> These are the design documents written before the build (2 November 2026) and are kept as the record of what was decided. For the system as built, read [../architecture/covenant-platform.md](../architecture/covenant-platform.md), [../user-guide.md](../user-guide.md) and [../runbook.md](../runbook.md); decisions taken later are in [08-open-decisions.md](08-open-decisions.md) and `outputs/production-readiness/`.
+
 ## Read in this order
 
 | # | Document | What it answers |

@@ -153,7 +153,7 @@ npx playwright install chromium
 npm run e2e
 ```
 
-It runs 58 tests (chromium) and ends with `52 passed` and `6 skipped` (some steps depend on demo data that may not be present, e.g. an open breach to waive). The maker-checker test has the approver *reject* the waiver, so the covenant stays breached and the tests can run again and again. On a failure, `ui/e2e-report/index.html` has a screenshot and a step-by-step trace.
+It runs 58 tests (chromium) and ends with `52 passed` and `6 skipped` (the 6 take review screenshots, and run only with `SHOTS` set to a folder). The tests set up the data they need, so they also pass straight after `scripts/reset-demo-data.sh`; the waiver tests skip themselves only if no breach is left open to waive, and a reset brings those back. A test that fails is tried once more and reported as `flaky` if the second try passes: on a busy computer Docker sometimes drops a connection. The maker-checker test has the approver *reject* the waiver, so the covenant stays breached and the tests can run again and again. On a failure, `ui/e2e-report/index.html` has a screenshot and a step-by-step trace.
 
 **The daily breach run** normally fires at 06:00. To run it now (as `admin-1`):
 
@@ -231,6 +231,12 @@ Back to the seeded demo data, for a clean demo or screenshots after the browser 
 
 ```bash
 scripts/reset-demo-data.sh
+```
+
+The script starts the stack without the mail or scale file. If you use them (section 5b / 5c), start them again afterwards, for example:
+
+```bash
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.real.yml -f deploy/docker-compose.mail.yml --env-file deploy/.env up -d
 ```
 
 Stop and delete all data (databases, uploaded documents, AI model cache), for a clean start:

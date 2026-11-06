@@ -5,9 +5,9 @@ with its stack, component diagram, main journeys, data model and API map.
 
 | # | System | Built by | Page | Where the code lives |
 |---|---|---|---|---|
-| 1 | **covenanttrackingphase1.2** — "Covenant automatic tracking" | Our team | [covenanttrackingphase1.2.md](covenanttrackingphase1.2.md) | `C:\Users\vishw\OneDrive\Desktop\covenanttrackingphase1.2` |
-| 2 | **covenant-monitoring** — "Covenant Monitoring System" | The second team | [covenant-monitoring.md](covenant-monitoring.md) | `C:\Users\vishw\OneDrive\Desktop\covenant-monitoring` |
-| 3 | **covenant-platform** — Covenexa, the combined product | Built on 1 + 2 | [covenant-platform.md](covenant-platform.md) | `C:\Users\vishw\covenant-platform` (GitHub `Vishwas2311/loan-covenant-platform`) |
+| 1 | **covenanttrackingphase1.2** — "Covenant automatic tracking" | Our team | [covenanttrackingphase1.2.md](covenanttrackingphase1.2.md) | Outside this repository (the development laptop) |
+| 2 | **covenant-monitoring** — "Covenant Monitoring System" | The second team | [covenant-monitoring.md](covenant-monitoring.md) | Outside this repository (the development laptop) |
+| 3 | **covenant-platform** — Covenexa, the combined product | Built on 1 + 2 | [covenant-platform.md](covenant-platform.md) | This repository (GitHub `Vishwas2311/loan-covenant-platform`) |
 
 The complete Covenexa architecture in a single diagram: [covenant-platform.md, section 0](covenant-platform.md#0-the-whole-system-in-one-diagram).
 

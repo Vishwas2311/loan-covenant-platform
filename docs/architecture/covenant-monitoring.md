@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Built by | The second team |
-| Location | `C:\Users\vishw\OneDrive\Desktop\covenant-monitoring` (a plain folder, not a git repository) |
+| Location | The folder `covenant-monitoring`, kept outside this repository, on the development laptop where the integration was done (a plain folder, not a git repository; copy it separately if you need it) |
 | Read from | `README.md`, `CLAUDE.md`, `backend/pom.xml`, `backend/src/main/resources/application*.yml`, `db/migration`, `wiremock/mappings`, the Java packages under `com.crisil.covenant`, `frontend/package.json`, `frontend/vite.config.ts`, `frontend/src/pages` |
 | In one line | A bank-grade Java service that keeps a covenant library, applies covenants to credit proposals (CPs), checks them on a schedule against the bank's own data, and runs the breach workflow |
 

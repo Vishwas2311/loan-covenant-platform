@@ -89,6 +89,8 @@ Task lists: a read by an RM or approver syncs that person's CPs first (up to 300
 | `DPS_CORE_DATA_SOURCE_ID` | `d5000000-0000-0000-0000-000000000d95` | the DPS data source Core's migration creates |
 | `DPS_WORKER_POOL` | `STANDARD` or `HEAVY` (workers only) | |
 | `DPS_AI_MODEL` | for example `azure/gpt-4o`, with `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` | empty: advisory AI runs on rules |
+| `DPS_AI_TIMEOUT_SECONDS` | default `60` | longest wait for one model answer; keep it under the gateway's `proxy_read_timeout` (120 s), so a slow model gives the rules answer instead of a 504 |
+| `DPS_JWT_LEEWAY_SECONDS` | default `30` | clock difference allowed between Entra ID and DPS when checking a token's times (Core allows 60 s) |
 | `DPS_MAX_UPLOAD_MB` | default `50` | keep the UI's nginx `client_max_body_size` (60m) above it |
 | `DPS_MAX_PAGES` | default `500` | longer PDFs are refused at upload (FR-01) |
 | `DPS_AI_PROMPT_COST_PER_1K`, `DPS_AI_COMPLETION_COST_PER_1K` | the bank's Azure OpenAI price per 1,000 tokens | every model call's tokens are recorded; with these set, its cost too. Support and admins read totals at `GET /dps/v1/ai-usage?days=30` |

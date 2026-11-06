@@ -285,4 +285,14 @@ The synthetic golden set found four extraction bugs on its first run, all fixed 
 | BUG-24 | A refused save is read before the answer, so Windows no longer resets the connection; the 422 test can no longer pass silently. | `golden-set/review.py`, `test_review.py` | 40 runs, 4 in parallel: 0 failures |
 | Scale-out | `deploy/docker-compose.scale.yml` runs two Core nodes behind the gateway with Quartz clustered (as the prod profile does). | `deploy/` | Both schedulers report "is clustered"; load in `test-results.md` section 12 |
 
+## Fixes after the review (6 November 2026)
+
+| Item | Change | Where | Check |
+|---|---|---|---|
+| BUG-25 · Medium | Deleting a compliance certificate, a certificate due date, an evidence file or an exchange rate left no record of who did it. Each delete now writes a `cov_ops_audit` row (`DELETE_CERTIFICATE`, `DELETE_CERTIFICATE_DUE_DATE`, `DELETE_EVIDENCE`, `DELETE_FX_RATE`) with the user and time; Support → Audit log shows them, with a new **Exchange rates** choice. | `AttachmentService`, `CertificateRequirementService`, `FxService`, `ui/src/pages/Support.tsx` | Unit tests; Core verify and SpotBugs; CI |
+| BUG-26 · Medium | Ask AI and agreement questions could wait on the model longer than the gateway's 120 s and show "Gateway Time-out". Each model call now stops after `DPS_AI_TIMEOUT_SECONDS` (60 s) and the rules answer is given instead. | `dps/src/dps/advisor.py`, `settings.py`, `main.py` | Browser test 26 on a loaded machine |
+| BUG-27 · Low | DPS refused a token whose times were a second off the identity provider's clock, and did not say why. It now allows `DPS_JWT_LEEWAY_SECONDS` (30 s; Core allows 60) and logs the reason for a refusal, never the token. | `dps/src/dps/auth.py` | Unit tests for 10 s either way; expired by 120 s still refused |
+| BUG-28 · Low | The loading spinner put `aria-label` on a span with no role (axe `aria-prohibited-attr`), seen when the accessibility scan caught a page still loading. It now has `role="status"`. | `ui/src/components/Status.tsx` | a11y browser tests |
+| RISK-06 (closed) | Browser tests timed out on a busy computer: each test left its extra sign-in sessions open, Docker sometimes reset a connection, and two tests relied on data added by hand. Sessions are closed after each test, sign-in retries the first page load, a failed test is tried once more (reported as flaky), and tests 15 and 16 set up their own data. | `ui/e2e/`, `ui/playwright.config.ts` | Straight after `scripts/reset-demo-data.sh`: 52 passed, 0 failed, 0 flaky, 6 screenshot-only skipped |
+
 Note on C7 in Core: onboarding lists only covenants not yet applied to the CP. When an amendment changes a covenant the CP already has, the document page shows "Changes made by this amendment" and the RM updates the CP's own rule for that covenant (A3). Core does not change an applied covenant by itself.

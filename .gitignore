@@ -40,3 +40,5 @@ graphify-out/.graphify_python
 graphify-out/.graphify_root
 graphify-out/.graphify_*.json
 !graphify-out/.graphify_labels.json
+graphify-out/20*/
+graphify-out/*.sig

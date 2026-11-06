@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Built by | Our team |
-| Location | `C:\Users\vishw\OneDrive\Desktop\covenanttrackingphase1.2` (a plain folder, not a git repository) |
+| Location | The folder `covenanttrackingphase1.2`, kept outside this repository, on the development laptop where the integration was done (a plain folder, not a git repository; copy it separately if you need it) |
 | Read from | `HANDOFF.md`, `requirements.txt`, `src/covenanttrackingphase1/` (web.py, main.py, crew.py, tools/custom_tool.py, intake_db.py, chatbot.py, reminders.py, human_in_the_loop.py, agent_audit.py, config/*.yaml) |
 | In one line | A single Python web app that reads one company's loan agreement and financial statements, works out its covenant ratios and writes an AI-assisted compliance report |
 
