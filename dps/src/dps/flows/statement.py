@@ -175,6 +175,7 @@ class StatementProcessingFlow(Flow[StatementState]):
         with self._deps.session_factory() as db:
             doc = db.get(Document, self.state.document_id)
             doc.status = "NEEDS_REVIEW"
+            doc.review_json = self._review_json()
             services.audit(db, ACTOR, "STATEMENT_NEEDS_REVIEW", "document", doc.id, issues=self.state.issues)
             db.commit()
         self.state.outcome = "NEEDS_REVIEW"
@@ -202,6 +203,9 @@ class StatementProcessingFlow(Flow[StatementState]):
         self.state.outcome = "HEAVY"
         self._checkpoint("heavy")
 
+    def _review_json(self) -> str:
+        return json.dumps({"issues": self.state.issues, "unitScale": self.state.unit_scale or None})
+
     def _report(self) -> None:
         """Idempotent: re-running for the same document replaces its own values, never duplicates them."""
         values = [LineValue(**v) for v in self.state.values]
@@ -226,6 +230,7 @@ class StatementProcessingFlow(Flow[StatementState]):
                     "asOfDate": doc.as_of_date.isoformat(), "changedAt": utcnow().isoformat(),
                     "documentId": doc.id})))
             doc.status = "PUBLISHED"
+            doc.review_json = self._review_json()
             services.audit(db, ACTOR, "STATEMENT_REPORTED", "document", doc.id, values=len(values), cpIds=cp_ids,
                            issues=self.state.issues)
             db.commit()

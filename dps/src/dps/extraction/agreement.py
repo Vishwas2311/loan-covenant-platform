@@ -27,6 +27,9 @@ FINANCIAL_ALIASES: dict[str, list[str]] = {
     "MIN_TANGIBLE_NET_WORTH": ["MINIMUM TANGIBLE NET WORTH", "TANGIBLE NET WORTH"],
     "MIN_NET_WORTH": ["MINIMUM NET WORTH", "NET WORTH"],
     "MINIMUM_LIQUIDITY": ["MINIMUM LIQUIDITY", "MINIMUM CASH BALANCE", "MINIMUM UNRESTRICTED CASH"],
+    "LOAN_TO_VALUE": ["LOAN TO VALUE RATIO", "LOAN-TO-VALUE RATIO", "LOAN TO VALUE", "LOAN-TO-VALUE", "LTV RATIO",
+                      "LTV"],
+    "MIN_EBITDA": ["MINIMUM EBITDA", "MINIMUM CONSOLIDATED EBITDA"],
 }
 # Names used in US syndicated and bilateral credit agreements (benchmark of 50 real agreements, 6 November 2026).
 for _metric, _names in {
@@ -46,7 +49,14 @@ for _metric, _names in {
 }.items():
     FINANCIAL_ALIASES[_metric] = FINANCIAL_ALIASES[_metric] + [n for n in _names if n not in FINANCIAL_ALIASES[_metric]]
 
-AMOUNT_METRICS = {"MIN_NET_WORTH", "MIN_TANGIBLE_NET_WORTH", "MINIMUM_LIQUIDITY"}
+AMOUNT_METRICS = {"MIN_NET_WORTH", "MIN_TANGIBLE_NET_WORTH", "MINIMUM_LIQUIDITY", "MIN_EBITDA"}
+# Thresholds written as a percentage ("75.00% or less", "sixty five percent (65%)").
+PERCENT_METRICS = {"LOAN_TO_VALUE"}
+# Ratios a borrower must stay above; "maintain a DSCR ... of 1.25 to 1.0" with no comparison word is a floor.
+FLOOR_METRICS = {"DSCR", "ICR", "EBITDA_TO_EMI", "CURRENT_RATIO", "QUICK_RATIO", "FIXED_CHARGE_COVERAGE_RATIO",
+                 "MIN_TANGIBLE_NET_WORTH", "MIN_NET_WORTH", "MINIMUM_LIQUIDITY", "MIN_EBITDA"}
+# One agreement can hold several covenants of one family (total and senior secured leverage, gross and net DSCR).
+MAX_PER_METRIC = 3
 # A ratio covenant above this is a misread number ("90 days"), not a threshold.
 MAX_RATIO = 25.0
 # Text around a ratio that makes it something other than a maintenance covenant: a pricing grid, an
@@ -117,6 +127,26 @@ _WORD_THRESHOLDS: list[tuple[str, str]] = [
     (r"(?:greater\s+than|more\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, ">"),
     (r"(?:less\s+than)\s*(?:INR|Rs\.?|₹)?\s*" + _NUM + _UNIT, "<"),
 ]
+_RATIO = _NUM + r"\s*(?:x\b|times\b|:\s*1(?:\.0+)?(?!\d)|to\s+1(?:\.0+)?(?!\d))"
+# Step-down tables: "to exceed the ratio set forth opposite such period: ... June 30, 2025 4.75 to 1.00" and
+# "EBITDA of at least the amounts indicated for each period specified below: ... September 30, 2017 $9,500,000".
+# The first level of the table is taken; the rest of the schedule is in the quote for the reviewer.
+_TABLE = r"\s+the\s+(?:ratios?|amounts?|levels?)\s+(?:set\s+forth|indicated|specified|shown)\b[^;]{0,300}?"
+_TABLE_THRESHOLDS: list[tuple[str, str]] = [
+    (r"(?:at\s+least|not\s+(?:be\s+)?less\s+than|minimum\s+of)" + _TABLE + r"(?:" + _RATIO + r"|\$\s*" + _NUM + r")",
+     ">="),
+    (r"(?:exceed|(?:be\s+)?(?:greater|more|higher)\s+than)" + _TABLE + r"(?:" + _RATIO + r"|\$\s*" + _NUM + r")",
+     "<="),
+]
+# "maintain a minimum Debt Service Coverage Ratio of 1.25:1", "a Maximum Leverage Ratio of 3.0x".
+_NAMED_THRESHOLDS: list[tuple[str, str]] = [
+    (r"\bminimum\s+(?:[\w\-\u201c\u201d\"]+\s+){1,7}?(?:of|at)\s+" + _RATIO, ">="),
+    (r"\bmaximum\s+(?:[\w\-\u201c\u201d\"]+\s+){1,7}?(?:of|at)\s+" + _RATIO, "<="),
+]
+# "Maintain an Effective Debt Service Coverage Ratio as of the end of each calendar quarter of 1.25 to 1.0":
+# no comparison word, so the direction comes from the metric (only floors are read this way).
+_MAINTAIN = re.compile(r"\bmaintain\b[^.;]{0,160}?\bof\s+" + _RATIO, re.I)
+_PERCENT = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*(?:%|per\s*cent\b|percent\b)", re.I)
 _SYMBOL_THRESHOLD = re.compile(r"(>=|<=|≥|≤|>|<)\s*([0-9]+(?:\.[0-9]+)?)\s*(?:x\b|times?\b|:1\b)?", re.I)
 _FREQUENCY = re.compile(r"\b(monthly|quarterly|semi[-\s]?annual(?:ly)?|half[-\s]?yearly|annual(?:ly)?|yearly)\b", re.I)
 _CLAUSE = re.compile(r"(?m)^[ \t]*(\d+(?:\.\d+)+)\.?[ \t]+([^\n]*)$")
@@ -136,6 +166,7 @@ class Term:
     confidence: float = 0.0
     method: str = "REGEX"
     issues: list[str] = field(default_factory=list)
+    name: str | None = None  # the covenant's own name as written ("Consolidated Senior Secured Leverage Ratio")
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -195,6 +226,8 @@ def _best_metric(text: str) -> str | None:
 
 
 def _metric_for_clause(heading: str, body: str) -> str | None:
+    if compact(re.split(r"[.(]", heading, maxsplit=1)[0]) in ("EBITDA", "CONSOLIDATEDEBITDA", "MINIMUMEBITDA"):
+        return "MIN_EBITDA"  # "7.5 EBITDA. To maintain ... EBITDA of at least ..."
     metric = _best_metric(heading)
     if metric:
         return metric
@@ -220,13 +253,26 @@ def _number(raw: str) -> float:
     return float(raw.replace(",", ""))
 
 
-def _threshold(text: str, amount: bool) -> tuple[str, float, str | None, int, int, bool] | None:
+def _threshold(text: str, amount: bool,
+               metric: str | None = None) -> tuple[str, float, str | None, int, int, bool] | None:
     """(operator, value, unit, match start, match end, corroborated) from clause text, or None."""
+    if metric in PERCENT_METRICS:
+        return _percent_threshold(text)
     words = []
     for pattern, op in _WORD_THRESHOLDS:
         m = re.search(pattern, text, re.I)
         if m:
             words.append((m.start(), op, _number(m.group(1)), (m.group(2) or "").strip().lower() or None, m))
+    for pattern, op in _TABLE_THRESHOLDS + _NAMED_THRESHOLDS:
+        m = re.search(pattern, text, re.I)
+        if m:
+            raw = next(g for g in m.groups() if g)
+            unit = "usd" if "$" in m.group(0)[-len(raw) - 3:] else None
+            words.append((m.start(), op, _number(raw), unit, m))
+    if metric in FLOOR_METRICS and not amount:
+        m = _MAINTAIN.search(text)
+        if m:
+            words.append((m.start(), ">=", _number(m.group(1)), None, m))
     words.sort(key=lambda w: w[0])
     symbol = None if amount else _SYMBOL_THRESHOLD.search(text)
     if symbol:
@@ -245,6 +291,17 @@ def _threshold(text: str, amount: bool) -> tuple[str, float, str | None, int, in
         if m:
             return ">=", _number(m.group(1)), (m.group(2) or "").strip().lower() or None, m.start(), m.end(), False
     return None
+
+
+def _percent_threshold(text: str) -> tuple[str, float, str | None, int, int, bool] | None:
+    """A loan-to-value limit: the first percentage after the name; a ceiling unless the words say a floor."""
+    m = _PERCENT.search(text)
+    if not m or float(m.group(1)) > 100:
+        return None
+    before = text[max(0, m.start() - 120):m.start()]
+    floor = re.search(r"at\s+least|not\s+less\s+than|minimum", before, re.I) and not re.search(
+        r"exceed|more\s+than|or\s+less|maximum", before + text[m.end():m.end() + 12], re.I)
+    return (">=" if floor else "<="), float(m.group(1)), "%", m.start(), m.end(), False
 
 
 def _quote(doc: _Doc, start: int, end: int) -> tuple[str, int | None]:
@@ -287,28 +344,63 @@ def _clauses(doc: _Doc) -> list[_Clause]:
     return out
 
 
+def _name_key(name: str) -> str:
+    """Two names for one covenant ("Total Leverage Ratio", "Consolidated Total Leverage Ratio") share a key."""
+    words = [w for w in re.findall(r"[a-z]+", (name or "").lower())
+             if w not in ("the", "consolidated", "total", "minimum", "maximum", "ratio", "a", "an", "of")]
+    return " ".join(words)
+
+
+def _add(terms: list[Term], term: Term) -> bool:
+    """Keeps a second covenant of a family only when it has its own name and its own number."""
+    same = [t for t in terms if t.metric == term.metric]
+    if not same:
+        terms.append(term)
+        return True
+    named = next((t for t in same if _name_key(t.name) == _name_key(term.name)), None)
+    if named is not None:
+        # "the Senior Secured Leverage Ratio is less than 1.30" (a condition, often in the definitions) gives way to
+        # the covenant itself, "will not permit the Senior Secured Leverage Ratio ... to exceed 3.50".
+        if named.operator in ("<", ">") and term.operator in ("<=", ">="):
+            terms[terms.index(named)] = term
+            return True
+        return False
+    if len(same) >= MAX_PER_METRIC:
+        return False
+    if any((t.operator, t.threshold) == (term.operator, term.threshold) for t in same):
+        return False  # the same covenant named twice
+    terms.append(term)
+    return True
+
+
+def _clause_name(heading: str, metric: str) -> str:
+    name = normalize_ws(re.split(r"[.(\u201c\"]", heading, maxsplit=1)[0])
+    return name if _best_metric(name) == metric or metric == "MIN_EBITDA" else metric.replace("_", " ").title()
+
+
 def _financial(doc: _Doc, clauses: list[_Clause]) -> list[Term]:
-    terms: dict[str, Term] = {}
+    terms: list[Term] = []
     for c in clauses:
         metric = _metric_for_clause(c.heading, c.body)
-        if not metric or metric in terms:
+        if not metric:
             continue
         combined = f"{c.heading}\n{c.body}"
-        found = _threshold(combined, metric in AMOUNT_METRICS)
+        found = _threshold(combined, metric in AMOUNT_METRICS, metric)
         if not found or not _plausible(metric, found[1], combined[max(0, found[3] - 300):found[4] + 200]):
             continue
         op, value, unit, s, e, corroborated = found
         body_offset = c.start + (doc.text[c.start:].find(c.heading) if c.heading else 0)
         quote, page = _quote(doc, body_offset + s, body_offset + e)
-        terms[metric] = Term(metric, "FINANCIAL", op, value, unit, _frequency(combined), page, quote,
-                             _definition(c.body, metric), 0.95 if corroborated else 0.85)
+        _add(terms, Term(metric, "FINANCIAL", op, value, unit, _frequency(combined), page, quote,
+                         _definition(c.body, metric), 0.95 if corroborated else 0.85,
+                         name=_clause_name(c.heading, metric)))
     _scan_unnumbered(doc, terms)
-    return list(terms.values())
+    return terms
 
 
 def _plausible(metric: str, value: float, context: str) -> bool:
     """A maintenance covenant: a sensible number, not a pricing, incurrence or release condition."""
-    if metric not in AMOUNT_METRICS and value > MAX_RATIO:
+    if metric not in AMOUNT_METRICS | PERCENT_METRICS and value > MAX_RATIO:
         return False
     return not _NOT_A_COVENANT.search(context)
 
@@ -317,15 +409,21 @@ def _alias_pattern(phrase: str) -> str:
     return r"\b" + r"[\s_\-]*".join(re.escape(w) for w in phrase.split()) + r"\b"
 
 
-def _scan_unnumbered(doc: _Doc, terms: dict[str, Term]) -> None:
+# "will not permit the Leverage Ratio ... to exceed 3.50", and the list form "the Borrower will not: ... 6.01
+# Financial Covenant. Permit the Leverage Ratio to be greater than 7.3": the negation sits before the name.
+_PERMIT_LEAD = re.compile(r"(?:shall|will)\s+not\s+permit\b[^.;]*$|(?:shall|will)\s+not\s*(?:,[^:;]{0,120})?:"
+                          r"[^;]{0,300}?\bpermit\b[^.;]*$", re.I)
+
+
+def _scan_unnumbered(doc: _Doc, terms: list[Term]) -> None:
     """Fallback for covenants written outside numbered clauses (tables, schedules, net-worth floors)."""
     # Every alias match in the text, so a match inside a longer alias of another metric ("Debt to EBITDA" in
     # "Net Debt to EBITDA") is not taken for a covenant of its own.
     spans = [(m.start(), m.end(), other) for other, phrases in FINANCIAL_ALIASES.items() for phrase in phrases
              for m in re.finditer(_alias_pattern(phrase), doc.text, re.I)]
     for metric, phrases in FINANCIAL_ALIASES.items():
-        if metric in terms:
-            continue
+        if metric == "MIN_EBITDA":
+            continue  # only a clause headed "EBITDA": the word is in every definition
         for phrase in sorted(phrases, key=len, reverse=True):
             for m in re.finditer(_alias_pattern(phrase), doc.text, re.I):
                 if any(o != metric and s <= m.start() and e >= m.end() and e - s > m.end() - m.start()
@@ -336,22 +434,24 @@ def _scan_unnumbered(doc: _Doc, terms: dict[str, Term]) -> None:
                                                                             and metric == "MIN_NET_WORTH"):
                     continue
                 window = doc.text[m.end():m.end() + 160]
+                if re.search(r"set\s+forth|indicated|specified", window, re.I):
+                    window = doc.text[m.end():m.end() + 420]  # a step-down table follows the words
                 window = re.split(r"\n\s*\n", window, maxsplit=1)[0]
-                # "will not permit the Leverage Ratio ... to exceed 3.50": the negation sits before the name.
-                lead = doc.text[max(0, m.start() - 120):m.start()]
-                prefix = "will not permit " if re.search(r"(?:shall|will)\s+not\s+permit\b[^.;]*$", lead, re.I) else ""
-                found = _threshold(prefix + window, metric in AMOUNT_METRICS)
+                lead = doc.text[max(0, m.start() - 420):m.start()]
+                prefix = "will not permit " if _PERMIT_LEAD.search(lead) else ""
+                # "maintain a minimum Interest Coverage of 1.25:1": the words before the name, in this sentence
+                tail = re.split(r"[.;:\n]", lead[-80:])[-1]
+                found = _threshold(prefix + tail + m.group(0) + window, metric in AMOUNT_METRICS, metric)
                 context = doc.text[max(0, m.start() - 300):m.end() + 200]
                 if not found or not _plausible(metric, found[1], context):
                     continue
                 op, value, unit, s, e, _ = found
-                e -= len(prefix)
-                quote, page = _quote(doc, m.start(), m.end() + e)
-                terms[metric] = Term(metric, "FINANCIAL", op, value, unit, _frequency(window), page, quote,
-                                     None, 0.7)
-                break
-            if metric in terms:
-                break
+                end = m.start() - len(tail) + e - len(prefix)
+                quote, page = _quote(doc, m.start(), max(end, m.end()))
+                words = re.search(r"((?:[A-Z][\w\-]*\s+){0,3})$", doc.text[max(0, m.start() - 60):m.start()])
+                name = normalize_ws((words.group(1) if words else "") + m.group(0))
+                _add(terms, Term(metric, "FINANCIAL", op, value, unit, _frequency(window), page, quote, None, 0.7,
+                                 name=name))
 
 
 # Covenants on the security and on asset sales, which no ratio alias names (review RISK-01): "the value of the

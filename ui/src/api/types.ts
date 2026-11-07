@@ -157,12 +157,16 @@ export interface DpsDocument {
   amendsDocumentId?: string | null;
   /** For a FAILED document: what went wrong, in words the uploader can act on. */
   failureReason?: string | null;
+  /** Statements: why it waits for a person, and the unit the statement was printed in. */
+  review?: { issues: string[]; unitScale?: string | null } | null;
 }
 
 export interface ExtractedTerm {
   id: string;
   documentId: string;
   metricRaw: string;
+  /** The covenant's name as people read it ("Maximum Loan to Value"). */
+  name?: string | null;
   covenantMasterId: string | null;
   expression: string | null;
   operator: string | null;

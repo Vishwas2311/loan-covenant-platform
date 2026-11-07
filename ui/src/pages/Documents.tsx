@@ -1,5 +1,5 @@
 import {
-  Badge, Button, Card, FileInput, Grid, Group, Modal, Select, Stack, Table, TagsInput, Text, TextInput, Textarea,
+  Button, Card, FileInput, Grid, Group, Modal, Select, Stack, Table, TagsInput, Text, TextInput, Textarea,
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
@@ -19,6 +19,7 @@ import { DocumentInbox } from './CpQueues';
 import { CpChips, CpPicker } from '../components/CpPicker';
 import { fmtDate } from '../format';
 import { ErrorNote, Loading, StatusBadge } from '../components/Status';
+import { confidenceWords, explain, ruleWords, termName, unitWords } from '../explain';
 
 const TYPES: { value: DocumentType; label: string }[] = [
   { value: 'LOAN_AGREEMENT', label: 'Loan agreement' },
@@ -108,6 +109,12 @@ export function SourcePage({ documentId, page, quote, onClose }: {
   );
 }
 
+const KIND: Record<string, string> = {
+  FINANCIAL: 'Financial covenant',
+  NON_FINANCIAL: 'Non-financial covenant',
+  INFO: 'Agreement fact (not a covenant)',
+};
+
 function TermRow({ term, canReview }: { term: ExtractedTerm; canReview: boolean }) {
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -123,24 +130,55 @@ function TermRow({ term, canReview }: { term: ExtractedTerm; canReview: boolean 
     },
     onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
   });
+  const rule = ruleWords(term);
+  const confidence = confidenceWords(term.confidence);
+  const manual = term.category === 'FINANCIAL' && !term.expression;
   return (
     <Table.Tr>
-      <Table.Td>{term.metricRaw}<Text size="xs" c="dimmed">{term.category}</Text></Table.Td>
-      <Table.Td><Text ff="monospace" size="sm">{term.expression ?? '—'}</Text></Table.Td>
+      <Table.Td>
+        <Text fw={550} size="sm">{termName(term)}</Text>
+        <Text size="xs" c="dimmed">{KIND[term.category] ?? term.category}</Text>
+      </Table.Td>
+      <Table.Td>
+        {term.category === 'INFO' ? <Text size="sm">{term.expression ?? '—'}</Text> : (
+          <Text size="sm" fw={rule ? 550 : 400}>{rule ?? '—'}</Text>
+        )}
+        {term.frequency && <Text size="xs" c="dimmed">tested {term.frequency.toLowerCase()}</Text>}
+      </Table.Td>
+      <Table.Td>
+        {term.category !== 'FINANCIAL' ? <Text size="xs" c="dimmed">—</Text> : manual ? (
+          <Text size="xs">A person enters the figure each period (no statement line gives it).</Text>
+        ) : (
+          <>
+            <Text size="xs">Worked out from the statements</Text>
+            <Text ff="monospace" size="xs" c="dimmed" style={{ wordBreak: 'break-word' }}>{term.expression}</Text>
+          </>
+        )}
+      </Table.Td>
       <Table.Td>
         {term.source.page ? (
-          <Button size="compact-xs" variant="subtle" onClick={() => setViewing(true)}>p. {term.source.page}</Button>
+          <Button size="compact-xs" variant="subtle" onClick={() => setViewing(true)}>Open page {term.source.page}</Button>
         ) : '—'}
         {viewing && term.source.page && (
           <SourcePage documentId={term.documentId} page={term.source.page} quote={term.source.quote}
             onClose={() => setViewing(false)} />
         )}
+        <Text size="xs" maw={300} lineClamp={3} title={term.source.quote ?? undefined}>{term.source.quote}</Text>
       </Table.Td>
-      <Table.Td><Text size="xs" maw={320}>{term.source.quote}</Text></Table.Td>
-      <Table.Td>{Math.round(term.confidence * 100)}%</Table.Td>
       <Table.Td>
+        <Text size="sm" c={confidence.tone === 'good' ? undefined : `var(--text-${confidence.tone})`}>{confidence.label}</Text>
+      </Table.Td>
+      <Table.Td maw={340}>
         <StatusBadge value={term.status} />
-        {term.issues.map((i) => <Badge key={i} size="xs" color="orange" variant="outline">{i}</Badge>)}
+        {term.issues.map((i) => {
+          const e = explain(i);
+          return (
+            <Stack key={i} gap={0} mt={4}>
+              <Text size="xs" c="var(--text-warn)">{e.what}</Text>
+              <Text size="xs" c="dimmed">{e.todo}</Text>
+            </Stack>
+          );
+        })}
       </Table.Td>
       <Table.Td>
         {canReview && term.status !== 'REJECTED' && (
@@ -152,9 +190,11 @@ function TermRow({ term, canReview }: { term: ExtractedTerm; canReview: boolean 
             <Button size="xs" color="red" variant="subtle" onClick={() => review.mutate('REJECT')}>Reject</Button>
           </Group>
         )}
-        <Modal opened={editing} onClose={() => setEditing(false)} title={`Edit ${term.metricRaw}`}>
+        <Modal opened={editing} onClose={() => setEditing(false)} title={`Edit ${termName(term)}`}>
           <Stack>
+            {term.source.quote && <Text size="sm" bg="yellow.1" p="xs">“{term.source.quote}”</Text>}
             <TextInput label="Rule (Core formula)" value={expression} ff="monospace"
+              description="Statement figures are DPS_ names, for example DPS_TOTAL_DEBT / DPS_EBITDA <= 3.5"
               onChange={(e) => setExpression(e.currentTarget.value)} />
             <Textarea label="Note" value={note} onChange={(e) => setNote(e.currentTarget.value)} />
             <Button onClick={() => review.mutate('EDIT')} loading={review.isPending}>Save</Button>
@@ -162,6 +202,62 @@ function TermRow({ term, canReview }: { term: ExtractedTerm; canReview: boolean 
         </Modal>
       </Table.Td>
     </Table.Tr>
+  );
+}
+
+const reviewFirst = (t: ExtractedTerm) => (t.status === 'NEEDS_REVIEW' ? 0 : t.status === 'REJECTED' ? 2 : 1);
+
+/** One line above the covenants: how many were found, how many wait for a person, how many are manual. */
+function TermSummary({ terms }: { terms: ExtractedTerm[] }) {
+  const covenants = terms.filter((t) => t.category !== 'INFO' && t.status !== 'REJECTED');
+  if (terms.length === 0) {
+    return <Text size="sm" c="dimmed">No covenants were found. Check the agreement and add them on the CP if it has any.</Text>;
+  }
+  const waiting = covenants.filter((t) => t.status === 'NEEDS_REVIEW').length;
+  const manual = covenants.filter((t) => t.category === 'FINANCIAL' && !t.expression).length;
+  return (
+    <Text size="sm">
+      {covenants.length} covenant{covenants.length === 1 ? '' : 's'} proposed
+      {waiting ? `, ${waiting} need${waiting === 1 ? 's' : ''} your check (reasons on each row)` : ', all ready'}
+      {manual ? `; ${manual} will be entered by a person each period` : ''}. Approved covenants go to the CP's
+      onboarding, where they are applied.
+    </Text>
+  );
+}
+
+/** Flow B: why a statement waits for a person, and the unit it was printed in. */
+function StatementReview({ doc }: { doc: DpsDocument }) {
+  const unit = unitWords(doc.review?.unitScale);
+  const issues = doc.review?.issues ?? [];
+  if (!unit && issues.length === 0) {
+    return null;
+  }
+  return (
+    <Card withBorder>
+      <Stack gap={6}>
+        {unit && (
+          <Text size="sm">Printed in <b>{unit}</b>; every figure below is shown in INR crore.</Text>
+        )}
+        {issues.length > 0 && (
+          <>
+            <Text fw={600} size="sm">{doc.status === 'NEEDS_REVIEW' ? 'Why this statement waits for your check'
+              : 'Checked by a person; what was flagged'}</Text>
+            {issues.map((i) => {
+              const e = explain(i);
+              return (
+                <Stack key={i} gap={0}>
+                  <Text size="sm" c="var(--text-warn)">{e.what}</Text>
+                  <Text size="xs" c="dimmed">{e.todo}</Text>
+                </Stack>
+              );
+            })}
+            {doc.status === 'NEEDS_REVIEW' && (
+              <Text size="xs" c="dimmed">Correct any figure below and save, then press Review done to report the figures.</Text>
+            )}
+          </>
+        )}
+      </Stack>
+    </Card>
   );
 }
 
@@ -260,7 +356,7 @@ function AmendmentChanges({ doc, terms }: { doc: DpsDocument; terms: ExtractedTe
   }
   const key = (t: ExtractedTerm) => t.covenantMasterId ?? t.metricRaw.toLowerCase();
   const before = new Map(original.data.filter((t) => t.status !== 'REJECTED').map((t) => [key(t), t]));
-  const rows = terms.filter((t) => t.status !== 'REJECTED').map((t) => ({ name: t.metricRaw, old: before.get(key(t))?.expression ?? null,
+  const rows = terms.filter((t) => t.status !== 'REJECTED').map((t) => ({ name: termName(t), old: before.get(key(t))?.expression ?? null,
     now: t.expression })).filter((r) => r.old !== r.now);
   return (
     <Card withBorder>
@@ -326,18 +422,26 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
       {doc.failureReason && !job.data?.error && <Text c="var(--text-bad)" size="sm">{doc.failureReason}</Text>}
       <DocumentLinks doc={doc} canEdit={canReview} />
       {doc.type === 'LOAN_AGREEMENT' && (terms.isLoading ? <Loading /> : (
-        <Table withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Term</Table.Th><Table.Th>Rule</Table.Th><Table.Th>Page</Table.Th><Table.Th>Quote</Table.Th>
-              <Table.Th>Confidence</Table.Th><Table.Th>Status</Table.Th><Table.Th />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {(terms.data ?? []).map((t) => <TermRow key={t.id} term={t} canReview={canReview} />)}
-          </Table.Tbody>
-        </Table>
+        <Stack gap="xs">
+          <TermSummary terms={terms.data ?? []} />
+          <Table.ScrollContainer minWidth={900}>
+            <Table withTableBorder verticalSpacing="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Covenant</Table.Th><Table.Th>Limit</Table.Th><Table.Th>How it is tested</Table.Th>
+                  <Table.Th>Where in the agreement</Table.Th><Table.Th>Confidence</Table.Th>
+                  <Table.Th>Status and what to check</Table.Th><Table.Th />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {[...(terms.data ?? [])].sort((a, b) => reviewFirst(a) - reviewFirst(b))
+                  .map((t) => <TermRow key={t.id} term={t} canReview={canReview} />)}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Stack>
       ))}
+      {doc.type === 'FINANCIAL_STATEMENT' && <StatementReview doc={doc} />}
       {narrative.data && (
         <Card withBorder bg="var(--mantine-color-gray-light)">
           <Text size="sm">{narrative.data.text}</Text>
@@ -345,7 +449,9 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
         </Card>
       )}
       {doc.type === 'FINANCIAL_STATEMENT' && doc.status !== 'QUEUED' && (
-        <SpreadReview documentId={doc.id} canEdit={canReview && doc.status !== 'REMOVED'} />
+        <SpreadReview documentId={doc.id} canEdit={canReview && doc.status !== 'REMOVED'}
+          flagged={new Set((doc.review?.issues ?? []).map((i) => explain(i).key).filter((k): k is string => !!k))}
+          onPage={(page, label) => setCited({ page, quote: label })} />
       )}
     </Stack>
   );

@@ -132,12 +132,13 @@ def document_view(d: Document, failure: str | None = None) -> dict:
         "uploadedBy": d.uploaded_by, "uploadedAt": d.uploaded_at.isoformat(),
         "amendsDocumentId": d.amends_document_id,
         "failureReason": failure,
+        "review": json.loads(d.review_json) if d.review_json else None,
     }
 
 
 def term_view(t: ExtractedTerm) -> dict:
     return {
-        "id": t.id, "documentId": t.document_id, "metricRaw": t.metric_raw,
+        "id": t.id, "documentId": t.document_id, "metricRaw": t.metric_raw, "name": t.name,
         "covenantMasterId": t.covenant_master_id, "expression": t.expression, "operator": t.operator,
         "threshold": t.threshold, "unit": t.unit, "frequency": t.frequency, "category": t.category,
         "confidence": t.confidence, "method": t.method, "status": t.status,

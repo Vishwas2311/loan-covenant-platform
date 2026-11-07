@@ -1,0 +1,1789 @@
+{
+ "AG01": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 2.0,
+     "page": 11,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Funded Debt to EBITDA Ratio"
+    },
+    {
+     "family": "FCCR",
+     "dir": "min",
+     "threshold": 1.15,
+     "page": 12,
+     "metric": "FIXED_CHARGE_COVERAGE_RATIO",
+     "name": "Basic Fixed Charge Coverage Ratio"
+    },
+    {
+     "family": "MIN_EBITDA",
+     "dir": "min",
+     "threshold": 9500000.0,
+     "page": 12,
+     "metric": "MIN_EBITDA",
+     "name": "EBITDA"
+    }
+   ],
+   "seconds": 0.9
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    16,
+    23,
+    32
+   ],
+   "seconds": 0.9
+  }
+ },
+ "AG02": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 60,
+     "metric": "DEBT_TO_EQUITY",
+     "name": "Net Debt to Equity Ratio"
+    },
+    {
+     "family": "FCCR",
+     "dir": "min",
+     "threshold": 1.5,
+     "page": 61,
+     "metric": "FIXED_CHARGE_COVERAGE_RATIO",
+     "name": "Consolidated Fixed Charge Coverage Ratio"
+    }
+   ],
+   "seconds": 1.12
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 86,
+     "metric": "DEBT_TO_EQUITY",
+     "name": "Net Debt to Equity Ratio"
+    }
+   ],
+   "section": [
+    29,
+    86,
+    92
+   ],
+   "seconds": 1.12
+  }
+ },
+ "AG03": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.5,
+     "page": 22,
+     "metric": "DSCR",
+     "name": "Gross Debt Service Coverage Ratio"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 22,
+     "metric": "DSCR",
+     "name": "Net Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "min",
+     "threshold": 3.0,
+     "page": 22,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Senior Funded Debt to EBITDA Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "min",
+     "threshold": 5.0,
+     "page": 22,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Total Funded Debt to EBITDA Ratio"
+    }
+   ],
+   "seconds": 0.82
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    20,
+    21,
+    32
+   ],
+   "seconds": 0.82
+  }
+ },
+ "AG04": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 76,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "DSCR",
+     "dir": "max",
+     "threshold": 1.1,
+     "page": 77,
+     "metric": "DSCR",
+     "name": "Minimum Required Debt Service Coverage Ratio"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 500000000.0,
+     "page": 127,
+     "metric": "MIN_NET_WORTH",
+     "name": "Net Worth"
+    }
+   ],
+   "seconds": 2.28
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 76,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 500000000.0,
+     "page": 127,
+     "metric": "MIN_NET_WORTH",
+     "name": "Net Worth"
+    }
+   ],
+   "section": [
+    76,
+    125,
+    127
+   ],
+   "seconds": 2.28
+  }
+ },
+ "AG05": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 2,
+     "metric": "DSCR",
+     "name": "Minimum Debt Service Coverage Ratio"
+    },
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 2,
+     "metric": "ICR",
+     "name": "Minimum interest coverage"
+    },
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 1.5,
+     "page": 2,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt to Tangible Net Worth"
+    },
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 7500000.0,
+     "page": 2,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Liquidity"
+    }
+   ],
+   "seconds": 0.09
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 2,
+     "metric": "DSCR",
+     "name": "Minimum Debt Service Coverage Ratio"
+    },
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 2,
+     "metric": "ICR",
+     "name": "Minimum interest coverage"
+    },
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 1.5,
+     "page": 2,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt to Tangible Net Worth"
+    },
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 7500000.0,
+     "page": 2,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Liquidity"
+    }
+   ],
+   "section": [
+    2
+   ],
+   "seconds": 0.09
+  }
+ },
+ "AG06": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 36,
+     "metric": "DSCR",
+     "name": "debt service coverage ratio"
+    },
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 65.0,
+     "page": 16,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan-to-Value Ratio"
+    }
+   ],
+   "seconds": 1.0
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    33,
+    43
+   ],
+   "seconds": 1.0
+  }
+ },
+ "AG07": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 10,
+     "metric": "DSCR",
+     "name": "Effective Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 75.0,
+     "page": 10,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan to Value Ratio"
+    }
+   ],
+   "seconds": 0.6
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 10,
+     "metric": "DSCR",
+     "name": "Effective Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 75.0,
+     "page": 10,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan to Value Ratio"
+    }
+   ],
+   "section": [
+    10
+   ],
+   "seconds": 0.6
+  }
+ },
+ "AG08": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 3000000.0,
+     "page": 17,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    }
+   ],
+   "seconds": 0.67
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 3000000.0,
+     "page": 17,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    }
+   ],
+   "section": [
+    17,
+    19,
+    24
+   ],
+   "seconds": 0.67
+  }
+ },
+ "AG09": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 65.0,
+     "page": 26,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan to Value Ratio; Appraisal"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.3,
+     "page": 15,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "seconds": 1.39
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    16,
+    25,
+    28
+   ],
+   "seconds": 1.39
+  }
+ },
+ "AG10": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.26
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    1,
+    3
+   ],
+   "seconds": 0.26
+  }
+ },
+ "AG11": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.4,
+     "page": 11,
+     "metric": "DSCR",
+     "name": "Global Debt Service Coverage"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 25000000.0,
+     "page": 12,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    },
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 65.0,
+     "page": 19,
+     "metric": "LOAN_TO_VALUE",
+     "name": "loan-to-value"
+    }
+   ],
+   "seconds": 0.65
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.4,
+     "page": 11,
+     "metric": "DSCR",
+     "name": "Global Debt Service Coverage"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 25000000.0,
+     "page": 12,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    }
+   ],
+   "section": [
+    9,
+    11,
+    12
+   ],
+   "seconds": 0.65
+  }
+ },
+ "AG12": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 15,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 3.0,
+     "page": 15,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt to Tangible Net Worth"
+    }
+   ],
+   "seconds": 0.4
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 15,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 3.0,
+     "page": 15,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt to Tangible Net Worth"
+    }
+   ],
+   "section": [
+    9,
+    14,
+    15
+   ],
+   "seconds": 0.4
+  }
+ },
+ "AG13": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 2.0,
+     "page": 14,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.0,
+     "page": 14,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Senior Debt to EBITDA"
+    }
+   ],
+   "seconds": 0.55
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 2.0,
+     "page": 14,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.0,
+     "page": 14,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Senior Debt to EBITDA"
+    }
+   ],
+   "section": [
+    3,
+    13,
+    14
+   ],
+   "seconds": 0.55
+  }
+ },
+ "AG14": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.35,
+     "page": 5,
+     "metric": "DSCR",
+     "name": "debt service coverage ratio"
+    }
+   ],
+   "seconds": 0.28
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.35,
+     "page": 5,
+     "metric": "DSCR",
+     "name": "debt service coverage ratio"
+    }
+   ],
+   "section": [
+    5,
+    6,
+    10
+   ],
+   "seconds": 0.28
+  }
+ },
+ "AG15": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 18,
+     "metric": "DSCR",
+     "name": "Global Debt Service Coverage Ratio"
+    }
+   ],
+   "seconds": 0.65
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 18,
+     "metric": "DSCR",
+     "name": "Global Debt Service Coverage Ratio"
+    }
+   ],
+   "section": [
+    12,
+    18,
+    19
+   ],
+   "seconds": 0.65
+  }
+ },
+ "AG16": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 9.0,
+     "page": 24,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt To Net Worth"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 25,
+     "metric": "DSCR",
+     "name": "Dscr"
+    },
+    {
+     "family": "CURRENT_RATIO",
+     "dir": "min",
+     "threshold": 1.0,
+     "page": 25,
+     "metric": "CURRENT_RATIO",
+     "name": "Current Ratio"
+    }
+   ],
+   "seconds": 0.94
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 9.0,
+     "page": 24,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt To Net Worth"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 25,
+     "metric": "DSCR",
+     "name": "Dscr"
+    },
+    {
+     "family": "CURRENT_RATIO",
+     "dir": "min",
+     "threshold": 1.0,
+     "page": 25,
+     "metric": "CURRENT_RATIO",
+     "name": "Current Ratio"
+    }
+   ],
+   "section": [
+    24,
+    25,
+    28
+   ],
+   "seconds": 0.94
+  }
+ },
+ "AG17": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.85
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    4,
+    20,
+    26
+   ],
+   "seconds": 0.85
+  }
+ },
+ "AG18": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "min",
+     "threshold": 1.15,
+     "page": 7,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "The Cash Flow Leverage Ratio will be calculated and tested quarterly as of the last day of each fiscal quarter of Borrower, commencing with"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.15,
+     "page": 7,
+     "metric": "DSCR",
+     "name": "Minimum Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.0,
+     "page": 7,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Cash Flow Leverage Ratio"
+    }
+   ],
+   "seconds": 0.41
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "min",
+     "threshold": 1.15,
+     "page": 7,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "The Cash Flow Leverage Ratio will be calculated and tested quarterly as of the last day of each fiscal quarter of Borrower, commencing with"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.15,
+     "page": 7,
+     "metric": "DSCR",
+     "name": "Minimum Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.0,
+     "page": 7,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Cash Flow Leverage Ratio"
+    }
+   ],
+   "section": [
+    7
+   ],
+   "seconds": 0.41
+  }
+ },
+ "AG19": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.35,
+     "page": 19,
+     "metric": "DSCR",
+     "name": "Dscr"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.4,
+     "page": 54,
+     "metric": "DSCR",
+     "name": "debt service coverage ratio"
+    }
+   ],
+   "seconds": 1.11
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.35,
+     "page": 19,
+     "metric": "DSCR",
+     "name": "Dscr"
+    }
+   ],
+   "section": [
+    6,
+    19,
+    46
+   ],
+   "seconds": 1.11
+  }
+ },
+ "AG20": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 70.0,
+     "page": 7,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan To Value"
+    },
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 9.1,
+     "page": 13,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt-to-Net Worth Ratio"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 13,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "seconds": 0.54
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 9.1,
+     "page": 13,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt-to-Net Worth Ratio"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.2,
+     "page": 13,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "section": [
+    11,
+    13
+   ],
+   "seconds": 0.54
+  }
+ },
+ "AG21": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 2.06
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    77,
+    82,
+    100
+   ],
+   "seconds": 2.06
+  }
+ },
+ "AG22": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 2.0,
+     "page": 12,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "seconds": 0.38
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 2.0,
+     "page": 12,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "section": [
+    8,
+    12
+   ],
+   "seconds": 0.38
+  }
+ },
+ "AG23": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 5,
+     "metric": "DSCR",
+     "name": "Minimum Debt Service Coverage Ratio"
+    }
+   ],
+   "seconds": 0.36
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 5,
+     "metric": "DSCR",
+     "name": "Minimum Debt Service Coverage Ratio"
+    }
+   ],
+   "section": [
+    5
+   ],
+   "seconds": 0.36
+  }
+ },
+ "AG24": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 7,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 75.0,
+     "page": 7,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan To Value Ratio"
+    }
+   ],
+   "seconds": 0.96
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 7,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LTV",
+     "dir": "max",
+     "threshold": 75.0,
+     "page": 7,
+     "metric": "LOAN_TO_VALUE",
+     "name": "Loan To Value Ratio"
+    }
+   ],
+   "section": [
+    7,
+    15,
+    23
+   ],
+   "seconds": 0.96
+  }
+ },
+ "AG25": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 9.0,
+     "page": 15,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt To Net Worth"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 15,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "CURRENT_RATIO",
+     "dir": "min",
+     "threshold": 1.0,
+     "page": 15,
+     "metric": "CURRENT_RATIO",
+     "name": "Current Ratio"
+    }
+   ],
+   "seconds": 1.19
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 9.0,
+     "page": 15,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt To Net Worth"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 15,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "CURRENT_RATIO",
+     "dir": "min",
+     "threshold": 1.0,
+     "page": 15,
+     "metric": "CURRENT_RATIO",
+     "name": "Current Ratio"
+    }
+   ],
+   "section": [
+    2,
+    15,
+    17
+   ],
+   "seconds": 1.19
+  }
+ },
+ "AG26": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 5.5,
+     "page": 121,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "Net Leverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 5.0,
+     "page": 133,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "First Lien Net Leverage Ratio"
+    }
+   ],
+   "seconds": 3.79
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 5.0,
+     "page": 133,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "First Lien Net Leverage Ratio"
+    }
+   ],
+   "section": [
+    133,
+    134,
+    135
+   ],
+   "seconds": 3.79
+  }
+ },
+ "AG27": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 4.75,
+     "page": 106,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "Existing First Lien Net Leverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 107,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "First Lien Net Leverage Ratio"
+    }
+   ],
+   "seconds": 4.73
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 4.75,
+     "page": 106,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "Existing First Lien Net Leverage Ratio"
+    }
+   ],
+   "section": [
+    106,
+    123,
+    138
+   ],
+   "seconds": 4.73
+  }
+ },
+ "AG28": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "min",
+     "threshold": 2.75,
+     "page": 24,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "Net Leverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 113,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "First Lien Net Leverage Ratio"
+    }
+   ],
+   "seconds": 4.21
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 113,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "First Lien Net Leverage Ratio"
+    }
+   ],
+   "section": [
+    113,
+    115,
+    126
+   ],
+   "seconds": 4.21
+  }
+ },
+ "AG29": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.15
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    3
+   ],
+   "seconds": 0.15
+  }
+ },
+ "AG30": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.1
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [],
+   "seconds": 0.1
+  }
+ },
+ "AG31": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 3.0,
+     "page": 91,
+     "metric": "ICR",
+     "name": "Interest Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 1.5,
+     "page": 11,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Ratio Level Total Leverage Ratio"
+    }
+   ],
+   "seconds": 2.66
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    84,
+    90,
+    133
+   ],
+   "seconds": 2.66
+  }
+ },
+ "AG32": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 1.5,
+     "page": 3,
+     "metric": "ICR",
+     "name": "Minimum Interest Coverage Ratio"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 10000000.0,
+     "page": 2,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    },
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 3.0,
+     "page": 2,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Cash Balance"
+    },
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 1000000.0,
+     "page": 3,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Liquidity"
+    }
+   ],
+   "seconds": 0.21
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 1.5,
+     "page": 3,
+     "metric": "ICR",
+     "name": "Minimum Interest Coverage Ratio"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 10000000.0,
+     "page": 2,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    },
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 3.0,
+     "page": 2,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Cash Balance"
+    },
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 1000000.0,
+     "page": 3,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Liquidity"
+    }
+   ],
+   "section": [
+    2,
+    3
+   ],
+   "seconds": 0.21
+  }
+ },
+ "AG33": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.35
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    3
+   ],
+   "seconds": 0.35
+  }
+ },
+ "AG34": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.5
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    69,
+    72,
+    75
+   ],
+   "seconds": 0.5
+  }
+ },
+ "AG35": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 85000000.0,
+     "page": 7,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Tangible Net Worth"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 14,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "seconds": 0.54
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 85000000.0,
+     "page": 7,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Tangible Net Worth"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.25,
+     "page": 14,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    }
+   ],
+   "section": [
+    5,
+    7,
+    14
+   ],
+   "seconds": 0.54
+  }
+ },
+ "AG36": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 105000000.0,
+     "page": 37,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Minimum Tangible Net Worth"
+    }
+   ],
+   "seconds": 2.1
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    82,
+    83,
+    89
+   ],
+   "seconds": 2.1
+  }
+ },
+ "AG37": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.41
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    12
+   ],
+   "seconds": 0.41
+  }
+ },
+ "AG38": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 3.75,
+     "page": 41,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt To Net Worth"
+    },
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 2.25,
+     "page": 41,
+     "metric": "ICR",
+     "name": "Interest Coverage Ratio"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.05,
+     "page": 41,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.75,
+     "page": 41,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Maximum Leverage Ratio"
+    },
+    {
+     "family": "MIN_NW",
+     "dir": "min",
+     "threshold": 8.0,
+     "page": 104,
+     "metric": "MIN_TANGIBLE_NET_WORTH",
+     "name": "Total Minimum Tangible Net Worth"
+    }
+   ],
+   "seconds": 3.13
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "DEBT_TO_NW",
+     "dir": "max",
+     "threshold": 3.75,
+     "page": 41,
+     "metric": "DEBT_TO_NET_WORTH",
+     "name": "Debt To Net Worth"
+    },
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 2.25,
+     "page": 41,
+     "metric": "ICR",
+     "name": "Interest Coverage Ratio"
+    },
+    {
+     "family": "DSCR",
+     "dir": "min",
+     "threshold": 1.05,
+     "page": 41,
+     "metric": "DSCR",
+     "name": "Debt Service Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.75,
+     "page": 41,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Maximum Leverage Ratio"
+    }
+   ],
+   "section": [
+    24,
+    41,
+    77
+   ],
+   "seconds": 3.13
+  }
+ },
+ "AG39": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.18
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    12,
+    13
+   ],
+   "seconds": 0.18
+  }
+ },
+ "AG40": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 2.0,
+     "page": 18,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Leverage Ratio"
+    }
+   ],
+   "seconds": 1.08
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    55,
+    56,
+    57
+   ],
+   "seconds": 1.08
+  }
+ },
+ "AG41": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 2.0,
+     "page": 172,
+     "metric": "ICR",
+     "name": "Consolidated Interest Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 172,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Consolidated Senior Secured Leverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 5.5,
+     "page": 172,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Consolidated Leverage Ratio"
+    }
+   ],
+   "seconds": 3.41
+  },
+  "S_NEW": {
+   "terms": [
+    {
+     "family": "ICR",
+     "dir": "min",
+     "threshold": 2.0,
+     "page": 172,
+     "metric": "ICR",
+     "name": "Consolidated Interest Coverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 3.5,
+     "page": 172,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Consolidated Senior Secured Leverage Ratio"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 5.5,
+     "page": 172,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Consolidated Leverage Ratio"
+    }
+   ],
+   "section": [
+    172,
+    176,
+    184
+   ],
+   "seconds": 3.41
+  }
+ },
+ "AG42": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LEVERAGE",
+     "dir": "min",
+     "threshold": 3.75,
+     "page": 25,
+     "metric": "NET_LEVERAGE_RATIO",
+     "name": "Consolidated Net Senior Secured Leverage Ratio"
+    }
+   ],
+   "seconds": 6.29
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    165,
+    166,
+    220
+   ],
+   "seconds": 6.29
+  }
+ },
+ "AG43": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 5.57
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    205,
+    212,
+    213
+   ],
+   "seconds": 5.57
+  }
+ },
+ "AG44": {
+  "W_NEW": {
+   "terms": [
+    {
+     "family": "LIQUIDITY",
+     "dir": "min",
+     "threshold": 55000000.0,
+     "page": 99,
+     "metric": "MINIMUM_LIQUIDITY",
+     "name": "Minimum Liquidity Covenant"
+    },
+    {
+     "family": "LEVERAGE",
+     "dir": "max",
+     "threshold": 9.25,
+     "page": 84,
+     "metric": "DEBT_TO_EBITDA",
+     "name": "Consolidated Total Leverage Ratio"
+    }
+   ],
+   "seconds": 3.6
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    111,
+    126,
+    127
+   ],
+   "seconds": 3.6
+  }
+ },
+ "AG45": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.89
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    5,
+    20,
+    29
+   ],
+   "seconds": 0.89
+  }
+ },
+ "AG47": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.41
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [],
+   "seconds": 0.41
+  }
+ },
+ "AG48": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.23
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [],
+   "seconds": 0.23
+  }
+ },
+ "AG50": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 0.37
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [],
+   "seconds": 0.37
+  }
+ },
+ "AG52": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 1.38
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    12,
+    39
+   ],
+   "seconds": 1.38
+  }
+ },
+ "AG54": {
+  "W_NEW": {
+   "terms": [],
+   "seconds": 1.07
+  },
+  "S_NEW": {
+   "terms": [],
+   "section": [
+    8,
+    36
+   ],
+   "seconds": 1.07
+  }
+ }
+}

@@ -6,7 +6,7 @@ import re
 from collections.abc import Callable
 
 from dps.extraction.agreement import normalize_ws
-from dps.extraction.mapping import Proposal
+from dps.extraction.mapping import Proposal, base_metric
 from dps.parsing import Page
 
 PUBLISH, NEEDS_REVIEW, FAILED = "publish", "needs_review", "failed"
@@ -29,14 +29,14 @@ def check_quote(p: Proposal, pages_by_no: dict[int, str]) -> list[str]:
 # Which way each ratio is normally tested. An operator pointing the other way usually means the wording was
 # misread ("shall not be less than" taken as "less than"), so a person confirms it before it is applied.
 FLOORS = {"DSCR", "ICR", "EBITDA_TO_EMI", "CURRENT_RATIO", "QUICK_RATIO", "FIXED_CHARGE_COVERAGE_RATIO",
-          "MIN_TANGIBLE_NET_WORTH", "MIN_NET_WORTH", "MINIMUM_LIQUIDITY"}
-CEILINGS = {"DEBT_TO_EBITDA", "NET_LEVERAGE_RATIO", "DEBT_TO_NET_WORTH", "DEBT_TO_EQUITY"}
+          "MIN_TANGIBLE_NET_WORTH", "MIN_NET_WORTH", "MINIMUM_LIQUIDITY", "MIN_EBITDA"}
+CEILINGS = {"DEBT_TO_EBITDA", "NET_LEVERAGE_RATIO", "DEBT_TO_NET_WORTH", "DEBT_TO_EQUITY", "LOAN_TO_VALUE"}
 
 
 def check_direction(p: Proposal) -> list[str]:
-    if p.metric_raw in FLOORS and p.operator in ("<", "<="):
+    if base_metric(p.metric_raw) in FLOORS and p.operator in ("<", "<="):
         return ["OPERATOR_UNEXPECTED: usually a minimum (>=)"]
-    if p.metric_raw in CEILINGS and p.operator in (">", ">="):
+    if base_metric(p.metric_raw) in CEILINGS and p.operator in (">", ">="):
         return ["OPERATOR_UNEXPECTED: usually a maximum (<=)"]
     return []
 

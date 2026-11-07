@@ -229,9 +229,21 @@ The same file uploaded twice is recognised and not stored twice.
 
 ### Check what was read from an agreement
 
-1. Click the file. The **terms table** lists every covenant found: Term, Rule (in Core's formula
-   language, for example `DSCR >= 1.25`), Page, Quote, Confidence, Status.
-2. Click a row's page to see the **source page** of the PDF with the quote highlighted.
+1. Click the file. A line above the table says how many covenants were proposed, how many need your
+   check and how many a person will enter each period. Rows that need your check come first. Each row shows:
+   - **Covenant**: its name as the agreement writes it (for example "Consolidated Senior Secured Leverage
+     Ratio" or "Maximum Loan to Value") and whether it is financial, non-financial or an agreement fact.
+   - **Limit**: in words, for example *at most 3.5×*, *at least 1.25×*, *at most 75%*, *at least Rs. 500
+     crore*, and how often it is tested.
+   - **How it is tested**: *worked out from the statements*, with Core's formula beneath (for example
+     `DPS_TOTAL_DEBT / DPS_EBITDA <= 3.5`), or *a person enters the figure each period* when no statement
+     line gives it (loan to value, or an amount written in dollars).
+   - **Where in the agreement**: **Open page N** and the quote.
+   - **Confidence**: High, Medium or Low.
+   - **Status and what to check**: each issue in words with what to do, for example "The agreement gives
+     this covenant more than one level (often a step-down schedule). Open the page, pick the level that
+     applies now and edit the rule if needed."
+2. Click **Open page N** to see the **source page** of the PDF with the quote highlighted.
 3. For each term:
    - **Approve** — it is right; it becomes a recommendation for onboarding.
    - **Edit** — correct the **Rule (Core formula)** and add a **Note**, then **Save**; then approve it.
@@ -246,6 +258,11 @@ Clauses about the security, such as minimum security cover, minimum collateral v
 asset-sale limit, are always held for review, because a credit person must decide whether they are
 ongoing covenants.
 
+An agreement can hold two covenants of one kind (total leverage and senior secured leverage, or gross and
+net DSCR). Both are proposed under their own names; the second becomes a custom covenant and waits for you
+to check that its formula measures that covenant. A step-down schedule is read at its first level, and
+the rest of the schedule is in the quote.
+
 ### Amendments
 
 When the file was uploaded as an **Amendment of** an earlier agreement, its page says "This is an
@@ -258,8 +275,12 @@ the CP workspace → **Schedule and changes** → enter the new rule → **Save 
 
 ### Check what was read from a statement
 
-1. Click the statement. Its **line items** show each figure with where it came from (the page of a PDF,
-   or the cell of a spreadsheet, such as `PL!B12`) and its state.
+1. Click the statement. A box at the top says the unit the statement was printed in ("Printed in Rs.
+   lakh; every figure below is shown in INR crore") and, when it waits for review, **why**: each reason in
+   words with what to do (for example a scan read with low confidence, a unit the statement does not
+   state, or a figure the second reader read differently). Its **line items** show each figure with where
+   it came from: **page N** opens the statement at that page; a spreadsheet shows the cell, such as
+   `PL!B12`. A line a check named is highlighted **Check this figure**.
 2. Tick **Show lines not found** to see items the reader expected but could not find.
 3. Correct any value and press **Save corrections**. "Covenants using them are checked again."
 4. Data-quality checks run on every statement (the balance sheet balances, the period is right, the

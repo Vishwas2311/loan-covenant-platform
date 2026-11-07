@@ -268,7 +268,13 @@ const SECTION_LABEL: Record<SpreadLine['section'], string> = {
 };
 
 /** C6: the full spread of a statement; a reviewer corrects or fills lines and saves them for Core. */
-export function SpreadReview({ documentId, canEdit }: { documentId: string; canEdit: boolean }) {
+export function SpreadReview({ documentId, canEdit, flagged, onPage }: {
+  documentId: string; canEdit: boolean;
+  /** Standard lines a check named ("SECOND_READER_DIFFERS: REVENUE ..."): highlighted for the reviewer. */
+  flagged?: Set<string>;
+  /** Opens the statement at the page a figure was read from. */
+  onPage?: (page: number, label: string) => void;
+}) {
   const qc = useQueryClient();
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [showEmpty, setShowEmpty] = useState(false);
@@ -316,8 +322,10 @@ export function SpreadReview({ documentId, canEdit }: { documentId: string; canE
             </Table.Thead>
             <Table.Tbody>
               {rows.map((l) => (
-                <Table.Tr key={l.standardKey}>
-                  <Table.Td>{l.standardLabel}</Table.Td>
+                <Table.Tr key={l.standardKey} bg={flagged?.has(l.standardKey) ? 'var(--mantine-color-yellow-light)' : undefined}>
+                  <Table.Td>{l.standardLabel}
+                    {flagged?.has(l.standardKey) && <Text size="xs" c="var(--text-warn)">Check this figure</Text>}
+                  </Table.Td>
                   <Table.Td>
                     {canEdit ? (
                       <TextInput size="xs" w={140} aria-label={`Value for ${l.standardLabel}`}
@@ -325,7 +333,16 @@ export function SpreadReview({ documentId, canEdit }: { documentId: string; canE
                         onChange={(e) => setEdits({ ...edits, [l.standardKey]: e.currentTarget.value })} />
                     ) : (l.value ?? '—')}
                   </Table.Td>
-                  <Table.Td><Text size="xs">{l.cell ?? (l.page ? `p. ${l.page}` : l.sourceLabel ?? '')}</Text></Table.Td>
+                  <Table.Td>
+                    {!l.cell && l.page && onPage ? (
+                      <Button size="compact-xs" variant="subtle" onClick={() => onPage(l.page!, l.sourceLabel ?? l.standardLabel)}>
+                        page {l.page}
+                      </Button>
+                    ) : <Text size="xs">{l.cell ?? (l.page ? `p. ${l.page}` : l.sourceLabel ?? '')}</Text>}
+                    {l.sourceLabel && !l.cell && l.page && onPage && (
+                      <Text size="xs" c="dimmed" lineClamp={1} title={l.sourceLabel}>“{l.sourceLabel}”</Text>
+                    )}
+                  </Table.Td>
                   <Table.Td>
                     <Badge size="xs" variant="light"
                       color={l.status === 'CONFIRMED' ? 'green' : l.status === 'MAPPED' ? (l.confidence < 1 ? 'yellow' : 'blue') : 'gray'}>

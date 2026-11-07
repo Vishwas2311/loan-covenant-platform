@@ -337,3 +337,115 @@ def test_a_long_report_is_read_only_on_its_statement_pages():
     for key, want in label["values"].items():
         assert got[key] == pytest.approx(want, rel=0.005), key
     assert {r[2] for r in table.rows} <= {i + 1 for i in chosen}
+
+
+# ----------------------------------------------------------------------------------------------------
+# Agreements, second round: wordings missed in the 50 real agreements
+# ----------------------------------------------------------------------------------------------------
+@pytest.mark.parametrize(("text", "metric", "op", "value", "unit"), [
+    ("Borrower shall maintain a Minimum interest coverage of 1.25:1, tested for fiscal year ending 12/31/24 only.",
+     "ICR", ">=", 1.25, None),
+    ("The Borrower shall maintain a combined minimum debt service coverage ratio of 1.35x, to be tested annually.",
+     "DSCR", ">=", 1.35, None),
+    ('Maintain an Effective Debt Service Coverage Ratio as of the end of each calendar quarter ("Determination Date")'
+     " of 1.25 to 1.0.", "DSCR", ">=", 1.25, None),
+    ("the Borrower shall not permit the First Lien Net Leverage Ratio on the last day of any Fiscal Quarter ending "
+     "during any period set forth below to exceed the ratio set forth opposite such period: Period Fiscal Quarter "
+     "ending June 30, 2025 through September 30, 2025 4.75 to 1.00 Fiscal Quarter ending December 31, 2025 and "
+     "thereafter 4.50 to 1.00", "NET_LEVERAGE_RATIO", "<=", 4.75, None),
+    ("the Borrower will not: SECTION 6.01. Financial Covenant. Permit the Consolidated Net Senior Secured Leverage "
+     "Ratio to be greater than 7.3:1.0 as of any Compliance Date.", "NET_LEVERAGE_RATIO", "<=", 7.3, None),
+    ("Loan to Value Ratio. Maintain a Loan to Value Ratio (as defined below) of 75.00% or less.",
+     "LOAN_TO_VALUE", "<=", 75.0, "%"),
+    ("At all times during the term of the Loan, the Loan to value ratio shall be no more than sixty five percent "
+     "(65%) based upon a current Appraisal.", "LOAN_TO_VALUE", "<=", 65.0, "%"),
+])
+def test_real_agreement_wordings(text, metric, op, value, unit):
+    [term] = [t for t in extract_terms([Page(1, text, "TEXT", 1.0)]) if t.category == "FINANCIAL"]
+    assert (term.metric, term.operator, term.threshold, term.unit) == (metric, op, value, unit)
+    assert term.page == 1 and f"{value:g}" in term.quote.replace(".00", "")
+
+
+def test_step_down_tables_and_a_minimum_ebitda_clause():
+    text = ("7.4 Basic Fixed Charge Coverage Ratio. To maintain a Basic Fixed Charge Coverage Ratio of at least the "
+            "ratios indicated for each period specified below:\nPeriod Ending Ratios December 31, 2017 1.15:1.0 From "
+            "March 31, 2018 and thereafter 1.25:1.0\n7.5 EBITDA. To maintain on a consolidated basis EBITDA of at "
+            "least the amounts indicated for each period specified below: Period Ending EBITDA September 30, 2017 "
+            "$9,500,000 December 31, 2017 $11,500,000\n7.6 Other.")
+    got = {t.metric: (t.operator, t.threshold, t.unit) for t in extract_terms([Page(1, text, "TEXT", 1.0)])
+           if t.category == "FINANCIAL"}
+    assert got == {"FIXED_CHARGE_COVERAGE_RATIO": (">=", 1.15, None), "MIN_EBITDA": (">=", 9500000.0, "usd")}
+
+
+def test_two_covenants_of_one_family_are_both_kept_under_their_own_names():
+    text = ("(a) Consolidated Leverage Ratio. The Borrower will not permit the Consolidated Leverage Ratio as at the "
+            "last day of any Test Period to exceed 5.50 to 1.0.\n(b) Consolidated Senior Secured Leverage Ratio. The "
+            "Borrower will not permit the Consolidated Senior Secured Leverage Ratio as at the last day of any Test "
+            "Period to exceed 3.50 to 1.0.\nThe Consolidated Leverage Ratio is tested quarterly: not more than 5.50 "
+            "to 1.0.")
+    terms = [t for t in extract_terms([Page(1, text, "TEXT", 1.0)]) if t.category == "FINANCIAL"]
+    assert sorted((t.name, t.threshold) for t in terms) == [("Consolidated Leverage Ratio", 5.5),
+                                                          ("Consolidated Senior Secured Leverage Ratio", 3.5)]
+    from dps.core_client import CoreMaster
+    from dps.extraction.mapping import normalize
+
+    masters = [CoreMaster("m-lev", "Total Debt to EBITDA Ceiling", "FINANCIAL", "AUTO", ("DEBT_EBITDA",))]
+    first, second = normalize(terms, masters)
+    assert first.covenant_master_id == "m-lev" and first.metric_raw == "DEBT_TO_EBITDA"
+    assert second.covenant_master_id is None
+    assert second.metric_raw.startswith("DEBT_TO_EBITDA:") and second.name.endswith("Leverage Ratio")
+    assert second.expression == "DPS_TOTAL_DEBT / DPS_EBITDA <= " + f"{second.threshold:g}"
+    assert any(i.startswith("SECOND_COVENANT_OF_FAMILY") for i in second.issues)
+
+
+def test_loan_to_value_is_a_manual_covenant_and_a_dollar_amount_waits_for_conversion():
+    from dps.extraction.agreement import Term
+    from dps.extraction.mapping import normalize
+    from dps.extraction.validation import check_direction
+
+    ltv, ebitda = normalize([
+        Term("LOAN_TO_VALUE", "FINANCIAL", "<=", 75.0, "%", "QUARTERLY", 10, "of 75.00% or less", None, 0.7,
+             name="Loan to Value Ratio"),
+        Term("MIN_EBITDA", "FINANCIAL", ">=", 9500000.0, "usd", None, 12, "September 30, 2017 $9,500,000", None, 0.85,
+             name="EBITDA"),
+    ], [])
+    assert (ltv.name, ltv.unit, ltv.expression, ltv.assessment_type) == ("Maximum Loan to Value", "PERCENT", None,
+                                                                        "MANUAL")
+    assert check_direction(ltv) == []
+    assert (ebitda.unit, ebitda.threshold, ebitda.expression, ebitda.assessment_type) == ("USD", 9500000.0, None,
+                                                                                          "MANUAL")
+    assert ebitda.issues == ["AMOUNT_NOT_IN_INR: convert the threshold to INR crore before applying"]
+    assert check_direction(Proposal_like("LOAN_TO_VALUE", ">=")) == ["OPERATOR_UNEXPECTED: usually a maximum (<=)"]
+
+
+def Proposal_like(metric, op):  # noqa: N802 - reads like the constructor it stands in for
+    from dps.extraction.mapping import Proposal
+
+    return Proposal(metric, "FINANCIAL", None, metric, None, "MANUAL", op, 1.0, None, None, 1, "q", None, 0.9)
+
+
+def test_statement_review_reasons_and_unit_are_stored_on_the_document(database):
+    import json as _json
+
+    from dps.flows.statement import StatementDeps, StatementProcessingFlow
+    from dps.models import Document
+
+    rows = [("Revenue", 100.0, 1, None), ("EBITDA", 50.5, 1, None), ("Total debt", 120.0, 1, None),
+            ("Net worth", 300.0, 1, None)]
+    doc_id = add_document(database, "FINANCIAL_STATEMENT", "fs.pdf", date(2026, 3, 31), ("CP-1",))
+    deps = StatementDeps(database.session_factory, lambda d: b"%PDF", FakeParser([]), "ds-dps", False,
+                         lambda d: PdfStatement(rows, "Rs. in lakhs", [1], 0.95, ["p"]))
+    StatementProcessingFlow(deps).kickoff(inputs={"job_id": "j1", "document_id": doc_id})
+    with database.session_factory() as db:
+        review = _json.loads(db.get(Document, doc_id).review_json)
+    assert review == {"issues": ["LOW_OCR_QUALITY: scanned pages read at 95% confidence"], "unitScale": "lakh"}
+
+
+def test_a_condition_in_the_definitions_gives_way_to_the_covenant_itself():
+    pages = [Page(1, "Payments may be made while the Consolidated Senior Secured Leverage Ratio is less than "
+                     "1.30 to 1.00 for the most recent test period.", "TEXT", 1.0),
+             Page(2, "(b) Consolidated Senior Secured Leverage Ratio. The Borrower will not permit the Consolidated "
+                     "Senior Secured Leverage Ratio as at the last day of any Test Period to exceed 3.50 to 1.0.",
+                  "TEXT", 1.0)]
+    [term] = [t for t in extract_terms(pages) if t.category == "FINANCIAL"]
+    assert (term.operator, term.threshold, term.page) == ("<=", 3.5, 2)

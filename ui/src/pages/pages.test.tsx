@@ -249,12 +249,39 @@ describe('Documents', () => {
     });
     renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
     fireEvent.click(await screen.findByRole('cell', { name: /^agreement.pdf/ }));
-    expect(await screen.findByText('LOW_CONFIDENCE')).toBeInTheDocument();
+    // The code is explained, with what to do; the limit is in words and the covenant has a readable name.
+    expect(await screen.findByText(/less certain/)).toBeInTheDocument();
+    expect(screen.getByText('at least 1.25×')).toBeInTheDocument();
+    expect(screen.getByText('DSCR')).toBeInTheDocument();
     fireEvent.click(screen.getAllByText('Approve')[0]);
     await waitFor(() => expect(calls.some((c) => c.init.method === 'PATCH')).toBe(true));
     expect(JSON.parse(calls.find((c) => c.init.method === 'PATCH')!.init.body as string).action).toBe('APPROVE');
     fireEvent.click(await screen.findByText('Review done'));
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/resume'))).toBe(true));
+  });
+
+  it('a statement waiting for review says why, in which unit it was printed, and marks the line to check', async () => {
+    setIdentity({ user: 'rm-anil', roles: ['RM'] });
+    mockFetch((url) => {
+      if (url.startsWith('/dps/v1/documents?cpId')) {
+        return { body: [{ id: 'D2', type: 'FINANCIAL_STATEMENT', fileName: 'fy25.pdf', pageCount: 3,
+          asOfDate: '2025-03-31', status: 'NEEDS_REVIEW', cpIds: ['CP-1'], latestJobId: null, uploadedBy: 'rm-anil',
+          uploadedAt: '2026-11-02T10:00:00Z',
+          review: { unitScale: 'lakh', issues: ['SECOND_READER_DIFFERS: REVENUE read 163.631, second reader 172.45'] } }] };
+      }
+      if (url.endsWith('/spread')) {
+        return { body: [{ standardKey: 'REVENUE', standardLabel: 'Revenue', section: 'PROFIT_AND_LOSS', value: 163.631,
+          status: 'MAPPED', confidence: 1, page: 2, cell: null, sourceLabel: 'Revenue from operations' }] };
+      }
+      return undefined;
+    });
+    renderAt('/documents/CP-1', '/documents/:cpId', <Documents />);
+    fireEvent.click(await screen.findByRole('cell', { name: /^fy25.pdf/ }));
+    expect(await screen.findByText('Why this statement waits for your check')).toBeInTheDocument();
+    expect(screen.getByText(/the second reader \(AI\) read 172.45/)).toBeInTheDocument();
+    expect(screen.getByText('Rs. lakh')).toBeInTheDocument();
+    expect(await screen.findByText('Check this figure')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'page 2' })).toBeInTheDocument();
   });
 
   it('a failed document tells the RM why, even without access to the job', async () => {

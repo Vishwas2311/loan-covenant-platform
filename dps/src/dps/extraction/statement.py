@@ -155,6 +155,11 @@ for _key, _phrases in {
         "purchases of property, plant and equipment",
         "purchase of property, plant & equipment",
         "acquisition of property, plant and equipment",
+        "additions to properties",
+        "additions to property, plant and equipment",
+        "purchase of property and equipment",
+        "purchases of property and equipment",
+        "purchases of property, plant, and equipment",
     ],
 }.items():
     LINE_ALIASES[_key] = LINE_ALIASES[_key] + [x for x in _phrases if x not in LINE_ALIASES[_key]]
@@ -255,10 +260,16 @@ _NUMBERING = re.compile(r"^\s*(?:\(?[a-z0-9]{1,4}[.)]\s*)+")
 _TOTALS = frozenset({"CURRENT_ASSETS", "CURRENT_LIABILITIES", "TOTAL_ASSETS"})
 # Families worded in too many ways for a phrase list: "Net Cash Flows Provided by (Used in) Operating
 # Activities", "Income of consolidated group before income taxes".
+_CASH_FROM = r"(\bnet\s+cash\b|^\s*cash\s+(provided|used|generated|from)\b)"
 _PATTERNS = [
-    ("CFO", re.compile(r"\bnet\s+cash\b.{0,60}\boperating\s+activities\b")),
-    ("CFI", re.compile(r"\bnet\s+cash\b.{0,60}\binvesting\s+activities\b")),
-    ("CFF", re.compile(r"\bnet\s+cash\b.{0,60}\bfinancing\s+activities\b")),
+    # "Net cash provided by ...", and US filings' "Cash provided by (used in) operating activities"
+    ("CFO", re.compile(_CASH_FROM + r".{0,60}\boperating\s+activities\b")),
+    ("CFI", re.compile(_CASH_FROM + r".{0,60}\binvesting\s+activities\b")),
+    ("CFF", re.compile(_CASH_FROM + r".{0,60}\bfinancing\s+activities\b")),
+    # US income statements: "Income taxes", "Income tax provision", "Provision (benefit) for income taxes"
+    ("TAX", re.compile(r"^\s*income\s+tax(es)?\s*$|^\s*income\s+tax\s+provision\b|^\s*provision\s+\(benefit\)\s+for\s+"
+                       r"income\s+tax")),
+    ("REVENUE", re.compile(r"^\s*sales\s*$")),
     ("PBT", re.compile(r"\b(profit|income|earnings)\b.{0,50}\bbefore\s+(income\s+)?tax(es|ation)?\b")),
 ]
 

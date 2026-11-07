@@ -1,4 +1,4 @@
-# Real documents: statement and loan-agreement readers, benchmark and decision (6 November 2026)
+# Real documents: statement and loan-agreement readers, benchmark and decision (6-7 November 2026)
 
 **Question.** The synthetic benchmark (`../statement-pdf-readers/`) chose pdfplumber word positions for
 statement PDFs. Does that hold on real documents downloaded from the internet: Indian and Sri Lankan annual
@@ -7,17 +7,21 @@ should it route a file, and how accurate is the result?
 
 **Answer, in one paragraph.** On real statements the DPS table reader (pdfplumber words, RapidOCR boxes on
 scans, a column picker and the catalog rules), after the fixes in this report, reads **91.9% of
-hand-checked Indian and Sri Lankan values right with 1 wrong**, and **81.2% of the SEC
-XBRL values** of US filings. Every other engine scored lower on India / Sri Lanka; the bank's Azure OpenAI
+hand-checked Indian and Sri Lankan values right with 1 wrong**, and **89.5% of the SEC
+XBRL values** of US filings (85.6% when DPS reads the whole 10-K itself). Every other engine scored lower on India / Sri Lanka; the bank's Azure OpenAI
 model scored higher on US filings (**93.0%**). Their mistakes fall on different lines, so the best
 arrangement is the table reader as the source of every value, with the model as an optional second reader
 whose disagreements go to review: on the US filings that cuts wrong values that would be published from
 9 to 4, at the cost of reviewing about 10 values in 100. Long
 reports are searched for their statement pages first (right page first for 87.6% of statements, in the first
-two for 96.4%). For loan agreements the rules engine finds **56.7%** of real maintenance covenants
-at **68% precision**; the model finds more (70%) but invents more (64% precision), so it can
-only suggest covenants for a person to confirm. Every proposed covenant is approved by a person in
+two for 96.4%). For loan agreements the rules engine, after the second round of fixes (section 11), finds
+**88.3%** of real maintenance covenants at **70% precision** on the whole agreement (70.0% at 84%
+precision on the covenant section alone); the model finds 70% at 64% precision, so it is no longer needed
+for agreements. Every proposed covenant is approved by a person in
 Core before it is applied.
+
+Section 11 lists the second round (7 November): loan-to-value and minimum-EBITDA covenants, step-down
+tables, several covenants of one family, US statement wording, and the review screens.
 
 ## 1. The documents
 
@@ -273,7 +277,7 @@ the right section in about 80% of agreements); W_ = the whole document.
 | Scan read under 97% OCR confidence | held for review (unchanged) | the poor scans are where every reader loses values |
 | Table reader finds nothing | pypdf text lines, then the Docling heavy pool (unchanged) | Docling is 60 times slower and less accurate on real statements, so it is only the last resort |
 | Loan agreement | rules engine on the whole document (section finder not used to cut pages) | finds more covenants than on the section alone; a missed section costs recall |
-| Loan agreement, second opinion | the model may suggest covenants, always for a person to confirm | it finds more but a third of what it proposes is not a covenant |
+| Loan agreement, second opinion | not used: after section 11 the rules find more covenants (88.3%) than the model (70.0%) | the model also proposes a third that are not covenants |
 
 Not chosen: **Docling** for statements (46.7% on India / Sri Lanka, 76% on US, 190 s per document) and
 **pypdf layout** (38.7%, no scans). Both stay in DPS for what they already do (Docling for unreadable files,
@@ -300,8 +304,9 @@ in odd ways, Group / Company spreads, signatures, quarters beside the year and 3
 ## 9. Limits
 
 - Hand-checked truth covers 12 of the 33 Indian / Sri Lankan documents (172 values); the rest is consensus.
-- One covenant per metric: an agreement with two leverage tests (total and senior) yields one.
-- No loan-to-value metric in the catalog yet.
+- One covenant per metric and no loan-to-value metric: both fixed in section 11. A second covenant of a family
+  uses its family's formula (total debt, not senior debt), so a person checks it.
+- Section 11's rules were written from the benchmark documents themselves; there is no held-out set yet.
 - The US truth is the company's XBRL, which sometimes tags a slightly different line (for example interest
   paid in cash rather than interest expense); a few "wrong" values are such differences.
 - Lines printed without a label (an unlabelled total under a column) cannot be read by any rules reader.
@@ -313,3 +318,69 @@ in odd ways, Group / Company spreads, signatures, quarters beside the year and 3
 containers) the statement readers; `rescore.py` re-applies the current rules; `score_hand.py`,
 `score_loo.py`, `score_real.py` and `combo.py` score; `ag_bench.py` and `score_ag.py` the agreements.
 Results: `results/`.
+
+
+## 11. Second round (7 November 2026): what the benchmark still missed
+
+### 11.1 Agreements
+
+The 26 covenants the rules missed were read on their pages and each wording became a rule
+(`dps/src/dps/extraction/agreement.py`, tests in `dps/tests/test_real_documents.py`):
+
+| Missed because | Example (real agreement) | Now |
+|---|---|---|
+| No loan-to-value metric | "Maintain a Loan to Value Ratio ... of 75.00% or less" (AG07); "no more than sixty five percent (65%)" (AG09) | `LOAN_TO_VALUE`, percent thresholds; a manual covenant (no statement gives collateral value) |
+| No minimum-EBITDA metric | "7.5 EBITDA. To maintain ... EBITDA of at least the amounts indicated ... $9,500,000" (AG01) | `MIN_EBITDA` from a clause headed EBITDA; a dollar amount waits for a person to convert it to INR crore |
+| "Minimum X of 1.25:1" has no comparison word | "Minimum interest coverage of 1.25:1" (AG05), "minimum debt service coverage ratio of 1.35x" (AG14) | read as a floor |
+| "Maintain X ... of 1.25 to 1.0" | "Maintain an Effective Debt Service Coverage Ratio as of the end of each calendar quarter ... of 1.25 to 1.0" (AG07) | a floor, for floor metrics only |
+| Step-down tables | "to exceed the ratio set forth opposite such period: ... 4.75 to 1.00" (AG27); "of at least the ratios indicated for each period specified below: ... 1.15:1.0" (AG01) | the first level is read; the schedule stays in the quote |
+| The negation is in a list heading | "the Borrower will not: SECTION 6.01 ... Permit the ... Leverage Ratio to be greater than 7.3:1.0" (AG42, AG44) | read as a ceiling |
+| One covenant per family | total and senior secured leverage (AG41, AG44), gross and net DSCR (AG03) | up to three per family, each under its own name; the second becomes a custom covenant held for a person to check its formula |
+| A condition named like the covenant came first | "while the Senior Secured Leverage Ratio is less than 1.30" (AG41, page 95) before the covenant on page 172 | a later "will not permit ... exceed" of the same covenant replaces a bare "less than" |
+
+| Method | Found | Missed | False proposals | Recall | Precision | F1 |
+|---|---|---|---|---|---|---|
+| **Rules, whole agreement (DPS)** | **53** | 7 | 23 | **88.3%** (was 56.7%) | 69.7% (was 68.0%) | 77.9% (was 61.8%) |
+| Rules, covenant section only | 42 | 18 | 8 | 70.0% (was 53.3%) | 84.0% | 76.4% |
+| Azure OpenAI on the section | 42 | 18 | 24 | 70.0% | 63.6% | 66.7% |
+
+Scored on the same 45 agreements and 60 hand-labelled covenants as section 6, from the pages DPS reads
+(`harness/ag_cache.py` caches them; `harness/ag_fast.py` re-scores in seconds). **Caution:** these rules
+were written from these agreements, so 88.3% is the score on the training set. Before it is quoted as
+DPS's accuracy, 20 or more agreements DPS has never seen should be labelled and scored the same way.
+
+### 11.2 US statements
+
+The 34 missing US values were labels the catalog did not know, not reading errors: "Cash provided by (used
+in) operating activities" (read as cash), "Income taxes" and "Income tax provision", "Additions to
+properties", "Purchase of property and equipment, net", a P&L line just "Sales". Added to
+`extraction/statement.py`. The same caution applies.
+
+| | Before | Now |
+|---|---|---|
+| US 10-K, cut pages (229 XBRL values) | 81.2% | **89.5%** (205 right, 9 wrong, 15 missing) |
+| US 10-K, whole report | 78.6% | **85.6%** |
+| US, table reader + second reader: wrong values stored | 4 of 167 | 4 of 167, 16 sent to review |
+| India / Sri Lanka, hand-checked | 91.9% | 91.9% (unchanged) |
+| India / Sri Lanka, leave-one-out | 90.3% | 90.0% (one value) |
+
+Golden-set gate unchanged: every agreement metric 1.0, statement value accuracy 0.9924.
+
+### 11.3 The review screens
+
+Looked at with the engine's output in mind, the Documents screen showed the engine's codes, not what they
+mean:
+
+| Before | Problem | Now |
+|---|---|---|
+| Covenant shown as `DEBT_TO_EBITDA`, `MIN_NET_WORTH` | a code, and two leverage covenants looked the same | its name ("Consolidated Senior Secured Leverage Ratio", "Maximum Loan to Value"); custom covenants reach Core under that name |
+| Rule shown as `DPS_TOTAL_DEBT / DPS_EBITDA <= 3.5` | a formula, not a limit | "at most 3.5×", "at most 75%", "at least Rs. 500 crore", with the formula beneath as "worked out from the statements" |
+| Loan to value showed "—" | looked like nothing was read | "A person enters the figure each period (no statement line gives it)"; Core gets the limit in words |
+| Issues as badges: `THRESHOLD_CONFLICT`, `LOW_CONFIDENCE` | the reviewer had to know the codes | what is wrong and what to do, on the row: "The agreement gives this covenant more than one level ... pick the level that applies now" |
+| Confidence "85%" | no meaning attached | High / Medium / Low |
+| A statement held for review said nothing about why | the reasons stayed inside the flow | "Why this statement waits for your check" with each reason in words, and the unit it was printed in ("Printed in Rs. lakh; every figure below is shown in INR crore") |
+| Spread "From: p. 12" as text | the reviewer had to find the page | "page 12" opens the statement at that page; the line the second reader disagreed on is highlighted "Check this figure" |
+
+Code: `ui/src/explain.ts` (one sentence per engine code), `ui/src/pages/Documents.tsx`, `ui/src/pages/Phase3.tsx`;
+DPS stores the reasons and unit on the document (`dps_document.review_json`) and the name on each term
+(`dps_extracted_term.name`, migration `d5e9f3a2b8c4`).

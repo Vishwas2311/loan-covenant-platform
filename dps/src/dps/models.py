@@ -73,6 +73,9 @@ class Document(Base):
     latest_job_id: Mapped[str | None] = mapped_column(Varchar(36))
     # C7: set when this agreement amends an earlier one (its terms replace the earlier terms).
     amends_document_id: Mapped[str | None] = mapped_column(Varchar(36))
+    # Flow B: {"issues": [...], "unitScale": "lakh"}, so the reviewer sees why a statement waits and in what unit
+    # it was printed.
+    review_json: Mapped[str | None] = mapped_column(Text)
 
     links: Mapped[list[DocumentCpLink]] = relationship(back_populates="document", cascade="all, delete-orphan")
 
@@ -123,6 +126,7 @@ class ExtractedTerm(Base):
     id: Mapped[str] = mapped_column(Varchar(36), primary_key=True, default=new_id)
     document_id: Mapped[str] = mapped_column(ForeignKey("dps_document.id"), index=True)
     metric_raw: Mapped[str] = mapped_column(Varchar(128))
+    name: Mapped[str | None] = mapped_column(Varchar(200))  # as people should read it ("Maximum Loan to Value")
     covenant_master_id: Mapped[str | None] = mapped_column(Varchar(64))
     expression: Mapped[str | None] = mapped_column(Varchar(2000))
     operator: Mapped[str | None] = mapped_column(Varchar(4))

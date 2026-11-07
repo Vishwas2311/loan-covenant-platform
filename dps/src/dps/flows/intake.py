@@ -171,7 +171,7 @@ class AgreementIntakeFlow(Flow[IntakeState]):
                 if p["metric_raw"] in decided:
                     continue
                 db.add(ExtractedTerm(
-                    document_id=self.state.document_id, metric_raw=p["metric_raw"],
+                    document_id=self.state.document_id, metric_raw=p["metric_raw"], name=(p.get("name") or "")[:200],
                     covenant_master_id=p["covenant_master_id"], expression=p["expression"],
                     operator=p["operator"], threshold=p["threshold"], unit=p["unit"], frequency=p["frequency"],
                     category=p["category"], confidence=p["confidence"], method=p["method"],

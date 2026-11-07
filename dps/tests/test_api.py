@@ -247,6 +247,19 @@ def test_recommendations_only_published_and_linked(client, app):
                        headers=h("rm-other")).status_code == 404
 
 
+def test_a_manual_custom_covenant_reaches_core_with_its_name_and_limit_in_words(client, app):
+    doc_id = upload(client, cps=("CP-1",)).json()["documentId"]
+    add_term(app, doc_id, metric_raw="LOAN_TO_VALUE", name="Maximum Loan to Value", operator="<=", threshold=75.0,
+             unit="PERCENT", status="PUBLISHED", confidence=0.7, page=10, quote="of 75.00% or less")
+    [rec] = client.post("/dps/v1/recommendations", json={"cpId": "CP-1"}, headers=h()).json()
+    assert rec["customCovenant"] == {
+        "name": "Maximum Loan to Value", "assessmentType": "MANUAL",
+        "definition": "Maximum Loan to Value must be at most 75%. No statement line gives this figure: a person "
+                      "enters it each period (agreement page 10)."}
+    [term] = client.get(f"/dps/v1/documents/{doc_id}/terms", headers=h()).json()
+    assert term["name"] == "Maximum Loan to Value"
+
+
 def test_an_amendment_replaces_the_terms_it_restates_and_keeps_the_rest(client, app):
     original = upload(client, cps=("CP-1",)).json()["documentId"]
     add_term(app, original, covenant_master_id="c-1", expression="DSCR >= 1.25", status="PUBLISHED")

@@ -1,0 +1,48 @@
+method  values  accuracy  correct  wrong  missing  docs
+OLD        172     12.8%       22    108       42    12
+NEW        172     91.9%      158      1       13    12
+LAY        172     25.0%       43     95       34    12
+AI         172     84.3%      145     17       10    12
+DOCX       172     32.6%       56     67       49    12
+DOCT       172     11.0%       19    107       46    12
+method  values  accuracy  correct  wrong  silent wrong  missing  docs  s/doc
+OLD        537     27.9%      150    307            16       80    32    1.5
+NEW        422     90.0%      380     18            16       24    32    4.3
+LAY        521     38.6%      201    206            25      114    32    0.8
+AI         453     75.3%      341     67             2       45    32   14.4
+DOCX       476     46.8%      223    153             5      100    32  193.5
+DOCT       537     22.3%      120    309            15      108    32  180.5
+doc          AI       DOCT       DOCX        LAY        NEW   NEW_FULL        OLD OLD_REMAPPED
+US01      16/17   10/17 w1      15/17   12/17 w1   13/17 w1   14/17 w1      14/17      15/17
+US02   11/13 w1   0/13 w12   0/13 w13   0/13 w12   12/13 w1   12/13 w1   0/13 w12   0/13 w13
+US03      16/17    9/17 w1   15/17 w1      11/17   15/17 w1   15/17 w1   12/17 w1   15/17 w1
+US04   17/18 w1   11/18 w1      18/18   14/18 w1      17/18      17/18   14/18 w1   17/18 w1
+US05   16/17 w1   13/17 w1      17/17   15/17 w1      17/17   15/17 w2   15/17 w1   16/17 w1
+US06   16/17 w1   13/17 w1      17/17   0/17 w17      16/17      16/17   16/17 w1   16/17 w1
+US07      17/18   11/18 w2   15/18 w1   12/18 w2   15/18 w1   12/18 w4   12/18 w2   13/18 w2
+US08      17/18   12/18 w2   16/18 w1   14/18 w2   15/18 w1   15/18 w1   14/18 w2   15/18 w2
+US10   16/17 w1      10/17      14/17      13/17      14/17   13/17 w1      13/17      14/17
+US11   14/17 w2    9/17 w1   15/17 w1   11/17 w2   15/17 w1   15/17 w1   11/17 w2   15/17 w1
+US12      15/16   11/16 w2   11/16 w5   14/16 w2   14/16 w2   10/16 w3   14/16 w2   14/16 w2
+US13   16/17 w1      13/17      17/17      15/17      17/17      17/17      15/17      16/17
+US14        9/9        6/9     7/9 w2     7/9 w2     7/9 w1     7/9 w1        9/9        9/9
+US15   17/18 w1      13/18   14/18 w1      16/18      18/18      18/18      16/18      18/18
+
+229 values, 14 documents
+method  accuracy  correct  wrong  silent wrong  missing  sec/doc
+AI         93.0%      213      9             5        7     13.5
+DOCT       61.6%      141     24             2       64    103.9
+DOCX       83.4%      191     25             1       13    121.8
+LAY        67.2%      154     42             1       33      0.5
+NEW        89.5%      205      9             0       15      1.0
+NEW_FULL     85.6%      196     16             3       17     25.3
+OLD        76.4%      175     24             1       30      0.4
+OLD_REMAPPED     84.3%      193     24             1       12      1.1
+
+India / Sri Lanka, hand-checked: 126 covenant-input values
+  NEW alone      : 118 right (93.7%), 1 wrong published, 7 missing
+  NEW + AI check : 105 right published, 0 wrong published (0.0% of published), 14 sent to review (1 of them really wrong, 13 were right)
+
+SEC 10-K, XBRL truth: 167 covenant-input values
+  NEW alone      : 147 right (88.0%), 9 wrong published, 11 missing
+  NEW + AI check : 136 right published, 4 wrong published (2.9% of published), 16 sent to review (5 of them really wrong, 11 were right)

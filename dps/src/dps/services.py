@@ -56,6 +56,20 @@ def _covenant_key(term: ExtractedTerm) -> str:
     return term.covenant_master_id or term.metric_raw.lower()
 
 
+_UNIT_TEXT = {"PERCENT": "%", "%": "%", "INR_CR": " INR crore", "USD": " USD"}
+_OPERATOR_TEXT = {">=": "at least", ">": "more than", "<=": "at most", "<": "less than"}
+
+
+def _manual_rule(term: ExtractedTerm) -> str | None:
+    """A covenant a person assesses (Core MANUAL: free text) still carries its limit, in words."""
+    if term.operator is None or term.threshold is None:
+        return None
+    unit = _UNIT_TEXT.get(term.unit or "", "")
+    limit = f"{_OPERATOR_TEXT.get(term.operator, term.operator)} {term.threshold:g}{unit}"
+    return (f"{term.name or term.metric_raw} must be {limit}. No statement line gives this figure: a person enters it "
+            f"each period (agreement page {term.page}).")
+
+
 def recommendations(db: Session, cp_id: str) -> list[dict]:
     """C1: PUBLISHED proposals from loan agreements actively linked to the CP.
 
@@ -89,7 +103,7 @@ def recommendations(db: Session, cp_id: str) -> list[dict]:
             continue
         custom = None
         if term.covenant_master_id is None:
-            custom = {"name": term.metric_raw, "definition": term.expression,
+            custom = {"name": term.name or term.metric_raw, "definition": term.expression or _manual_rule(term),
                       "assessmentType": "AUTO" if term.category == "FINANCIAL" and term.expression else "MANUAL"}
         out.append({
             "covenantMasterId": term.covenant_master_id,
