@@ -263,6 +263,12 @@ net DSCR). Both are proposed under their own names; the second becomes a custom 
 to check that its formula measures that covenant. A step-down schedule is read at its first level, and
 the rest of the schedule is in the quote.
 
+Rows marked **Possible covenant DPS did not recognise** are sentences that read like a financial covenant
+(an obligation and a limit next to a covenant word, for example "shall maintain a Debt Yield of not less than
+9%") that no proposed covenant explains. DPS shows them so a new kind of covenant is never dropped silently.
+Open the page: **Approve** adds it as a covenant a person checks, with the sentence as its definition;
+**Reject** if it is not a covenant.
+
 ### Amendments
 
 When the file was uploaded as an **Amendment of** an earlier agreement, its page says "This is an
@@ -281,6 +287,12 @@ the CP workspace → **Schedule and changes** → enter the new rule → **Save 
    state, or a figure the second reader read differently). Its **line items** show each figure with where
    it came from: **page N** opens the statement at that page; a spreadsheet shows the cell, such as
    `PL!B12`. A line a check named is highlighted **Check this figure**.
+
+   Every statement is also checked with arithmetic: the balance sheet balances, no part is larger than total
+   assets, profit before tax less tax is close to profit after tax, revenue plus other income is total income.
+   A figure more than 20 times larger or smaller than the same CP's previous period is flagged as a probable
+   unit mistake (lakhs, thousands or rupees read as crore). A line not found by name may show **Possibly page
+   N: "…"** with **Use this**, which fills in that figure for you to save.
 2. Tick **Show lines not found** to see items the reader expected but could not find.
 3. Correct any value and press **Save corrections**. "Covenants using them are checked again."
 4. Data-quality checks run on every statement (the balance sheet balances, the period is right, the

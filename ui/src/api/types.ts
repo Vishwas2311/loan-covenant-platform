@@ -158,7 +158,12 @@ export interface DpsDocument {
   /** For a FAILED document: what went wrong, in words the uploader can act on. */
   failureReason?: string | null;
   /** Statements: why it waits for a person, and the unit the statement was printed in. */
-  review?: { issues: string[]; unitScale?: string | null } | null;
+  review?: {
+    issues: string[];
+    unitScale?: string | null;
+    /** For covenant inputs not found: an unmapped line that may be it, for a person to confirm. */
+    likely?: { key: string; label: string; value: number; page: number | null; cell: string | null }[];
+  } | null;
 }
 
 export interface ExtractedTerm {

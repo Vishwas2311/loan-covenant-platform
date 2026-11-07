@@ -51,6 +51,20 @@ def values_series(db: Session, entity: str, keys: list[str], to: date, frm: date
     }
 
 
+def previous_values(db: Session, cp_ids: list[str], before: date | None, keys: tuple[str, ...]
+                    ) -> dict[str, tuple[float, date]]:
+    """The latest value of each key for these CPs, for a period before ``before`` (current values only)."""
+    if not cp_ids or before is None:
+        return {}
+    out: dict[str, tuple[float, date]] = {}
+    rows = db.scalars(select(StatementValue).where(
+        StatementValue.cp_id.in_(cp_ids), StatementValue.key.in_(keys), StatementValue.as_of_date < before,
+        StatementValue.superseded == false()).order_by(StatementValue.as_of_date.desc()))
+    for r in rows:
+        out.setdefault(r.key, (r.value, r.as_of_date))
+    return out
+
+
 def _covenant_key(term: ExtractedTerm) -> str:
     """Which covenant a term is about: its library covenant, or its own name when it is a custom one."""
     return term.covenant_master_id or term.metric_raw.lower()
@@ -103,7 +117,8 @@ def recommendations(db: Session, cp_id: str) -> list[dict]:
             continue
         custom = None
         if term.covenant_master_id is None:
-            custom = {"name": term.name or term.metric_raw, "definition": term.expression or _manual_rule(term),
+            custom = {"name": term.name or term.metric_raw,
+                      "definition": term.expression or _manual_rule(term) or term.quote,
                       "assessmentType": "AUTO" if term.category == "FINANCIAL" and term.expression else "MANUAL"}
         out.append({
             "covenantMasterId": term.covenant_master_id,

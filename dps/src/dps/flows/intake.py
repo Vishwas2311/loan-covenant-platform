@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from dps import services
 from dps.core_client import CoreClient
 from dps.extraction.agreement import extract_terms
+from dps.extraction.coverage import possible_covenants
 from dps.extraction.mapping import Proposal, normalize
 from dps.extraction.terms_info import extract_info
 from dps.extraction.validation import FAILED, NEEDS_REVIEW, PUBLISH, validate
@@ -89,7 +90,10 @@ class AgreementIntakeFlow(Flow[IntakeState]):
     @listen(parse_document)
     def extract(self) -> None:
         pages = self._pages()
-        self.state.terms = [t.as_dict() for t in extract_terms(pages) + extract_info(pages)]
+        terms = extract_terms(pages)
+        # Safety net: covenant-shaped sentences no term explains go to a person as possible covenants.
+        candidates, _ = possible_covenants(pages, terms)
+        self.state.terms = [t.as_dict() for t in terms + candidates + extract_info(pages)]
         self._checkpoint("extract")
 
     @listen(extract)

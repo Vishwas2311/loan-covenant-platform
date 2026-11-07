@@ -24,4 +24,13 @@ describe('explain', () => {
     expect(unitWords('lakh')).toBe('Rs. lakh');
     expect(confidenceWords(0.7).label).toBe('Low');
   });
+
+  it('explains the safety-net checks', () => {
+    expect(explain('SCALE_JUMP: REVENUE 9003641728.0 against 900.36 for 2024-03-31').what)
+      .toBe('Revenue is 9003641728.0 crore; for the period ending 2024-03-31 it was 900.36: more than 20 times different.');
+    expect(explain('SCALE_JUMP: REVENUE 9003641728.0 against 900.36 for 2024-03-31').key).toBe('REVENUE');
+    expect(explain('PART_ABOVE_TOTAL: INVENTORY 1620.5 is more than total assets 481.1').key).toBe('INVENTORY');
+    expect(explain('BALANCE_SHEET_DOES_NOT_BALANCE: assets 1 vs equity and liabilities 2').todo).toMatch(/wrong line or column/);
+    expect(explain('POSSIBLE_COVENANT_NOT_UNDERSTOOD').what).toMatch(/reads like a financial covenant/);
+  });
 });

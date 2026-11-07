@@ -21,7 +21,9 @@ for agreements. Every proposed covenant is approved by a person in
 Core before it is applied.
 
 Section 11 lists the second round (7 November): loan-to-value and minimum-EBITDA covenants, step-down
-tables, several covenants of one family, US statement wording, and the review screens.
+tables, several covenants of one family, US statement wording, and the review screens. Section 12 is phase 1
+of the "never miss silently" design: accounting self-checks, a unit check, and possible covenants shown to a
+person.
 
 ## 1. The documents
 
@@ -384,3 +386,68 @@ mean:
 Code: `ui/src/explain.ts` (one sentence per engine code), `ui/src/pages/Documents.tsx`, `ui/src/pages/Phase3.tsx`;
 DPS stores the reasons and unit on the document (`dps_document.review_json`) and the name on each term
 (`dps_extracted_term.name`, migration `d5e9f3a2b8c4`).
+
+
+## 12. Phase 1 of the "never miss silently" design (7 November 2026)
+
+No reader is right on every document, and a new wording will always come. The aim of this phase is that a
+covenant or a figure DPS cannot read is **shown to a person, never dropped without a trace**, and that a figure
+read from the wrong line or unit is **caught by arithmetic**, without an answer key.
+
+### 12.1 Accounting self-checks on every statement (`statement.identity_issues`)
+
+The balance sheet must balance; a part (current assets, cash, inventory, receivables, debt, fixed assets) cannot
+exceed total assets; profit before tax less tax must be within 15% of profit after tax (equity-accounted income
+and minority shares sit in between); revenue plus other income must be total income; cash, inventory and
+receivables cannot add up to more than current assets. A failed check holds the statement for review and says
+which line to look at.
+
+On the 46 benchmark statements the checks fired on **4, and each was a real misread**: LK10 inventory taken from
+the Group column (the Company has none), IN02 tax read as -5.5 instead of about 103, LK08 current assets, and
+US12 profit after tax. Three of the four were on lines the answer keys did not cover. They raised **no false
+alarm** on a statement read right (the first version flagged two US filings whose equity income sits between
+PBT and PAT; the 15% tolerance fixed that). The checks cannot see a plausible number from the wrong line (most of
+the 9 remaining US misreads), which is what the second reader is for.
+
+### 12.2 Unit check against the previous period (`flows/statement.py`)
+
+Revenue, total assets, net worth, PAT or current assets more than 20 times larger or smaller than the same CP's
+previous period holds the statement: "Revenue is 9,003,641,728 crore; for the period ending 2024-03-31 it was
+900.36: the unit was probably misread". This is the LK01 kind of error (rupees read as crore). It needs a
+previous period, so the benchmark (one period per company) cannot measure it; unit tests cover it.
+
+### 12.3 Unlabelled totals and likely lines (`statement_pdf.py`, `statement.likely_lines`)
+
+Many Sri Lankan and Indian statements print the current-assets and current-liabilities totals with no words
+beside them; the first unlabelled figure under "Current Assets" is now total current assets. Hand-checked
+accuracy rose from **91.9% to 94.8%** (still 1 wrong), leave-one-out from 90.0% to 91.0%; US unchanged at 89.5%.
+
+For a covenant input still not found, DPS offers the first unmapped line whose words fit ("Possibly page 2:
+'Term loans from banks' 30.5", with a Use this button). On the benchmark this is only a hint: of 23 missing
+values with an answer, the suggestion was the right line once and another line 3 times; the other 19 values are
+not on the pages read at all.
+
+### 12.4 Possible covenants DPS did not understand (`extraction/coverage.py`)
+
+Every sentence with an obligation and a limit next to a covenant word ("shall maintain a Debt Yield of not less
+than 9.0%") must be explained by a proposal **with that number**, or set aside for a known reason (a pricing or
+incurrence condition, a debt or investment basket, a definition); otherwise it is proposed as a **possible
+covenant** for a person. Approved, it becomes a covenant a person checks, with the sentence as its definition.
+
+| On the 50 agreements | Result |
+|---|---|
+| Sentences shown to a reviewer | 22 in all; median 0 per agreement, at most 3 |
+| Real covenants or covenant levels among them | about half: AG33 Annual Cash Flow Coverage 1.20 and Debt/Tangible Net Worth 4.50, AG44 senior secured leverage 7.25, AG31 leverage step-downs, AG35 Cash Flow Coverage 125% and risk-based capital 10%, AG32 minimum tangible net worth, AG38 tangible net worth |
+| Of the 7 labelled covenants the rules miss | 3 now shown (AG33, AG44, AG31's schedule); the other 4 are a second limit in the same sentence as a found one (AG24), or not in the text DPS reads (AG03, AG42, AG31's first level) |
+| Labelled covenants found or shown | 56 of 60 (93.3%), up from 53 found |
+
+The first version showed 155 sentences, mostly legal boilerplate with a number in it; requiring the limit to sit
+next to both a comparison and a covenant word, and setting baskets aside, brought it to 23 without losing the
+real ones. A sentence also counts as explained when a covenant on the same page has its number (the golden
+agreements quote a "Required threshold: <= 3.50x" line, not the clause).
+
+### 12.5 On the screens
+
+The covenant table shows possible covenants as "Possible covenant DPS did not recognise" with the sentence, the
+page and what to do; the summary line counts them. A statement shows each failed check in words and highlights
+the line, and a line not found shows the likely line with **Use this**.

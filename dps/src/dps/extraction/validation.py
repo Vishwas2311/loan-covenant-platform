@@ -64,7 +64,7 @@ def validate(pages: list[Page], proposals: list[Proposal], formula_errors: Calla
         p.issues.extend(check_direction(p))
         if p.expression and p.category != "INFO":
             p.issues.extend(f"FORMULA_INVALID: {e}" for e in formula_errors(p.expression))
-        if p.confidence < min_confidence:
+        if p.confidence < min_confidence and p.category != "CANDIDATE":  # a candidate already says why
             p.issues.append("LOW_CONFIDENCE")
     check_conflicts(proposals)
     if not proposals:

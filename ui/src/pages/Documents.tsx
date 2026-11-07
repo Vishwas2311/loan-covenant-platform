@@ -113,6 +113,7 @@ const KIND: Record<string, string> = {
   FINANCIAL: 'Financial covenant',
   NON_FINANCIAL: 'Non-financial covenant',
   INFO: 'Agreement fact (not a covenant)',
+  CANDIDATE: 'Possible covenant DPS did not recognise',
 };
 
 function TermRow({ term, canReview }: { term: ExtractedTerm; canReview: boolean }) {
@@ -209,7 +210,8 @@ const reviewFirst = (t: ExtractedTerm) => (t.status === 'NEEDS_REVIEW' ? 0 : t.s
 
 /** One line above the covenants: how many were found, how many wait for a person, how many are manual. */
 function TermSummary({ terms }: { terms: ExtractedTerm[] }) {
-  const covenants = terms.filter((t) => t.category !== 'INFO' && t.status !== 'REJECTED');
+  const covenants = terms.filter((t) => !['INFO', 'CANDIDATE'].includes(t.category) && t.status !== 'REJECTED');
+  const possible = terms.filter((t) => t.category === 'CANDIDATE' && t.status === 'NEEDS_REVIEW').length;
   if (terms.length === 0) {
     return <Text size="sm" c="dimmed">No covenants were found. Check the agreement and add them on the CP if it has any.</Text>;
   }
@@ -219,8 +221,9 @@ function TermSummary({ terms }: { terms: ExtractedTerm[] }) {
     <Text size="sm">
       {covenants.length} covenant{covenants.length === 1 ? '' : 's'} proposed
       {waiting ? `, ${waiting} need${waiting === 1 ? 's' : ''} your check (reasons on each row)` : ', all ready'}
-      {manual ? `; ${manual} will be entered by a person each period` : ''}. Approved covenants go to the CP's
-      onboarding, where they are applied.
+      {manual ? `; ${manual} will be entered by a person each period` : ''}
+      {possible ? `; ${possible} more sentence${possible === 1 ? ' reads' : 's read'} like a covenant DPS did not recognise`
+        : ''}. Approved covenants go to the CP's onboarding, where they are applied.
     </Text>
   );
 }
@@ -451,6 +454,7 @@ function DocumentDetail({ doc, onClose }: { doc: DpsDocument; onClose: () => voi
       {doc.type === 'FINANCIAL_STATEMENT' && doc.status !== 'QUEUED' && (
         <SpreadReview documentId={doc.id} canEdit={canReview && doc.status !== 'REMOVED'}
           flagged={new Set((doc.review?.issues ?? []).map((i) => explain(i).key).filter((k): k is string => !!k))}
+          likely={doc.review?.likely ?? []}
           onPage={(page, label) => setCited({ page, quote: label })} />
       )}
     </Stack>

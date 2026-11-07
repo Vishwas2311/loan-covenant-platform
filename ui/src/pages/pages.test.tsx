@@ -267,11 +267,14 @@ describe('Documents', () => {
         return { body: [{ id: 'D2', type: 'FINANCIAL_STATEMENT', fileName: 'fy25.pdf', pageCount: 3,
           asOfDate: '2025-03-31', status: 'NEEDS_REVIEW', cpIds: ['CP-1'], latestJobId: null, uploadedBy: 'rm-anil',
           uploadedAt: '2026-11-02T10:00:00Z',
-          review: { unitScale: 'lakh', issues: ['SECOND_READER_DIFFERS: REVENUE read 163.631, second reader 172.45'] } }] };
+          review: { unitScale: 'lakh', issues: ['SECOND_READER_DIFFERS: REVENUE read 163.631, second reader 172.45'],
+            likely: [{ key: 'LT_DEBT', label: 'Term loans from banks', value: 30.5, page: 3, cell: null }] } }] };
       }
       if (url.endsWith('/spread')) {
         return { body: [{ standardKey: 'REVENUE', standardLabel: 'Revenue', section: 'PROFIT_AND_LOSS', value: 163.631,
-          status: 'MAPPED', confidence: 1, page: 2, cell: null, sourceLabel: 'Revenue from operations' }] };
+          status: 'MAPPED', confidence: 1, page: 2, cell: null, sourceLabel: 'Revenue from operations' },
+          { standardKey: 'LT_DEBT', standardLabel: 'Long-term borrowings', section: 'BALANCE_SHEET', value: null,
+            status: 'UNMAPPED', confidence: 0, page: null, cell: null, sourceLabel: null }] };
       }
       return undefined;
     });
@@ -282,6 +285,10 @@ describe('Documents', () => {
     expect(screen.getByText('Rs. lakh')).toBeInTheDocument();
     expect(await screen.findByText('Check this figure')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'page 2' })).toBeInTheDocument();
+    // A line not found by name shows the likely line, and Use this fills it in.
+    expect(screen.getByText(/Possibly page 3: .Term loans from banks. 30.5/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Use this' }));
+    expect(screen.getByLabelText('Value for Long-term borrowings')).toHaveValue('30.5');
   });
 
   it('a failed document tells the RM why, even without access to the job', async () => {

@@ -514,3 +514,97 @@ def check(result: StatementResult) -> None:
             result.issues.append(f"DEBT_DOES_NOT_ADD_UP: {v['TOTAL_DEBT']} vs {round(parts, 6)}")
     if "EBITDA" in v and "EBIT" in v and v["EBIT"] > v["EBITDA"] + 1e-9:
         result.issues.append("EBIT_ABOVE_EBITDA")
+    result.issues.extend(identity_issues(v))
+
+
+# The inputs of covenant formulas, and words a line for each is written with when the catalog does not know the
+# exact wording ("Long-term debt and finance lease obligations", "Net cash inflow from trading activities").
+COVENANT_INPUTS: dict[str, str] = {
+    "REVENUE": r"revenue|sales|turnover|income\s+from\s+operations",
+    "PBT": r"before\s+(income\s+)?tax",
+    "PAT": r"net\s+(income|earnings|profit)|profit\s+(for|after)|profit\s+attributable",
+    "INTEREST_PAID": r"interest|finance\s+(cost|charge|expense)",
+    "DEPRECIATION": r"depreciation|amorti[sz]ation",
+    "TAX": r"\btax(es|ation)?\b",
+    "TOTAL_ASSETS": r"total\s+assets",
+    "NET_WORTH": r"equity|net\s+worth|shareholders|stockholders",
+    "CURRENT_ASSETS": r"current\s+assets",
+    "CURRENT_LIABILITIES": r"current\s+liabilities",
+    "LT_DEBT": r"long[- ]term\s+(debt|borrowings|loans)|non[- ]current\s+borrowings|term\s+loans?|debentures|notes\s+"
+               r"payable|bonds",
+    "ST_DEBT": r"short[- ]term\s+(debt|borrowings|loans)|current\s+borrowings|bank\s+overdraft|commercial\s+paper|"
+               r"current\s+portion\s+of\s+(long[- ]term\s+)?debt",
+    "CASH": r"\bcash\b",
+    "CFO": r"operating\s+activities",
+    "INVENTORY": r"inventor|stock[- ]in[- ]trade",
+    "RECEIVABLES": r"receivable|debtors",
+}
+
+
+def likely_lines(rows: list[tuple[str, float, int | None, str | None]], found: set[str], factor: float
+                 ) -> list[dict]:
+    """For each covenant input not found: the first unmapped line whose words fit it, for a person to confirm.
+
+    Nothing is stored from it. It turns "Long-term borrowings: not found" into "not found; page 2 has 'Long-term
+    debt and finance leases' 3,069.6: is that it?", so a new wording is not silently missed.
+    """
+    out = []
+    for key, words in COVENANT_INPUTS.items():
+        if key in found:
+            continue
+        rx = re.compile(words, re.I)
+        for label, value, page, cell in rows:
+            text = _plain(label)
+            if match_key(label) is not None or not rx.search(text) or _EXCLUDE.search(f" {text} "):
+                continue
+            if re.search(r"\b(deferred|accumulated|per\s+share|attributable\s+to\s+non)", text):
+                continue
+            if key.startswith("CURRENT") and re.search(r"non[- ]?current|^\W*(\w+\W+)?other\b", text):
+                continue  # "Other non-current assets" is not current assets
+            if key == "TAX" and re.search(r"assets|liabilit|payable|receivable|before\s+tax", text):
+                continue  # a tax balance on the balance sheet is not the tax charge
+            if key == "RECEIVABLES" and re.search(r"\btax", text):
+                continue
+            out.append({"key": key, "label": label[:120], "value": round(value * factor, 6), "page": page,
+                        "cell": cell})
+            break
+    return out
+
+
+def _off(a: float, b: float, tolerance: float) -> bool:
+    return abs(a - b) > max(0.01, tolerance * max(abs(a), abs(b)))
+
+
+def identity_issues(v: dict[str, float]) -> list[str]:
+    """Accounting identities a correctly read statement satisfies; a failed one means a figure was misread.
+
+    Checked without any answer key: the balance sheet balances, a part is not larger than its total, the profit
+    lines and the income lines add up. Each needs both sides read, so a missing line raises nothing here.
+    """
+    out = []
+    if {"TOTAL_ASSETS", "TOTAL_EQUITY_AND_LIABILITIES"} <= v.keys() and _off(v["TOTAL_ASSETS"],
+                                                                            v["TOTAL_EQUITY_AND_LIABILITIES"], 0.005):
+        out.append(f"BALANCE_SHEET_DOES_NOT_BALANCE: assets {v['TOTAL_ASSETS']} vs equity and liabilities "
+                   f"{v['TOTAL_EQUITY_AND_LIABILITIES']}")
+    total = v.get("TOTAL_ASSETS") or v.get("TOTAL_EQUITY_AND_LIABILITIES")
+    if total and total > 0:
+        for key in ("CURRENT_ASSETS", "CURRENT_LIABILITIES", "CASH", "INVENTORY", "RECEIVABLES", "LT_DEBT",
+                    "ST_DEBT", "FIXED_ASSETS"):
+            if v.get(key, 0) > total * 1.005:
+                out.append(f"PART_ABOVE_TOTAL: {key} {v[key]} is more than total assets {total}")
+    if {"PBT", "TAX", "PAT"} <= v.keys():
+        # Equity-accounted earnings, minority shares and discontinued operations sit between PBT less tax and PAT
+        # (6% of PBT on the US filings benchmarked), so only a gap of more than 15% of PBT counts.
+        scale = max(abs(v["PBT"]), abs(v.get("REVENUE", 0)) * 0.02, 0.01)
+        if abs(v["PBT"] - v["TAX"] - v["PAT"]) > 0.15 * scale + 0.01 and abs(v["PBT"] + v["TAX"] - v["PAT"]) > \
+                0.15 * scale + 0.01:
+            out.append(f"PROFIT_DOES_NOT_ADD_UP: profit before tax {v['PBT']} less tax {v['TAX']} is not profit "
+                       f"after tax {v['PAT']}")
+    if {"REVENUE", "OTHER_INCOME", "TOTAL_INCOME"} <= v.keys() and _off(v["REVENUE"] + v["OTHER_INCOME"],
+                                                                         v["TOTAL_INCOME"], 0.005):
+        out.append(f"INCOME_DOES_NOT_ADD_UP: revenue {v['REVENUE']} plus other income {v['OTHER_INCOME']} is not "
+                   f"total income {v['TOTAL_INCOME']}")
+    if {"CURRENT_ASSETS", "TOTAL_ASSETS"} <= v.keys() and v["CURRENT_ASSETS"] > 0 and \
+            v.get("CASH", 0) + v.get("INVENTORY", 0) + v.get("RECEIVABLES", 0) > v["CURRENT_ASSETS"] * 1.005:
+        out.append("CURRENT_ASSETS_TOO_SMALL: cash, inventory and receivables add up to more than current assets")
+    return out

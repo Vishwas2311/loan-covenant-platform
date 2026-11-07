@@ -20,12 +20,14 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from dps import services
 from dps.extraction.statement import (
+    TO_CRORE,
     LineValue,
     StatementResult,
     extract_values,
     header_from_csv,
     header_from_xls,
     header_from_xlsx,
+    likely_lines,
     rows_from_csv,
     rows_from_text,
     rows_from_xls,
@@ -37,6 +39,10 @@ from dps.models import Document, EventOutbox, StatementValue, utcnow
 from dps.parsing import ParseError, needs_heavy
 
 ACTOR = "dps-flow-b"
+# Lines compared with the CP's previous period, and the change that means a unit misread (lakhs read as crore is
+# 100 times, rupees read as thousands 1,000 times; a real business rarely moves 20 times in a year).
+SCALE_KEYS = ("REVENUE", "TOTAL_ASSETS", "NET_WORTH", "PAT", "CURRENT_ASSETS")
+SCALE_JUMP = 20.0
 # A scan read below this mean OCR confidence is held for a person to confirm the figures. Benchmark: clean
 # scans read at 0.986-0.993 with every value right; a blurred 100 dpi scan read at 0.952 and lost 3 of 12 lines.
 OCR_REVIEW_QUALITY = 0.97
@@ -66,6 +72,7 @@ class StatementState(BaseModel):
     rows: list[list] = Field(default_factory=list)
     values: list[dict] = Field(default_factory=list)
     unit_scale: str = ""
+    likely: list[dict] = Field(default_factory=list)  # possible lines for covenant inputs not found
     issues: list[str] = Field(default_factory=list)
     route: str = ""
     parse_issues: list[str] = Field(default_factory=list)
@@ -145,10 +152,28 @@ class StatementProcessingFlow(Flow[StatementState]):
         result: StatementResult = extract_values([tuple(r) for r in self.state.rows], self.state.header_text)
         self.state.values = [v.as_dict() for v in result.values]
         self.state.unit_scale = result.unit_scale
-        self.state.issues = result.issues + self.state.parse_issues
+        self.state.issues = result.issues + self.state.parse_issues + self._scale_jumps(result.values)
+        found = {v.key for v in result.values if not v.derived}
+        factor = TO_CRORE.get(result.unit_scale, 1.0)
+        self.state.likely = likely_lines([tuple(r) for r in self.state.rows], found, factor) if result.values else []
         if self._deps.second_reader is not None and self.state.page_text and result.values:
             self.state.issues += self._deps.second_reader(self.state.page_text, result.values)
         self._checkpoint("calculate")
+
+    def _scale_jumps(self, values: list[LineValue]) -> list[str]:
+        """A figure 20 times larger or smaller than the same CP's previous period: the unit was probably misread."""
+        with self._deps.session_factory() as db:
+            doc = db.get(Document, self.state.document_id)
+            previous = services.previous_values(db, doc.active_cp_ids(), doc.as_of_date, SCALE_KEYS)
+        out = []
+        for v in values:
+            before = previous.get(v.key)
+            if v.derived or before is None or not before[0] or not v.value:
+                continue
+            ratio = abs(v.value / before[0])
+            if ratio > SCALE_JUMP or ratio < 1 / SCALE_JUMP:
+                out.append(f"SCALE_JUMP: {v.key} {v.value} against {before[0]} for {before[1].isoformat()}")
+        return out
 
     @router(extract_and_calculate)
     def validate(self) -> Literal["report", "needs_review", "failed", "heavy"]:
@@ -204,7 +229,8 @@ class StatementProcessingFlow(Flow[StatementState]):
         self._checkpoint("heavy")
 
     def _review_json(self) -> str:
-        return json.dumps({"issues": self.state.issues, "unitScale": self.state.unit_scale or None})
+        return json.dumps({"issues": self.state.issues, "unitScale": self.state.unit_scale or None,
+                           "likely": self.state.likely})
 
     def _report(self) -> None:
         """Idempotent: re-running for the same document replaces its own values, never duplicates them."""

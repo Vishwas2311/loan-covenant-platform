@@ -1,0 +1,170 @@
+IN01 ? | 
+IN02 ? | PROFIT_DOES_NOT_ADD_UP
+IN03 ? | 
+IN04 ok | 
+IN05 ? | 
+IN06 ? | 
+IN07 ok | 
+IN18 ? | 
+IN19 ? | 
+IN21 ok | 
+IN22 ok | 
+IN23 ? | 
+IN25 ? | 
+IN27 ok | 
+IN30 ? | 
+IN31 ? | 
+IN41 ? | 
+IN42 ? | 
+IN43 ? | 
+IN44 ok | 
+IN45 ? | 
+IN46 ok | 
+LK01 WRONG:RECEIVABLES | 
+LK04 ok | 
+LK05 ? | 
+LK06 ? | 
+LK07 ? | 
+LK08 ? | CURRENT_ASSETS_TOO_SMALL
+LK09 ok | 
+LK10 ok | PART_ABOVE_TOTAL; CURRENT_ASSETS_TOO_SMALL
+LK13 ok | 
+LK15 ? | 
+US01 WRONG:RECEIVABLES | 
+US02 WRONG:REVENUE | 
+US03 WRONG:INTEREST_PAID | 
+US04 ok | 
+US05 ok | 
+US06 ok | 
+US07 WRONG:INTEREST_PAID | 
+US08 WRONG:LT_DEBT | 
+US10 ok | 
+US11 WRONG:RECEIVABLES | 
+US12 WRONG:PAT,LT_DEBT | PROFIT_DOES_NOT_ADD_UP
+US13 ok | 
+US14 WRONG:RECEIVABLES | 
+US15 ok | 
+
+checked docs with truth: 26; with a wrong value: 9, flagged 1; read right: 17, flagged anyway 1
+all docs flagged: 4 of 46
+
+IN04 TAX other line: Current tax 25.14 truth 29.54
+IN22 TAX other line: (a) Current tax 44.0601 truth 40.0462
+IN27 TRADE_PAYABLES missing, no suggestion
+IN44 TOTAL_INCOME missing, no suggestion
+IN46 OTHER_INCOME missing, no suggestion
+IN46 TOTAL_INCOME missing, no suggestion
+LK04 LT_DEBT missing, no suggestion
+LK04 ST_DEBT missing, no suggestion
+US01 PAT missing, no suggestion
+US01 LT_DEBT missing, no suggestion
+US01 CAPEX missing, no suggestion
+US03 PBT missing, no suggestion
+US04 RECEIVABLES missing, no suggestion
+US06 RECEIVABLES missing, no suggestion
+US07 REVENUE missing, no suggestion
+US07 TOTAL_ASSETS missing, no suggestion
+US08 RECEIVABLES missing, no suggestion
+US08 NET_WORTH RIGHT: Hormel Foods Corporation Shareholders’ Investment 790.1171
+US10 CFO missing, no suggestion
+US10 CFI missing, no suggestion
+US10 CFF missing, no suggestion
+US11 TAX other line: Tax (provision) benefit -24.0 truth 24.0
+US14 INVENTORY missing, no suggestion
+
+missing values with truth: suggestion right 1, other line 3, none 19; suggestions shown over all docs: 31
+
+    AG01 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG02 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+AG03 LEVERAGE 3.0 -> not in net 
+AG03 LEVERAGE 5.0 -> not in net 
+    AG03 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG04 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG05 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG06 shown 0 set aside {'pricing, incurrence or other condition': 1, 'definition': 0}
+    AG07 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG08 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG09 shown 0 set aside {'pricing, incurrence or other condition': 2, 'definition': 0}
+    AG10 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG11 shown 0 set aside {'pricing, incurrence or other condition': 2, 'definition': 0}
+    AG12 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG13 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG14 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG15 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG16 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG17 shown 0 set aside {'pricing, incurrence or other condition': 1, 'definition': 0}
+    AG18 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG19 shown 0 set aside {'pricing, incurrence or other condition': 1, 'definition': 0}
+    AG20 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG21 shown 1 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG22 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG23 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+AG24 LTV 67.7 -> not in net 
+    AG24 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG25 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG26 shown 2 set aside {'pricing, incurrence or other condition': 11, 'definition': 3}
+    AG27 shown 0 set aside {'pricing, incurrence or other condition': 4, 'definition': 3}
+    AG28 shown 3 set aside {'pricing, incurrence or other condition': 9, 'definition': 2}
+    AG29 shown 1 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG30 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+AG31 LEVERAGE 3.75 -> not in net 
+    AG31 shown 2 set aside {'pricing, incurrence or other condition': 0, 'definition': 1}
+    AG32 shown 1 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+AG33 DSCR 1.2 -> not in net 
+    AG33 shown 2 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG35 shown 2 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG36 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG38 shown 1 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG39 shown 2 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG41 shown 0 set aside {'pricing, incurrence or other condition': 1, 'definition': 0}
+AG42 LEVERAGE 7.3 -> not in net 
+    AG42 shown 0 set aside {'pricing, incurrence or other condition': 6, 'definition': 1}
+AG44 LEVERAGE 7.25 -> NET Consolidated Net Senior Secured Leverage
+    AG44 shown 1 set aside {'pricing, incurrence or other condition': 6, 'definition': 1}
+    AG47 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG48 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG50 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG52 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+    AG54 shown 0 set aside {'pricing, incurrence or other condition': 0, 'definition': 0}
+
+missed by rules: 7, caught by the net: 1; sentences shown per agreement: median 0, max 3, total 18
+
+method  values  accuracy  correct  wrong  missing  docs
+OLD        172     12.8%       22    108       42    12
+NEW        172     94.8%      163      1        8    12
+LAY        172     25.0%       43     95       34    12
+AI         172     84.3%      145     17       10    12
+DOCX       172     32.6%       56     67       49    12
+DOCT       172     11.0%       19    107       46    12
+method  values  accuracy  correct  wrong  silent wrong  missing  docs  s/doc
+OLD        544     27.6%      150    307            16       87    32    1.5
+NEW        422     91.0%      384     19            17       19    32    3.8
+LAY        527     38.0%      200    206            22      121    32    0.8
+AI         452     75.2%      340     67             2       45    32   14.4
+DOCX       483     46.2%      223    154             5      106    32  193.5
+DOCT       544     22.1%      120    310            15      114    32  180.5
+doc          AI       DOCT       DOCX        LAY        NEW        OLD OLD_REMAPPED
+US01      16/17   10/17 w1      15/17   12/17 w1   13/17 w1      14/17      15/17
+US02   11/13 w1   0/13 w12   0/13 w13   0/13 w12   12/13 w1   0/13 w12   0/13 w13
+US03      16/17    9/17 w1   15/17 w1      11/17   15/17 w1   12/17 w1   15/17 w1
+US04   17/18 w1   11/18 w1      18/18   14/18 w1      17/18   14/18 w1   17/18 w1
+US05   16/17 w1   13/17 w1      17/17   15/17 w1      17/17   15/17 w1   16/17 w1
+US06   16/17 w1   13/17 w1      17/17   0/17 w17      16/17   16/17 w1   16/17 w1
+US07      17/18   11/18 w2   15/18 w1   12/18 w2   15/18 w1   12/18 w2   13/18 w2
+US08      17/18   12/18 w2   16/18 w1   14/18 w2   15/18 w1   14/18 w2   15/18 w2
+US10   16/17 w1      10/17      14/17      13/17      14/17      13/17      14/17
+US11   14/17 w2    9/17 w1   15/17 w1   11/17 w2   15/17 w1   11/17 w2   15/17 w1
+US12      15/16   11/16 w2   11/16 w5   14/16 w2   14/16 w2   14/16 w2   14/16 w2
+US13   16/17 w1      13/17      17/17      15/17      17/17      15/17      16/17
+US14        9/9        6/9     7/9 w2     7/9 w2     7/9 w1        9/9        9/9
+US15   17/18 w1      13/18   14/18 w1      16/18      18/18      16/18      18/18
+
+229 values, 14 documents
+method  accuracy  correct  wrong  silent wrong  missing  sec/doc
+AI         93.0%      213      9             5        7     13.5
+DOCT       61.6%      141     24             2       64    103.9
+DOCX       83.4%      191     25             1       13    121.8
+LAY        67.2%      154     42             1       33      0.5
+NEW        89.5%      205      9             0       15      1.1
+OLD        76.4%      175     24             1       30      0.4
+OLD_REMAPPED     84.3%      193     24             1       12      1.1

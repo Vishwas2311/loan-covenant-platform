@@ -101,6 +101,35 @@ export function explain(issue: string): Explained {
     case 'EBIT_ABOVE_EBITDA':
       return { severity: 'warn', key: 'EBITDA', what: 'EBIT is larger than EBITDA, which cannot be right.',
         todo: 'Check EBIT, depreciation and EBITDA.' };
+    case 'BALANCE_SHEET_DOES_NOT_BALANCE':
+      return { severity: 'warn', key: 'TOTAL_ASSETS', what: `The balance sheet does not balance as read (${detail}).`,
+        todo: 'One of the two totals was read from the wrong line or column; check both against the page.' };
+    case 'PART_ABOVE_TOTAL': {
+      const key = detail.split(' ')[0];
+      return { severity: 'warn', key, what: `${lineName(key)} is larger than total assets, which cannot be right.`,
+        todo: 'It was probably read from the wrong column (for example the group instead of the company); check it.' };
+    }
+    case 'PROFIT_DOES_NOT_ADD_UP':
+      return { severity: 'warn', key: 'PAT', what: 'Profit before tax less tax is far from profit after tax.',
+        todo: 'Check the three lines; one was probably misread (exceptional or discontinued items can explain a small gap).' };
+    case 'INCOME_DOES_NOT_ADD_UP':
+      return { severity: 'warn', key: 'TOTAL_INCOME', what: 'Revenue plus other income does not equal total income.',
+        todo: 'Check the three lines.' };
+    case 'CURRENT_ASSETS_TOO_SMALL':
+      return { severity: 'warn', key: 'CURRENT_ASSETS', what: 'Cash, inventory and receivables add up to more than current assets.',
+        todo: 'One of them, or current assets, was read from the wrong line or column.' };
+    case 'SCALE_JUMP': {
+      const m = /^(\w+) (\S+) against (\S+) for (\S+)/.exec(detail);
+      return m ? { severity: 'warn', key: m[1],
+        what: `${lineName(m[1])} is ${m[2]} crore; for the period ending ${m[4]} it was ${m[3]}: more than 20 times different.`,
+        todo: 'The unit was probably misread (lakhs, thousands or rupees taken as crore). Check the unit on the statement.' }
+        : { severity: 'warn', what: detail, todo: 'Check the unit.' };
+    }
+    case 'POSSIBLE_COVENANT_NOT_UNDERSTOOD':
+      return { severity: 'warn', what: 'This sentence reads like a financial covenant, but DPS did not recognise it.',
+        todo: 'Open the page. If it is a covenant, approve it (it is added as a covenant checked by a person) or add it on the CP; if not, reject it.' };
+    case 'MORE_POSSIBLE_COVENANTS':
+      return { severity: 'info', what: `${detail}.`, todo: 'Read the financial covenants section of the agreement.' };
     default:
       return { severity: 'info', what: issue, todo: 'Check this item.' };
   }

@@ -47,6 +47,7 @@ _CHANGES = re.compile(r"changes?\s+in\s+(operating\s+)?(assets|working\s+capital
 _BARE_BORROWINGS = re.compile(r"(\(?[ivx]+\)\s*)?(interest[- ]bearing\s+)?(loans\s+(and|&)\s+)?borrowings", re.I)
 _SECTIONS = [(re.compile(r"non[- ]current liabilities", re.I), "Long-term borrowings"),
              (re.compile(r"^(\(?[0-9ivxa-z]{1,4}[.)]\s*)?current liabilities", re.I), "Short-term borrowings")]
+_BLOCK = re.compile(r"^(\(?[0-9ivxa-z]{1,4}[.)]\s*)?(non[- ]current|current)\s+(assets|liabilities)\s*:?$", re.I)
 _GARBLE = re.compile(r"\(cid:\d+\)|[ĨǆƉǀďƋͿ]")
 # Text pages need this many word characters; fewer means a scan (same rule as ParserEngine).
 MIN_TEXT_CHARS = 40
@@ -330,6 +331,7 @@ def rows_from_words(pages: list[list[Word]], numbers: list[int] | None = None) -
         parsed: list[dict] = []
         section = ""
         changes = False  # inside "Changes in operating assets and liabilities" of a cash flow statement
+        total_for = ""  # the total an unlabelled figure stands for, after a "Current assets" heading
         for index, (line, ss) in enumerate(zip(lines, segs, strict=True)):
             if _date_line(line) or not any(s.amounts and not s.sentence for s in ss):
                 text = " ".join(w.text for w in line).strip()
@@ -358,6 +360,9 @@ def rows_from_words(pages: list[list[Word]], numbers: list[int] | None = None) -
                     parsed[-1]["open"] = False
                 elif any(rx.search(text) for rx, _ in _SECTIONS):
                     section = text
+                block = _BLOCK.match(text)
+                if block:
+                    total_for = f"Total {block.group(2).lower()} {block.group(3).lower()}"
                 if _CHANGES.search(text):
                     changes = True
                 elif re.search(r"investing|financing", text, re.I):
@@ -372,6 +377,12 @@ def rows_from_words(pages: list[list[Word]], numbers: list[int] | None = None) -
                     if c is not None and c not in vals:
                         vals[c] = _amount(a.text)
                 label = " ".join(w.text for w in s.label).strip(" .:-")
+                if not label and total_for:
+                    # Sri Lankan and many Indian statements print the block's total with no words beside it:
+                    # the first unlabelled figure under "Current Assets" is total current assets.
+                    label, total_for = total_for, ""
+                elif label.lower().startswith("total"):
+                    total_for = ""  # the block printed its own total
                 if re.match(r"(net\s+)?cash\s+(generated|provided|used|from|flows?)|net\s+cash", label, re.I):
                     changes = False
                 elif changes:

@@ -268,13 +268,16 @@ const SECTION_LABEL: Record<SpreadLine['section'], string> = {
 };
 
 /** C6: the full spread of a statement; a reviewer corrects or fills lines and saves them for Core. */
-export function SpreadReview({ documentId, canEdit, flagged, onPage }: {
+export function SpreadReview({ documentId, canEdit, flagged, onPage, likely }: {
   documentId: string; canEdit: boolean;
   /** Standard lines a check named ("SECOND_READER_DIFFERS: REVENUE ..."): highlighted for the reviewer. */
   flagged?: Set<string>;
   /** Opens the statement at the page a figure was read from. */
   onPage?: (page: number, label: string) => void;
+  /** For lines not found: an unmapped line on the statement that may be it. */
+  likely?: { key: string; label: string; value: number; page: number | null; cell: string | null }[];
 }) {
+  const likelyByKey = new Map((likely ?? []).map((x) => [x.key, x]));
   const qc = useQueryClient();
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [showEmpty, setShowEmpty] = useState(false);
@@ -310,7 +313,8 @@ export function SpreadReview({ documentId, canEdit, flagged, onPage }: {
         </Group>
       </Group>
       {(['PROFIT_AND_LOSS', 'BALANCE_SHEET', 'CASH_FLOW'] as const).map((section) => {
-        const rows = lines.filter((l) => l.section === section && (showEmpty || l.status !== 'UNMAPPED'));
+        const rows = lines.filter((l) => l.section === section
+          && (showEmpty || l.status !== 'UNMAPPED' || likelyByKey.has(l.standardKey)));
         if (rows.length === 0) {
           return null;
         }
@@ -325,6 +329,20 @@ export function SpreadReview({ documentId, canEdit, flagged, onPage }: {
                 <Table.Tr key={l.standardKey} bg={flagged?.has(l.standardKey) ? 'var(--mantine-color-yellow-light)' : undefined}>
                   <Table.Td>{l.standardLabel}
                     {flagged?.has(l.standardKey) && <Text size="xs" c="var(--text-warn)">Check this figure</Text>}
+                    {l.status === 'UNMAPPED' && likelyByKey.has(l.standardKey) && (() => {
+                      const x = likelyByKey.get(l.standardKey)!;
+                      return (
+                        <Group gap={6} mt={2}>
+                          <Text size="xs" c="var(--text-warn)">
+                            Not found by name. Possibly {x.page ? `page ${x.page}: ` : ''}“{x.label}” {x.value}
+                          </Text>
+                          {canEdit && (
+                            <Button size="compact-xs" variant="light"
+                              onClick={() => setEdits({ ...edits, [l.standardKey]: String(x.value) })}>Use this</Button>
+                          )}
+                        </Group>
+                      );
+                    })()}
                   </Table.Td>
                   <Table.Td>
                     {canEdit ? (

@@ -438,7 +438,8 @@ def test_statement_review_reasons_and_unit_are_stored_on_the_document(database):
     StatementProcessingFlow(deps).kickoff(inputs={"job_id": "j1", "document_id": doc_id})
     with database.session_factory() as db:
         review = _json.loads(db.get(Document, doc_id).review_json)
-    assert review == {"issues": ["LOW_OCR_QUALITY: scanned pages read at 95% confidence"], "unitScale": "lakh"}
+    assert review == {"issues": ["LOW_OCR_QUALITY: scanned pages read at 95% confidence"], "unitScale": "lakh",
+                      "likely": []}
 
 
 def test_a_condition_in_the_definitions_gives_way_to_the_covenant_itself():

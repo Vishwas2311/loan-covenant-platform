@@ -8,6 +8,7 @@ or become MANUAL custom candidates.
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import asdict, dataclass, field
 
@@ -120,9 +121,22 @@ def _info_proposal(term: Term) -> Proposal:
                     issues=list(term.issues), threshold_raw=term.threshold)
 
 
+def _candidate_proposal(term: Term) -> Proposal:
+    """A covenant-shaped sentence DPS did not understand: a person decides what it is (coverage.py)."""
+    # Stable across runs (unlike hash()), so a candidate a person already decided keeps its identity on reprocessing.
+    digest = hashlib.sha256(term.quote.encode()).hexdigest()[:10]
+    return Proposal(metric_raw=f"POSSIBLE_COVENANT:{term.page}:{digest}", category="CANDIDATE",
+                    covenant_master_id=None, name=term.name or "Possible covenant", expression=None,
+                    assessment_type="MANUAL", operator=None, threshold=None, unit=None, frequency=None, page=term.page,
+                    quote=term.quote, definition=None, confidence=term.confidence, method=term.method,
+                    issues=list(term.issues))
+
+
 def to_proposal(term: Term, masters_by_name: dict[str, CoreMaster]) -> Proposal:
     if term.category == "INFO":
         return _info_proposal(term)
+    if term.category == "CANDIDATE":
+        return _candidate_proposal(term)
     names, measure = LIBRARY.get(term.metric, ((), None))
     master = next((masters_by_name[_key(n)] for n in names if _key(n) in masters_by_name), None)
 
